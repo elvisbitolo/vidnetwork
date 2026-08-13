@@ -113,6 +113,57 @@
   cursor: not-allowed;
 }
 
+.transcribe {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  background: #ffffff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.transcribe:hover {
+  background: #eef2ff;
+}
+
+.transcribe:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transcript {
+  margin-top: 10px;
+}
+
+.transcriptSummary {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4f46e5;
+  cursor: pointer;
+  user-select: none;
+}
+
+.transcriptBody {
+  margin: 8px 0 0;
+  padding: 12px 14px;
+  background: #f7f7fb;
+  border: 1px solid #e6e6ef;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #3f3f4c;
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
 @media (max-width: 560px) {
   .container {
     padding: 32px 16px;

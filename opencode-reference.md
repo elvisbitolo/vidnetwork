@@ -121,3 +121,12 @@ Order matters: SECURITY → RELIABILITY → BILLING → OBSERVABILITY → ONBOAR
     removes the S3 object (`@aws-sdk/client-s3`) + Firestore doc, delete button
     on `/recordings`, audit entries. Firestore rules (`stripeEvents`/`auditLogs`
     locks) deployed to prod via `firebase deploy --only firestore:rules`.
+  - **Pass 4 (AI: transcription):** provider-agnostic STT service
+    (`src/lib/server/transcription.js`) — Deepgram (URL or S3 buffer, handles
+    large files) or OpenAI Whisper (≤25MB). Auto-triggered on egress completion
+    from the LiveKit webhook (fire-and-forget, guarded against duplicate runs),
+    manual owner retry via `POST /api/admin/recordings/[id]/transcribe`,
+    member transcript endpoint `GET /api/recordings/[id]/transcript`, transcript
+    viewer + Transcribe button on `/recordings`, audit + structured logs,
+    graceful no-op when `DEEPGRAM_API_KEY`/`OPENAI_API_KEY` unset (recordings
+    still work). Env vars documented in `.env.example`.

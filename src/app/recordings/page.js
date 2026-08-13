@@ -4,6 +4,7 @@ import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import Nav from "@/components/Nav";
 import DeleteRecording from "./DeleteRecording";
+import TranscribeButton from "./TranscribeButton";
 import styles from "./recordings.module.css";
 
 export const dynamic = "force-dynamic";
@@ -44,13 +45,23 @@ export default async function RecordingsPage() {
                       rec.startedAt?.toMillis ? rec.startedAt.toMillis() : rec.startedAt
                     ).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                     {rec.retentionDays ? ` · kept ${rec.retentionDays} days` : ""}
+                    {rec.transcriptionStatus ? ` · transcript: ${rec.transcriptionStatus}` : ""}
                   </p>
                   {rec.filepath && <p className={styles.cardPath}>{rec.filepath}</p>}
+                  {rec.transcript && (
+                    <details className={styles.transcript}>
+                      <summary className={styles.transcriptSummary}>View transcript</summary>
+                      <p className={styles.transcriptBody}>{rec.transcript}</p>
+                    </details>
+                  )}
                 </div>
                 {rec.status === "complete" && s3Host && (
                   <a className={styles.download} href={`${s3Host}/${rec.filepath}`} target="_blank" rel="noreferrer">
                     Download
                   </a>
+                )}
+                {userDoc?.role === "owner" && rec.status === "complete" && rec.transcriptionStatus !== "complete" && (
+                  <TranscribeButton id={rec.id} busyLabel="Transcribing…" />
                 )}
                 {userDoc?.role === "owner" && (
                   <DeleteRecording id={rec.id} disabled={rec.status === "active" || rec.status === "stopping"} />

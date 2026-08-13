@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { WebhookReceiver } from "livekit-server-sdk";
 import { adminDb } from "@/lib/firebase/admin";
+import { transcribeRecording } from "@/lib/server/transcription";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,15 @@ export async function POST(req) {
           retentionDays: data.retentionDays || 90,
           resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
         });
+        if (isComplete) {
+          transcribeRecording({
+            id: doc.id,
+            filepath: data.filepath,
+            resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
+            transcriptionStatus: data.transcriptionStatus,
+            transcribedAt: data.transcribedAt,
+          }).catch(() => {});
+        }
       }
     }
   }

@@ -350,6 +350,39 @@
   color: #ffffff;
 }
 
+/* ---------- Dashboard showcase ---------- */
+
+.dashboardSection {
+  padding: 0 0 96px;
+}
+
+.dashboardPreview {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.dashboardPreview::before {
+  content: "";
+  position: absolute;
+  inset: -5% -4% -12%;
+  background: radial-gradient(58% 52% at 50% 45%, rgba(79, 70, 229, 0.16), transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.dashboardImage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid #e6e6ef;
+  border-radius: 20px;
+  box-shadow: 0 40px 90px -40px rgba(79, 70, 229, 0.45);
+  background: #ffffff;
+}
+
 /* ---------- Value strip ---------- */
 
 .valueStrip {
@@ -944,6 +977,10 @@
 
   .section {
     padding: 64px 0;
+  }
+
+  .dashboardSection {
+    padding: 0 0 64px;
   }
 
   .valueInner {

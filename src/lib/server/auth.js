@@ -9,14 +9,30 @@ export async function getCurrentUser() {
   const sessionCookie = cookieStore.get(AUTH_COOKIE)?.value;
   if (!sessionCookie) return null;
 
+  let user;
   try {
-    return await adminAuth().verifySessionCookie(sessionCookie, true);
+    user = await adminAuth().verifySessionCookie(sessionCookie, true);
   } catch {
     return null;
   }
+
+  const doc = await adminDb().collection("users").doc(user.uid).get();
+  if (doc.exists && doc.data().suspended) {
+    return null;
+  }
+
+  return user;
 }
 
 export async function getUserDoc(uid) {
   const doc = await adminDb().collection("users").doc(uid).get();
   return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
+export function canModerate(userDoc) {
+  return ["owner", "moderator"].includes(userDoc?.role);
+}
+
+export function isOwner(userDoc) {
+  return userDoc?.role === "owner";
 }

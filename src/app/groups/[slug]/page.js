@@ -59,7 +59,11 @@ export default async function GroupPage({ params }) {
               <span className={styles.memberNames}> — {memberNames.join(", ")}</span>
             )}
           </p>
-          {!membership && (
+          {membership || userDoc?.role === "owner" ? (
+            <Link className={styles.groupChatLink} href={`/chat?group=${group.id}`}>
+              Group chat
+            </Link>
+          ) : (
             <p className={styles.notMember}>
               You&apos;re not a member yet — join to post in this group.{" "}
               <Link className={styles.link} href="/groups">Join from the groups page</Link>.

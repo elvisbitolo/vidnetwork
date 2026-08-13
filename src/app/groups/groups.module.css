@@ -198,6 +198,25 @@
   margin: 16px 0 0;
 }
 
+.groupChatLink {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  margin-top: 16px;
+  background: #4f46e5;
+  color: #ffffff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.groupChatLink:hover {
+  background: #4338ca;
+}
+
 .sectionTitle {
   font-size: 14px;
   font-weight: 700;

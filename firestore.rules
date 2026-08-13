@@ -10,6 +10,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    function isModerator() {
+      return isSignedIn()
+        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'moderator']);
+    }
+
     function isActiveSub() {
       let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
       return sub != null
@@ -54,19 +59,19 @@ service cloud.firestore {
     }
 
     match /posts/{postId} {
-      allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isOwner());
+      allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isModerator());
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'imageUrl', 'createdAt', 'groupId']);
-      allow update: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
-      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
+      allow update: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
+      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
 
       match /comments/{commentId} {
-        allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isOwner());
+        allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isModerator());
         allow create: if isSignedIn()
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt']);
-        allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
+        allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
       }
     }
 
@@ -122,6 +127,24 @@ service cloud.firestore {
 
     match /pushSubscriptions/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update, delete: if false;
+    }
+
+    match /conversations/{conversationId} {
+      allow read: if isSignedIn()
+        && resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create, update, delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+          && get(/databases/$(database)/documents/conversations/$(conversationId))
+              .data.participantIds.hasAny([request.auth.uid]);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /reports/{reportId} {
+      allow read: if isSignedIn() && isModerator();
       allow create, update, delete: if false;
     }
   }

@@ -32,6 +32,54 @@
   font-size: 15px;
 }
 
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search {
+  width: 100%;
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #17171c;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search:focus {
+  border-color: #4f46e5;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filterBtn {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #d8d8e3;
+  background: #ffffff;
+  color: #6b6b7b;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filterActive {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

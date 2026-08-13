@@ -308,6 +308,51 @@
   color: #ffffff;
 }
 
+.report {
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  color: #6b6b7b;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.report:hover:not(:disabled) {
+  background: #f5f5ff;
+  color: #4f46e5;
+}
+
+.report:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reportSmall {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #9b9bab;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.reportSmall:hover:not(:disabled) {
+  color: #4f46e5;
+  background: #f0f0f7;
+}
+
+.reportSmall:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .postText {
   font-size: 15px;
   line-height: 1.6;

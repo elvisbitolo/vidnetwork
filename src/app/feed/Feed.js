@@ -30,8 +30,7 @@ function timeAgo(ts) {
   return new Date(millis).toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function LikeButton({ postId, likes, uid, disabled }) {
-  const [count, setCount] = useState(Object.keys(likes || {}).length);
+function LikeButton({ postId, likes, uid, disabled }) {  const [count, setCount] = useState(Object.keys(likes || {}).length);
   const [liked, setLiked] = useState(!!likes?.[uid]);
   const [busy, setBusy] = useState(false);
 
@@ -61,7 +60,43 @@ function LikeButton({ postId, likes, uid, disabled }) {
   );
 }
 
-function CommentList({ postId, uid, role }) {
+function ReportButton({ type, targetId, commentPostId, small }) {
+  const [busy, setBusy] = useState(false);
+
+  async function handleReport() {
+    const reason = window.prompt("What's the issue with this content? (e.g. spam, harassment, misinformation)");
+    if (!reason || !reason.trim()) return;
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, targetId, commentPostId, reason: reason.trim() }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || "Report failed");
+      alert("Thanks — a moderator will review this.");
+    } catch (err) {
+      console.error(err);
+      alert("Report failed. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      className={small ? styles.reportSmall : styles.report}
+      onClick={handleReport}
+      disabled={busy}
+      title="Report this content"
+    >
+      Report
+    </button>
+  );
+}
+
+function CommentList({ postId, uid, canModerate }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -110,7 +145,7 @@ function CommentList({ postId, uid, role }) {
               <div className={styles.commentHeader}>
                 <span className={styles.commentName}>{c.authorName}</span>
                 <span className={styles.commentTime}>{timeAgo(c.createdAt)}</span>
-                {(c.authorId === uid || role === "owner") && (
+                {(c.authorId === uid || canModerate) && (
                   <button
                     className={styles.deleteSmall}
                     onClick={() => handleDelete(c.id)}
@@ -118,6 +153,9 @@ function CommentList({ postId, uid, role }) {
                   >
                     ×
                   </button>
+                )}
+                {c.authorId !== uid && (
+                  <ReportButton type="comment" targetId={c.id} commentPostId={postId} small />
                 )}
               </div>
               <p className={styles.commentText}>{c.text}</p>
@@ -142,6 +180,7 @@ function CommentList({ postId, uid, role }) {
 }
 
 export default function Feed({ uid, userName, role, groupId }) {
+  const canModerate = role === "owner" || role === "moderator";
   const [posts, setPosts] = useState([]);
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
@@ -329,7 +368,7 @@ export default function Feed({ uid, userName, role, groupId }) {
                   </p>
                   <p className={styles.postTime}>{timeAgo(post.createdAt)}</p>
                 </div>
-                {role === "owner" && (
+                {canModerate && (
                   <button
                     className={styles.pinBtn}
                     onClick={() => handlePin(post.id)}
@@ -338,7 +377,7 @@ export default function Feed({ uid, userName, role, groupId }) {
                     {post.pinned ? "Unpin" : "Pin"}
                   </button>
                 )}
-                {(post.authorId === uid || role === "owner") && (
+                {(post.authorId === uid || canModerate) && (
                   <button
                     className={styles.deletePost}
                     onClick={() => handleDelete(post.id)}
@@ -346,6 +385,9 @@ export default function Feed({ uid, userName, role, groupId }) {
                   >
                     Delete
                   </button>
+                )}
+                {post.authorId !== uid && (
+                  <ReportButton type="post" targetId={post.id} />
                 )}
               </div>
               {post.text && <p className={styles.postText}>{post.text}</p>}
@@ -355,7 +397,7 @@ export default function Feed({ uid, userName, role, groupId }) {
               <div className={styles.postActions}>
                 <LikeButton postId={post.id} likes={post.likes} uid={uid} />
               </div>
-              <CommentList postId={post.id} uid={uid} role={role} />
+              <CommentList postId={post.id} uid={uid} canModerate={canModerate} />
             </article>
           ))}
         </div>

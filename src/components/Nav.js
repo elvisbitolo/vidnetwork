@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/courses", label: "Courses" },
   { href: "/groups", label: "Groups" },
   { href: "/feed", label: "Feed" },
+  { href: "/chat", label: "Chat" },
   { href: "/members", label: "Members" },
   { href: "/events", label: "Events" },
 ];
@@ -26,6 +27,13 @@ export default function Nav({ role }) {
             <>
               <Link className={styles.link} href="/recordings">Recordings</Link>
               <Link className={styles.link} href="/admin/rooms">Manage</Link>
+              <Link className={styles.link} href="/admin/moderation">Moderation</Link>
+            </>
+          )}
+          {role === "moderator" && (
+            <>
+              <Link className={styles.link} href="/recordings">Recordings</Link>
+              <Link className={styles.link} href="/admin/moderation">Moderation</Link>
             </>
           )}
           <NotificationBell />

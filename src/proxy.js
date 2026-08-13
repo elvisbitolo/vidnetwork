@@ -26,5 +26,6 @@ export const config = {
     "/members/:path*",
     "/feed/:path*",
     "/events/:path*",
+    "/chat/:path*",
   ],
 };

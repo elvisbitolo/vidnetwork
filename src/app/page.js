@@ -123,38 +123,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.dashboardSection} aria-labelledby="dashboard-title">
-        <div className={styles.wrap}>
-          <Reveal>
-            <div className={styles.sectionHead}>
-              <span className={styles.eyebrow}>
-                <span className={styles.eyebrowDot} aria-hidden="true" />
-                The platform
-              </span>
-              <h2 id="dashboard-title" className={styles.sectionTitle}>
-                Everything you need, in one place.
-              </h2>
-              <p className={styles.sectionSub}>
-                Live rooms, courses, events, community and more — all connected in one
-                experience.
-              </p>
-            </div>
-          </Reveal>
-          <Reveal>
-            <div className={styles.dashboardPreview}>
-              <Image
-                src="/images/vidnetwork-dashboard.png"
-                alt="VidNetwork platform dashboard showing live rooms, courses, events and community features"
-                width={1536}
-                height={1024}
-                sizes="(max-width: 560px) 100vw, (max-width: 900px) 92vw, 1100px"
-                className={styles.dashboardImage}
-              />
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       <section className={styles.valueStrip} aria-label="Platform highlights">
         <div className={styles.wrap}>
           <div className={styles.valueInner}>

@@ -35,7 +35,16 @@ export async function getOrCreateGroupChat(uid, groupId) {
     .limit(1)
     .get();
   if (!snap.empty) {
-    return { id: snap.docs[0].id, ...snap.docs[0].data() };
+    const doc = snap.docs[0];
+    const data = doc.data();
+    if (!data.participantIds.includes(uid)) {
+      await doc.ref.update({
+        participantIds: [...new Set([...data.participantIds, uid])],
+        updatedAt: new Date(),
+      });
+      return { id: doc.id, ...data, participantIds: [...data.participantIds, uid] };
+    }
+    return { id: doc.id, ...data };
   }
   const groupSnap = await adminDb().collection("groups").doc(groupId).get();
   if (!groupSnap.exists) return null;
@@ -57,6 +66,22 @@ export async function getOrCreateGroupChat(uid, groupId) {
     lastMessageAt: null,
   });
   return { id: ref.id, type: "group", name: group.name, groupId };
+}
+
+export async function syncGroupChatParticipants(groupId, participantIds) {
+  const snap = await adminDb()
+    .collection("conversations")
+    .where("type", "==", "group")
+    .where("groupId", "==", groupId)
+    .limit(1)
+    .get();
+  if (snap.empty) return;
+  const doc = snap.docs[0];
+  const data = doc.data();
+  const next = [...new Set(participantIds)];
+  if (JSON.stringify(data.participantIds) !== JSON.stringify(next)) {
+    await doc.ref.update({ participantIds: next, updatedAt: new Date() });
+  }
 }
 
 export async function listConversations(uid) {

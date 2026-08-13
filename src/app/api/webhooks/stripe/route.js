@@ -60,10 +60,14 @@ export async function POST(req) {
         const subscription = event.data.object;
         const { uid } = await uidFromSubscription(subscription.id);
         const plan = subscription.items.data[0]?.price?.recurring?.interval === "year" ? "yearly" : "monthly";
+        const existingDoc = await adminDb().collection("subscriptions").doc(uid).get();
+        const tier = subscription.metadata?.tier
+          || existingDoc.data()?.tier
+          || "standard";
         await adminDb().collection("subscriptions").doc(uid).set({
           status: subscription.status,
           plan,
-          tier: subscription.metadata?.tier || "standard",
+          tier,
           stripeSubscriptionId: subscription.id,
           currentPeriodEnd: subscription.current_period_end
             ? new Date(subscription.current_period_end * 1000)

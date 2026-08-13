@@ -68,7 +68,10 @@ export async function POST(req) {
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { uid: user.uid, tier },
-    subscription_data: subscriptionData,
+    subscription_data: {
+      ...subscriptionData,
+      metadata: { tier },
+    },
     payment_method_collection: isFirstSubscription ? "if_required" : "always",
     payment_method_types: ["card", "paypal"],
     success_url: `${origin}/account?checkout=success`,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { addMessage } from "@/lib/server/chat";
+import { addMessage, getConversation } from "@/lib/server/chat";
 
 export async function GET(req, { params }) {
   const { id: conversationId } = await params;
@@ -12,6 +12,10 @@ export async function GET(req, { params }) {
   const sub = await getSubscription(user.uid);
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
+  }
+  const conv = await getConversation(conversationId, user.uid);
+  if (!conv) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
   const { listMessages } = await import("@/lib/server/chat");
   const messages = await listMessages(conversationId);

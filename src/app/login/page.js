@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { auth } from "@/lib/firebase/client";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { loginWithEmail, loginWithGoogle } from "@/lib/client-auth";
 import GoogleIcon from "@/components/GoogleIcon";

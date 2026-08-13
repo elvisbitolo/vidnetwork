@@ -23,12 +23,12 @@ export default async function RoomsPage() {
   const groupIds = [...new Set(activeRooms.map((room) => room.groupId).filter(Boolean))];
   const groupsById = {};
   if (groupIds.length > 0) {
-    const snap = await adminDb()
-      .collection("groups")
-      .where("__name__", "in", groupIds)
-      .get();
-    snap.forEach((doc) => {
-      groupsById[doc.id] = { id: doc.id, name: doc.data().name, slug: doc.data().slug };
+    const groupRefs = groupIds.map((id) => adminDb().collection("groups").doc(id));
+    const groupSnaps = await adminDb().getAll(...groupRefs);
+    groupSnaps.forEach((doc) => {
+      if (doc.exists) {
+        groupsById[doc.id] = { id: doc.id, name: doc.data().name, slug: doc.data().slug };
+      }
     });
   }
 

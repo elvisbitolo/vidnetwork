@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { syncGroupChatParticipants } from "@/lib/server/chat";
 
 export async function POST(req, { params }) {
   const { id: groupId } = await params;
@@ -26,6 +27,14 @@ export async function POST(req, { params }) {
 
   if (joined) {
     await ref.delete();
+    const memberSnap = await adminDb()
+      .collection("groupMembers")
+      .where("groupId", "==", groupId)
+      .get();
+    await syncGroupChatParticipants(
+      groupId,
+      memberSnap.docs.map((d) => d.data().userId)
+    );
   } else {
     await ref.set({
       groupId,
@@ -34,6 +43,14 @@ export async function POST(req, { params }) {
       role: "member",
       joinedAt: new Date(),
     });
+    const memberSnap = await adminDb()
+      .collection("groupMembers")
+      .where("groupId", "==", groupId)
+      .get();
+    await syncGroupChatParticipants(
+      groupId,
+      memberSnap.docs.map((d) => d.data().userId)
+    );
   }
   return NextResponse.json({ joined: !joined });
 }

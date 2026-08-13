@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner() {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    function isActiveSub() {
+      let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
+      return sub != null
+        && (sub.status == 'active' || sub.status == 'trialing')
+        && (sub.currentPeriodEnd == null || sub.currentPeriodEnd > request.time);
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isActiveSub() || isOwner());
+      allow create: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'createdAt'])
+        && request.resource.data.role == 'member';
+      allow update: if isSignedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'bio', 'headline', 'location', 'notifications'])
+        || isOwner();
+      allow delete: if isOwner();
+    }
+
+    match /subscriptions/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create, update, delete: if false;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner();
+      allow update, delete: if isOwner();
+    }
+
+    match /events/{eventId} {
+      allow read: if isSignedIn() && (isActiveSub() || isOwner());
+      allow create, update, delete: if isOwner();
+    }
+
+    match /rsvps/{id} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isActiveSub() || isOwner());
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['eventId', 'userId', 'name', 'createdAt']);
+      allow update: if false;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /posts/{postId} {
+      allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isOwner());
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'imageUrl', 'createdAt', 'groupId']);
+      allow update: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
+      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
+
+      match /comments/{commentId} {
+        allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isOwner());
+        allow create: if isSignedIn()
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt']);
+        allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isOwner());
+      }
+    }
+
+    match /roomEvents/{eventId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isOwner());
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['userId', 'roomId', 'roomName', 'joinedAt']);
+      allow update, delete: if false;
+    }
+
+    match /courses/{courseId} {
+      allow read: if isSignedIn() && (isOwner() || (isActiveSub() && resource.data.status == 'published'));
+      allow create: if isOwner();
+      allow update, delete: if isOwner();
+    }
+
+    match /modules/{moduleId} {
+      allow read: if isSignedIn() && (isOwner() || isActiveSub());
+      allow create, update, delete: if isOwner();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if isSignedIn() && (isOwner() || isActiveSub());
+      allow create, update, delete: if isOwner();
+    }
+
+    match /progress/{id} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /groups/{groupId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner();
+      allow update, delete: if isOwner();
+    }
+
+    match /groupMembers/{id} {
+      allow read: if isSignedIn() && (isActiveSub() || isOwner() || resource.data.userId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    match /notifications/{id} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /recordings/{id} {
+      allow read: if isSignedIn() && (isOwner() || isActiveSub());
+      allow create, update, delete: if false;
+    }
+
+    match /pushSubscriptions/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update, delete: if false;
+    }
+  }
+}

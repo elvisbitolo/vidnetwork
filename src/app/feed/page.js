@@ -1,0 +1,32 @@
+import { redirect } from "next/navigation";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import Nav from "@/components/Nav";
+import Feed from "./Feed";
+import styles from "./feed.module.css";
+
+export const dynamic = "force-dynamic";
+
+export default async function FeedPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  const userDoc = await getUserDoc(user.uid);
+  const sub = await getSubscription(user.uid);
+  if (!isActiveSub(sub)) redirect("/pricing");
+
+  return (
+    <main className={styles.page}>
+      <Nav role={userDoc?.role} />
+      <div className={styles.container}>
+        <h1 className={styles.title}>Feed</h1>
+        <p className={styles.subtitle}>Conversations between video sessions.</p>
+        <Feed
+          uid={user.uid}
+          userName={userDoc?.name || user.name || "Member"}
+          role={userDoc?.role || "member"}
+        />
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import { adminDb } from "@/lib/firebase/admin";
+import { sendEmail } from "@/lib/server/email";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+export async function GET(req) {
+  const auth = req.headers.get("authorization");
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  const snap = await adminDb()
+    .collection("events")
+    .where("startTime", ">=", now)
+    .where("startTime", "<=", windowEnd)
+    .get();
+
+  let sent = 0;
+  for (const doc of snap.docs) {
+    const event = doc.data();
+    const start = new Date(event.startTime.toMillis ? event.startTime.toMillis() : event.startTime);
+    const hoursUntil = (start.getTime() - now.getTime()) / (60 * 60 * 1000);
+
+    const rsvpSnap = await adminDb().collection("rsvps").where("eventId", "==", doc.id).get();
+    for (const rsvpDoc of rsvpSnap.docs) {
+      const rsvp = rsvpDoc.data();
+      if (rsvp.email && rsvp.reminded !== true) {
+        await sendEmail({
+          to: rsvp.email,
+          subject: `Reminder: "${event.title}" starts soon`,
+          text:
+            `You're going to "${event.title}" — it starts in ${Math.round(hoursUntil)} hour(s) at ` +
+            `${start.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.` +
+            (event.roomSlug ? `\n\nJoin the room: ${process.env.NEXT_PUBLIC_APP_URL || ""}/rooms/${event.roomSlug}` : ""),
+        }).catch(() => {});
+        await rsvpDoc.ref.update({ reminded: true });
+        sent++;
+      }
+    }
+  }
+
+  return NextResponse.json({ sent });
+}

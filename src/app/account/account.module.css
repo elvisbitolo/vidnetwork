@@ -1,0 +1,296 @@
+.page {
+  min-height: 100vh;
+  background: #fafafc;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0;
+}
+
+.logout {
+  height: 40px;
+  padding: 0 18px;
+  background: #ffffff;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344a;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.logout:hover {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.manage {
+  height: 44px;
+  width: 100%;
+  margin-top: 8px;
+  background: #ffffff;
+  border: 1px solid #4f46e5;
+  color: #4f46e5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.manage:hover:not(:disabled) {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.manage:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.card {
+  margin-top: 28px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.banner {
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 16px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f5;
+  font-size: 14px;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  color: #6b6b7b;
+}
+
+.value {
+  color: #17171c;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badgeActive {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badgeInactive {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.link {
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.checklistProgress {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b7b;
+  margin: 0 0 12px;
+}
+
+.progressTrack {
+  height: 8px;
+  background: #f0f0f5;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progressFill {
+  height: 100%;
+  background: #4f46e5;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #34344a;
+}
+
+.checkDone .checkLabel {
+  color: #9b9bab;
+  text-decoration: line-through;
+}
+
+.checkMark {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d8d8e3;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9b9bab;
+}
+
+.checkDone .checkMark {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.checkLabel {
+  flex: 1;
+}
+
+.checkCta {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.checkCta:hover {
+  text-decoration: underline;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #34344a;
+  margin-bottom: 6px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.formError {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.formSaved {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 28px 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}

@@ -1,0 +1,127 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e6e6ef;
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 800;
+  color: #17171c;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.links::-webkit-scrollbar {
+  display: none;
+}
+
+.link {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344a;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.link:hover {
+  background: #f0f0f5;
+  color: #4f46e5;
+}
+
+.account {
+  margin-left: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4f46e5;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.account:hover {
+  background: #4338ca;
+}
+
+.bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  margin-left: 4px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.bell:hover {
+  background: #f0f0f5;
+}
+
+.bellIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.bellBadge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+@media (max-width: 520px) {
+  .inner {
+    padding: 0 12px;
+  }
+
+  .brand {
+    display: none;
+  }
+
+  .links {
+    flex: 1;
+    justify-content: space-between;
+  }
+}

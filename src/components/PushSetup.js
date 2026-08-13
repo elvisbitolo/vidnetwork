@@ -1,0 +1,55 @@
+"use client";
+
+import { useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase/client";
+
+export default function PushSetup() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) return;
+
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      if (Notification.permission === "default") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
+      }
+      if (Notification.permission !== "granted") return;
+
+      try {
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        let subscription = await reg.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(
+              process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+            ),
+          });
+        }
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subscription }),
+        });
+      } catch {
+        // Push setup is best-effort; never block the app.
+      }
+    });
+    return unsub;
+  }, []);
+
+  return null;
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}

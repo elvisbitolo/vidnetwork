@@ -1,0 +1,81 @@
+import { NextResponse } from "next/server";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { adminDb } from "@/lib/firebase/admin";
+import { getCourse } from "@/lib/server/courses";
+
+export async function GET(req, { params }) {
+  const { id } = await params;
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  const course = await getCourse(id);
+  if (!course) {
+    return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+  const userDoc = await getUserDoc(user.uid);
+  if (course.status !== "published" && userDoc?.role !== "owner") {
+    return NextResponse.json({ error: "Course not published" }, { status: 404 });
+  }
+  return NextResponse.json({ course });
+}
+
+export async function PATCH(req, { params }) {
+  const { id } = await params;
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  const userDoc = await getUserDoc(user.uid);
+  if (userDoc?.role !== "owner") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const course = await getCourse(id);
+  if (!course) {
+    return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+
+  const { title, description, status, requiredTier } = await req.json();
+  const patch = {};
+  if (title !== undefined) patch.title = String(title);
+  if (description !== undefined) patch.description = String(description);
+  if (requiredTier !== undefined) {
+    if (!["standard", "premium"].includes(requiredTier)) {
+      return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
+    }
+    patch.requiredTier = requiredTier;
+  }
+  if (status !== undefined) {
+    if (!["draft", "published"].includes(status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+    patch.status = status;
+  }
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  }
+  patch.updatedAt = new Date();
+  await adminDb().collection("courses").doc(id).update(patch);
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req, { params }) {
+  const { id } = await params;
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  const userDoc = await getUserDoc(user.uid);
+  if (userDoc?.role !== "owner") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const modulesSnap = await adminDb().collection("modules").where("courseId", "==", id).get();
+  for (const mod of modulesSnap.docs) {
+    const lessonsSnap = await adminDb().collection("lessons").where("moduleId", "==", mod.id).get();
+    for (const lesson of lessonsSnap.docs) await lesson.ref.delete();
+    await mod.ref.delete();
+  }
+  await adminDb().collection("courses").doc(id).delete();
+  return NextResponse.json({ ok: true });
+}

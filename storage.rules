@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isActiveSub() {
+      let sub = get(/databases/(default)/documents/subscriptions/$(request.auth.uid)).data;
+      return sub != null
+        && (sub.status == 'active' || sub.status == 'trialing')
+        && (sub.currentPeriodEnd == null || sub.currentPeriodEnd > request.time);
+    }
+
+    function isOwner() {
+      return isSignedIn()
+        && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    match /posts/{postId}/{fileName} {
+      allow read: if isSignedIn() && isActiveSub();
+      allow create, update: if isSignedIn() && isActiveSub()
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isSignedIn()
+        && (resource.metadata.uid == request.auth.uid || isOwner());
+    }
+
+    match /lessons/{lessonId}/{fileName} {
+      allow read: if isSignedIn() && isActiveSub();
+      allow create, update: if isOwner()
+        && request.resource.contentType.matches('video/.*|application/pdf');
+      allow delete: if isOwner();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

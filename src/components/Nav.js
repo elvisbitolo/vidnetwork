@@ -1,0 +1,37 @@
+"use client";
+
+import Link from "next/link";
+import NotificationBell from "./NotificationBell";
+import styles from "./Nav.module.css";
+
+const LINKS = [
+  { href: "/rooms", label: "Rooms" },
+  { href: "/courses", label: "Courses" },
+  { href: "/groups", label: "Groups" },
+  { href: "/feed", label: "Feed" },
+  { href: "/members", label: "Members" },
+  { href: "/events", label: "Events" },
+];
+
+export default function Nav({ role }) {
+  return (
+    <nav className={styles.nav}>
+      <div className={styles.inner}>
+        <Link className={styles.brand} href="/account">Community</Link>
+        <div className={styles.links}>
+          {LINKS.map((link) => (
+            <Link key={link.href} className={styles.link} href={link.href}>{link.label}</Link>
+          ))}
+          {role === "owner" && (
+            <>
+              <Link className={styles.link} href="/recordings">Recordings</Link>
+              <Link className={styles.link} href="/admin/rooms">Manage</Link>
+            </>
+          )}
+          <NotificationBell />
+          <Link className={styles.account} href="/account">Account</Link>
+        </div>
+      </div>
+    </nav>
+  );
+}

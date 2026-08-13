@@ -1,0 +1,193 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
+import { auth, db } from "@/lib/firebase/client";
+import styles from "./events.module.css";
+
+function getNow() {
+  return Date.now();
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export default function EventsBoard({ events, uid, userName }) {
+  const [rsvpData, setRsvpData] = useState({});
+  const [busyId, setBusyId] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
+        window.location.assign("/login");
+      }
+    });
+    const unsubs = [];
+    for (const event of events) {
+      const q = query(
+        collection(db, "rsvps"),
+        where("eventId", "==", event.id),
+        where("occurrenceId", "==", event.occurrenceId || "")
+      );
+      unsubs.push(
+        onSnapshot(q, (snap) => {
+          const attendees = snap.docs.map((d) => d.data());
+          setRsvpData((prev) => ({
+            ...prev,
+            [event.occurrenceId || event.id]: {
+              attendees,
+              mine: attendees.some((a) => a.userId === uid),
+            },
+          }));
+        })
+      );
+    }
+    return () => {
+      unsubAuth();
+      unsubs.forEach((u) => u());
+    };
+  }, [events, uid]);
+
+  async function handleRsvp(eventId, occurrenceId) {
+    if (!uid) return;
+    setBusyId(`${occurrenceId || eventId}`);
+    try {
+      const res = await fetch("/api/rsvps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, occurrenceId: occurrenceId || "" }),
+      });
+      if (res.status === 409) {
+        const data = await res.json();
+        setError(data.error || "This event is full.");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "RSVP failed");
+        return;
+      }
+      setError("");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  const now = getNow();
+  const upcoming = events.filter((e) => new Date(e.startTime).getTime() > now);
+  const past = events.filter((e) => new Date(e.startTime).getTime() <= now);
+
+  function renderEvent(event) {
+    const key = event.occurrenceId || event.id;
+    const data = rsvpData[key];
+    const attendees = data?.attendees || [];
+    const mine = data?.mine || false;
+    const count = attendees.length;
+    const isLive = new Date(event.startTime).getTime() <= now;
+    const atCapacity = event.capacity > 0 && count >= event.capacity;
+    const joinDisabled = !!busyId || (atCapacity && !mine);
+
+    return (
+      <div key={key} className={styles.eventCard}>
+        <div className={styles.eventDate}>
+          <span className={styles.eventDay}>
+            {new Date(event.startTime).toLocaleDateString([], { month: "short", day: "numeric" })}
+          </span>
+          <span className={styles.eventTime}>
+            {new Date(event.startTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+          </span>
+          {isLive ? (
+            <span className={`${styles.tag} ${styles.tagLive}`}>Live</span>
+          ) : (
+            <span className={`${styles.tag} ${styles.tagUpcoming}`}>Upcoming</span>
+          )}
+          {event.occurrenceIndex > 0 && (
+            <span className={`${styles.tag} ${styles.tagRepeat}`}>
+              Recurring #{event.occurrenceIndex + 1}
+            </span>
+          )}
+        </div>
+        <div className={styles.eventBody}>
+          <h2 className={styles.eventTitle}>{event.title}</h2>
+          {event.description && <p className={styles.eventDesc}>{event.description}</p>}
+          <p className={styles.eventMeta}>
+            {formatDate(event.startTime)}
+            {event.endTime && <> · until {new Date(event.endTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</>}
+            {event.roomSlug && <> · room open</>}
+          </p>
+          {attendees.length > 0 && (
+            <p className={styles.attendees}>
+              {count} {count === 1 ? "member" : "members"} going
+              {event.capacity > 0 && (
+                <span className={styles.capacity}> of {event.capacity}</span>
+              )}
+              {attendees.length <= 6 && (
+                <span className={styles.attendeeNames}>
+                  {" — "}{attendees.map((a) => a.name).join(", ")}
+                </span>
+              )}
+            </p>
+          )}
+          {atCapacity && !mine && (
+            <p className={styles.capacityFull}>This event is full.</p>
+          )}
+          <div className={styles.actions}>
+            <button
+              className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+              onClick={() => handleRsvp(event.id, event.occurrenceId)}
+              disabled={joinDisabled}
+            >
+              {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+            </button>
+            <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
+              Add to calendar
+            </a>
+            {event.roomSlug && (
+              <Link className={styles.join} href={`/rooms/${event.roomSlug}`}>Join the room</Link>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {error && <p className={styles.error}>{error}</p>}
+      {upcoming.length === 0 && past.length === 0 ? (
+        <p className={styles.empty}>No events scheduled yet — check back soon.</p>
+      ) : (
+        <>
+          {upcoming.length > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Upcoming</h2>
+              <div className={styles.list}>{upcoming.map(renderEvent)}</div>
+            </section>
+          )}
+          {past.length > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>Past</h2>
+              <div className={styles.list}>{past.map(renderEvent)}</div>
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

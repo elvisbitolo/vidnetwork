@@ -6,6 +6,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid #e6e6ef;
+  box-shadow: 0 10px 30px -32px rgba(23, 23, 28, 0.4);
 }
 
 .inner {

@@ -41,6 +41,7 @@ export default function PricingPage() {
   const [billing, setBilling] = useState("monthly");
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function PricingPage() {
 
   async function handleSubscribe(tier) {
     setError("");
+    setNotice("");
     setBusy(tier);
     try {
       const res = await fetch("/api/stripe/checkout", {
@@ -63,7 +65,18 @@ export default function PricingPage() {
       }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout failed");
-      window.location.assign(data.url);
+      if (data.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      if (data.switched) {
+        setNotice(
+          data.unchanged
+            ? `You're already on ${tier === "standard" ? "Standard" : "Premium"} (${billing}).`
+            : `Your membership has been updated to ${tier === "standard" ? "Standard" : "Premium"} (${billing}).`
+        );
+        return;
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,6 +106,7 @@ export default function PricingPage() {
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
+        {notice && <p className={styles.notice}>{notice}</p>}
 
         <div className={styles.grid}>
           {TIERS.map((tier) => (

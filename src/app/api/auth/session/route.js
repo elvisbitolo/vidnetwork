@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { AUTH_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/server/auth";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { logError } from "@/lib/server/log";
 
 export async function POST(req) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const limited = rateLimitGuard(`session-ip:${ip}`, { limit: 30 });
+  if (limited) return limited;
+
   try {
     const body = await req.json();
     const { idToken, name } = body;
@@ -38,7 +44,7 @@ export async function POST(req) {
     });
     return res;
   } catch (err) {
-    console.error("Session exchange failed:", err.message);
+    logError("auth.session_exchange_failed", { error: err.message });
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 }

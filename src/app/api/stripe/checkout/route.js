@@ -4,11 +4,14 @@ import { getStripe } from "@/lib/server/stripe";
 import { TIERS, priceIdFor } from "@/lib/server/plans";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { planChange, buildSubscriptionDoc } from "@/lib/server/billing";
 
 const ALLOWED_PLANS = {
   monthly: "MONTHLY",
   yearly: "YEARLY",
 };
+
+const ACTIVE_STATUSES = ["active", "trialing", "past_due"];
 
 export async function POST(req) {
   const auth = await requireUser();
@@ -53,12 +56,62 @@ export async function POST(req) {
     await adminDb().collection("users").doc(auth.user.uid).update({ stripeCustomerId: customerId });
   }
 
-  const existing = await stripe.subscriptions.list({
+  const allSubs = await stripe.subscriptions.list({
     customer: customerId,
     status: "all",
     limit: 1,
   });
-  const isFirstSubscription = existing.data.length === 0;
+  const isFirstSubscription = allSubs.data.length === 0;
+
+  const activeSubs = await stripe.subscriptions.list({
+    customer: customerId,
+    status: ACTIVE_STATUSES.join(","),
+    limit: 1,
+  });
+  const activeSub = activeSubs.data[0];
+
+  if (activeSub) {
+    const currentPriceId = activeSub.items.data[0]?.price?.id;
+    const action = planChange({
+      currentStatus: activeSub.status,
+      currentPriceId,
+      requestedPriceId: priceId,
+    });
+
+    if (action === "none") {
+      return NextResponse.json({ switched: true, tier, unchanged: true });
+    }
+
+    await stripe.subscriptions.update(activeSub.id, {
+      items: [{ id: activeSub.items.data[0].id, price: priceId }],
+      metadata: { tier },
+      proration_behavior: "create_prorations",
+    });
+
+    const customer = await stripe.customers.retrieve(customerId);
+    await adminDb().collection("subscriptions").doc(auth.user.uid).set(
+      buildSubscriptionDoc({
+        subscription: {
+          ...activeSub,
+          metadata: { tier },
+          items: { data: [{ price: { id: priceId, recurring: { interval: plan === "yearly" ? "year" : "month" } } }] },
+        },
+        customer,
+        tier,
+      })
+    );
+
+    await adminDb().collection("auditLogs").add({
+      actorId: auth.user.uid,
+      actorName: auth.userDoc?.name || auth.user.email || "",
+      action: "billing.plan_changed",
+      targetId: activeSub.id,
+      metadata: { fromPrice: currentPriceId, toPrice: priceId, tier },
+      createdAt: new Date(),
+    });
+
+    return NextResponse.json({ switched: true, tier });
+  }
 
   const subscriptionData = isFirstSubscription
     ? {
@@ -84,5 +137,5 @@ export async function POST(req) {
     cancel_url: `${origin}/pricing`,
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ url: session.url, plan });
 }

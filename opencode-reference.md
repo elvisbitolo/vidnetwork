@@ -110,3 +110,14 @@ Order matters: SECURITY → RELIABILITY → BILLING → OBSERVABILITY → ONBOAR
     Refactored remaining owner/moderator routes (rooms, events, courses, groups,
     admin members) onto the central `requireUser/requireOwner/requireModerator`
     guards.
+  - **Pass 3 (P0 fixes + observability):** fixed tier-switch double-billing —
+    existing active subs are now switched in place via `subscriptions.update`
+    (prorated) instead of creating a second subscription; `planChange()` helper
+    tested; pricing page + account page reflect tier/switch state. Rate limits
+    added to auth/session (per-IP), push/send, livekit/recording; those routes
+    moved to `requireOwner`. Added `log.js` structured JSON logging (webhook +
+    session errors). Recording lifecycle: `visibility`/`retentionDays` metadata
+    on start/finalize, owner DELETE endpoint `/api/admin/recordings/[id]` that
+    removes the S3 object (`@aws-sdk/client-s3`) + Firestore doc, delete button
+    on `/recordings`, audit entries. Firestore rules (`stripeEvents`/`auditLogs`
+    locks) deployed to prod via `firebase deploy --only firestore:rules`.

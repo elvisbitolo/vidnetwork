@@ -51,6 +51,12 @@ export function tierFromMetadata(sub) {
   return sub?.metadata?.tier || "standard";
 }
 
+export function planChange({ currentStatus, currentPriceId, requestedPriceId }) {
+  if (!ACTIVE_STATUSES.includes(currentStatus)) return "create";
+  if (currentPriceId === requestedPriceId) return "none";
+  return "switch";
+}
+
 export function buildSubscriptionDoc({ subscription, customer, tier }) {
   const item = subscription?.items?.data?.[0];
   return {

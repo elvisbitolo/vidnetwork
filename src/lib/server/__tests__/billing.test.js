@@ -9,6 +9,7 @@ import {
   tierFromMetadata,
   buildSubscriptionDoc,
   fromEpoch,
+  planChange,
 } from "../billing.js";
 
 const now = Date.now();
@@ -119,4 +120,28 @@ test("buildSubscriptionDoc produces the richer doc shape", () => {
 
 test("ACTIVE_STATUSES is the documented set", () => {
   assert.deepEqual(ACTIVE_STATUSES, ["active", "trialing", "past_due"]);
+});
+
+test("planChange: inactive status starts a new subscription", () => {
+  assert.equal(planChange({ currentStatus: "canceled", currentPriceId: "a", requestedPriceId: "b" }), "create");
+  assert.equal(planChange({ currentStatus: null, currentPriceId: "a", requestedPriceId: "b" }), "create");
+  assert.equal(planChange({ currentStatus: "incomplete", currentPriceId: "a", requestedPriceId: "b" }), "create");
+});
+
+test("planChange: same price is a no-op", () => {
+  assert.equal(
+    planChange({ currentStatus: "active", currentPriceId: "price_x", requestedPriceId: "price_x" }),
+    "none"
+  );
+});
+
+test("planChange: different price on an active sub switches in place (no double billing)", () => {
+  assert.equal(
+    planChange({ currentStatus: "active", currentPriceId: "price_std", requestedPriceId: "price_prem" }),
+    "switch"
+  );
+  assert.equal(
+    planChange({ currentStatus: "trialing", currentPriceId: "price_std", requestedPriceId: "price_prem" }),
+    "switch"
+  );
 });

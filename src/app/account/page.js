@@ -54,7 +54,7 @@ export default async function AccountPage({ searchParams }) {
               </div>
               <div className={styles.row}>
                 <span className={styles.label}>Plan</span>
-                <span className={styles.value}>{sub.plan}</span>
+                <span className={styles.value}>{sub.tier ? `${sub.tier.charAt(0).toUpperCase()}${sub.tier.slice(1)}` : "Standard"} · {sub.plan}</span>
               </div>
               <ManageSubscription />
             </>

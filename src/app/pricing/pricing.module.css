@@ -173,6 +173,16 @@
   font-size: 13px;
 }
 
+.notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
 .finePrint {
   margin: 14px 0 0;
   font-size: 12px;

@@ -35,6 +35,8 @@ export async function POST(req) {
         await doc.ref.update({
           status: isComplete ? "complete" : "failed",
           endedAt: new Date(),
+          visibility: data.visibility || "members",
+          retentionDays: data.retentionDays || 90,
           resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
         });
       }

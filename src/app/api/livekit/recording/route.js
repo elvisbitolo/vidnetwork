@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { EgressClient, EncodedFileOutput, S3Upload } from "livekit-server-sdk";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getRoomBySlug } from "@/lib/server/rooms";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { requireOwner, guardJson } from "@/lib/server/authorize";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { logAudit } from "@/lib/server/audit";
 import { adminDb } from "@/lib/firebase/admin";
 
 function getEgressConfig() {
@@ -15,18 +16,12 @@ function getEgressConfig() {
 }
 
 export async function POST(req) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
-  }
+  const auth = await requireOwner();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
+  const limited = rateLimitGuard(`recording:${auth.user.uid}`, { limit: 20 });
+  if (limited) return limited;
 
   const cfg = getEgressConfig();
   if (!cfg) {
@@ -87,9 +82,20 @@ export async function POST(req) {
       egressId: info.egressId,
       filepath,
       status: "active",
+      visibility: "members",
+      retentionDays: 90,
       startedAt: new Date(),
-      createdBy: user.uid,
+      createdBy: auth.user.uid,
     });
+
+    await logAudit({
+      actorId: auth.user.uid,
+      actorName: auth.userDoc?.name || auth.user.email || "",
+      action: "recording.started",
+      targetId: ref.id,
+      metadata: { roomSlug: room.slug },
+    });
+
     return NextResponse.json({ id: ref.id, egressId: info.egressId });
   }
 

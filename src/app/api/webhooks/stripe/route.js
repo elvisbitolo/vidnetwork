@@ -4,6 +4,7 @@ import { getStripe } from "@/lib/server/stripe";
 import { buildSubscriptionDoc, fromEpoch } from "@/lib/server/billing";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
+import { logError } from "@/lib/server/log";
 
 async function isProcessed(eventId) {
   const snap = await adminDb().collection("stripeEvents").doc(eventId).get();
@@ -175,7 +176,7 @@ export async function POST(req) {
 
     await markEvent(event.id, "processed", "", { type: event.type });
   } catch (err) {
-    console.error("Stripe webhook handler failed:", err.message);
+    logError("stripe.webhook_failed", { event: event.id, type: event.type, error: err.message });
     await markEvent(event.id, "failed", err.message, { type: event.type });
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }

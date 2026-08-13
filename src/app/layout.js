@@ -13,8 +13,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Community — Paid Video Chat Rooms",
-  description: "A members-only community with live video chat rooms.",
+  metadataBase: new URL("https://vidnetwork.vercel.app"),
+  title: {
+    default: "VidNetwork",
+    template: "%s — VidNetwork",
+  },
+  description:
+    "VidNetwork is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
+  openGraph: {
+    siteName: "VidNetwork",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1734,
+        height: 907,
+        alt: "VidNetwork — Connect, Learn & Grow Together",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({ children }) {

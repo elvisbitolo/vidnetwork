@@ -1,17 +1,25 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireOwner, guardJson } from "@/lib/server/authorize";
+import { logAudit } from "@/lib/server/audit";
 
 export async function DELETE(req, { params }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  await adminDb().collection("rooms").doc(id).delete();
+  const auth = await requireOwner();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
+  const ref = adminDb().collection("rooms").doc(id);
+  const snap = await ref.get();
+  await ref.delete();
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: "room.deleted",
+    targetId: id,
+    metadata: { name: snap.exists ? snap.data().name : "" },
+  });
+
   return NextResponse.json({ ok: true });
 }

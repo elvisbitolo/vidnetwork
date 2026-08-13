@@ -147,5 +147,13 @@ service cloud.firestore {
       allow read: if isSignedIn() && isModerator();
       allow create, update, delete: if false;
     }
+
+    match /stripeEvents/{eventId} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /auditLogs/{id} {
+      allow read, create, update, delete: if false;
+    }
   }
 }

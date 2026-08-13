@@ -1,27 +1,21 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { listCourses } from "@/lib/server/courses";
+import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
+import { logAudit } from "@/lib/server/audit";
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  const courses = await listCourses(userDoc?.role === "owner");
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+  const courses = await listCourses(auth.userDoc?.role === "owner");
   return NextResponse.json({ courses });
 }
 
 export async function POST(req) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireOwner();
+  const denied = guardJson(auth);
+  if (denied) return denied;
 
   const { title, description = "", status = "draft" } = await req.json();
   if (!title || typeof title !== "string") {
@@ -35,8 +29,17 @@ export async function POST(req) {
     title,
     description,
     status,
-    createdBy: user.uid,
+    createdBy: auth.user.uid,
     createdAt: new Date(),
   });
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: "course.created",
+    targetId: ref.id,
+    metadata: { title, status },
+  });
+
   return NextResponse.json({ id: ref.id });
 }

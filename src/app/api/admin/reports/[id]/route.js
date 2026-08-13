@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireModerator, guardJson } from "@/lib/server/authorize";
+import { logAudit } from "@/lib/server/audit";
 
 export async function POST(req, { params }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (!canModerate(userDoc)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireModerator();
+  const denied = guardJson(auth);
+  if (denied) return denied;
 
   const { action } = await req.json();
   if (!["dismiss", "delete"].includes(action)) {
@@ -39,8 +35,16 @@ export async function POST(req, { params }) {
 
   await ref.update({
     status: action === "dismiss" ? "dismissed" : "resolved",
-    handledBy: user.uid,
+    handledBy: auth.user.uid,
     handledAt: new Date(),
+  });
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: action === "dismiss" ? "moderation.report_dismissed" : "moderation.content_removed",
+    targetId: id,
+    metadata: { type: snap.data().type, targetPath: snap.data().targetPath },
   });
 
   return NextResponse.json({ ok: true });

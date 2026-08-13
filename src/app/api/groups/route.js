@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { listGroups, isGroupMember } from "@/lib/server/groups";
+import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
+import { logAudit } from "@/lib/server/audit";
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
   const groups = await listGroups();
   const withMembership = [];
   for (const group of groups) {
-    const membership = await isGroupMember(group.id, user.uid);
+    const membership = await isGroupMember(group.id, auth.user.uid);
     const membersSnap = await adminDb()
       .collection("groupMembers")
       .where("groupId", "==", group.id)
@@ -26,14 +26,9 @@ export async function GET() {
 }
 
 export async function POST(req) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireOwner();
+  const denied = guardJson(auth);
+  if (denied) return denied;
 
   const { name, description = "" } = await req.json();
   if (!name || typeof name !== "string") {
@@ -51,8 +46,17 @@ export async function POST(req) {
     slug,
     description,
     status: "active",
-    createdBy: user.uid,
+    createdBy: auth.user.uid,
     createdAt: new Date(),
   });
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: "group.created",
+    targetId: ref.id,
+    metadata: { name, slug },
+  });
+
   return NextResponse.json({ id: ref.id, slug });
 }

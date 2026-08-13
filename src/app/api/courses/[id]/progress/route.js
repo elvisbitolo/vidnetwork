@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { getProgress } from "@/lib/server/courses";
+import { getCourse, getProgress } from "@/lib/server/courses";
+import { requireActiveMember, guardJson } from "@/lib/server/authorize";
 
 export async function POST(req, { params }) {
   const { id: courseId } = await params;
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  const course = await getCourse(courseId);
+  if (!course) {
+    return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
-  }
+
+  const auth = await requireActiveMember({ tier: course.requiredTier });
+  const denied = guardJson(auth);
+  if (denied) return denied;
 
   const { lessonId, completed } = await req.json();
   if (!lessonId || typeof lessonId !== "string") {
@@ -25,8 +24,8 @@ export async function POST(req, { params }) {
     return NextResponse.json({ error: "Lesson not found in this course" }, { status: 404 });
   }
 
-  const ref = adminDb().collection("progress").doc(`${courseId}_${user.uid}`);
-  const progress = await getProgress(courseId, user.uid);
+  const ref = adminDb().collection("progress").doc(`${courseId}_${auth.user.uid}`);
+  const progress = await getProgress(courseId, auth.user.uid);
   const completedLessons = new Set(progress.completedLessons || []);
   if (completed) {
     completedLessons.add(lessonId);
@@ -35,7 +34,7 @@ export async function POST(req, { params }) {
   }
   await ref.set({
     courseId,
-    userId: user.uid,
+    userId: auth.user.uid,
     completedLessons: [...completedLessons],
     updatedAt: new Date(),
   });

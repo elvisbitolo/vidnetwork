@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireModerator, guardJson } from "@/lib/server/authorize";
+import { logAudit } from "@/lib/server/audit";
 
 export async function PATCH(req, { params }) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
-  const userDoc = await getUserDoc(user.uid);
-  if (!canModerate(userDoc)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireModerator();
+  const denied = guardJson(auth);
+  if (denied) return denied;
 
   const { role, suspended } = await req.json();
   const ref = adminDb().collection("users").doc(id);
@@ -25,7 +21,7 @@ export async function PATCH(req, { params }) {
     if (!["member", "moderator"].includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
-    if (userDoc.role !== "owner") {
+    if (auth.userDoc.role !== "owner") {
       return NextResponse.json({ error: "Only the owner can change roles" }, { status: 403 });
     }
     if (snap.data().role === "owner") {
@@ -38,5 +34,14 @@ export async function PATCH(req, { params }) {
   }
 
   await ref.update(update);
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: role !== undefined ? "member.role_changed" : "member.suspended",
+    targetId: id,
+    metadata: { role, suspended, prevRole: snap.data().role },
+  });
+
   return NextResponse.json({ ok: true });
 }

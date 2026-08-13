@@ -1,15 +1,19 @@
 import { NextResponse } from "next/server";
 import { AccessToken } from "livekit-server-sdk";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { adminDb } from "@/lib/firebase/admin";
 import { getRoomBySlug } from "@/lib/server/rooms";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { requireActiveMember, guardJson } from "@/lib/server/authorize";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
+  const auth = await requireActiveMember();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const limited = rateLimitGuard(`livekit-token:${auth.user.uid}`, { limit: 20 });
+  if (limited) return limited;
+  const limitedIp = rateLimitGuard(`livekit-token-ip:${ip}`, { limit: 100 });
+  if (limitedIp) return limitedIp;
 
   const { slug } = await req.json();
   if (!slug || typeof slug !== "string") {
@@ -21,32 +25,14 @@ export async function POST(req) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json(
-      { error: "Active membership required" },
-      { status: 403 }
-    );
-  }
-
   let canPublish = true;
   if (room.groupId) {
-    const userDoc = await getUserDoc(user.uid);
-    const isOwner = userDoc?.role === "owner";
-    const memberSnap = await adminDb()
-      .collection("groupMembers")
-      .doc(`${room.groupId}_${user.uid}`)
-      .get();
-    if (!isOwner && !memberSnap.exists) {
-      return NextResponse.json(
-        { error: "Join the group first" },
-        { status: 403 }
-      );
-    }
+    const groupAuth = await requireGroupMember(room.groupId);
+    const groupDenied = guardJson(groupAuth);
+    if (groupDenied) return groupDenied;
   }
 
-  const userDoc = await getUserDoc(user.uid);
-  const isOwner = userDoc?.role === "owner";
+  const isOwner = auth.userDoc?.role === "owner";
   if (room.kind === "broadcast" && !isOwner) {
     canPublish = false;
   }
@@ -57,9 +43,9 @@ export async function POST(req) {
     return NextResponse.json({ error: "LiveKit not configured" }, { status: 500 });
   }
 
-  const identity = user.uid;
+  const identity = auth.user.uid;
   const displayName =
-    user.displayName || user.email?.split("@")[0] || "Member";
+    auth.user.displayName || auth.user.email?.split("@")[0] || "Member";
 
   const at = new AccessToken(apiKey, apiSecret, {
     identity,

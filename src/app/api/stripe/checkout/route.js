@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getStripe } from "@/lib/server/stripe";
 import { TIERS, priceIdFor } from "@/lib/server/plans";
+import { requireUser, guardJson } from "@/lib/server/authorize";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 const ALLOWED_PLANS = {
   monthly: "MONTHLY",
@@ -10,10 +11,15 @@ const ALLOWED_PLANS = {
 };
 
 export async function POST(req) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
-  }
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const limited = rateLimitGuard(`checkout:${auth.user.uid}`, { limit: 10 });
+  if (limited) return limited;
+  const limitedIp = rateLimitGuard(`checkout-ip:${ip}`, { limit: 30 });
+  if (limitedIp) return limitedIp;
 
   const { plan, tier = "standard" } = await req.json();
   const planKey = ALLOWED_PLANS[plan];
@@ -35,16 +41,16 @@ export async function POST(req) {
   const stripe = getStripe();
   const origin = req.headers.get("origin") || "http://localhost:3000";
 
-  const userDoc = await getUserDoc(user.uid);
+  const userDoc = auth.userDoc;
   let customerId = userDoc?.stripeCustomerId;
 
   if (!customerId) {
     const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { uid: user.uid },
+      email: auth.user.email,
+      metadata: { uid: auth.user.uid },
     });
     customerId = customer.id;
-    await adminDb().collection("users").doc(user.uid).update({ stripeCustomerId: customerId });
+    await adminDb().collection("users").doc(auth.user.uid).update({ stripeCustomerId: customerId });
   }
 
   const existing = await stripe.subscriptions.list({
@@ -67,7 +73,7 @@ export async function POST(req) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { uid: user.uid, tier },
+    metadata: { uid: auth.user.uid, tier },
     subscription_data: {
       ...subscriptionData,
       metadata: { tier },

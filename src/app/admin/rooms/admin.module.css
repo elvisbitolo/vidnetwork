@@ -35,6 +35,104 @@
   margin-bottom: 16px;
 }
 
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .checkGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e6e6ef;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.checkCard:hover {
+  border-color: #4f46e5;
+  background: #f5f5ff;
+}
+
+.checkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkText strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #17171c;
+}
+
+.checkText small {
+  font-size: 12px;
+  color: #9b9bab;
+}
+
+.itemActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.statCard:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.1);
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 800;
+  color: #4f46e5;
+  margin: 0 0 4px;
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b7b;
+  margin: 0;
+}
+
 .label {
   display: block;
   font-size: 13px;

@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { listConversations, getOrCreateDm, getOrCreateGroupChat } from "@/lib/server/chat";
+import { listConversations, getOrCreateDm, getOrCreateGroupChat, getOrCreateSpaceChat } from "@/lib/server/chat";
 import { isGroupMember } from "@/lib/server/groups";
+import { isSpaceMember } from "@/lib/server/spaces";
 import Nav from "@/components/Nav";
 import styles from "./chat.module.css";
 
@@ -39,6 +40,14 @@ export default async function ChatPage({ searchParams }) {
     const membership = await isGroupMember(params.group, user.uid);
     if (membership || userDoc?.role === "owner") {
       const conversation = await getOrCreateGroupChat(user.uid, params.group);
+      if (conversation) redirect(`/chat/${conversation.id}`);
+    }
+  }
+
+  if (params.space) {
+    const membership = await isSpaceMember(params.space, user.uid);
+    if (membership || userDoc?.role === "owner") {
+      const conversation = await getOrCreateSpaceChat(user.uid, params.space);
       if (conversation) redirect(`/chat/${conversation.id}`);
     }
   }

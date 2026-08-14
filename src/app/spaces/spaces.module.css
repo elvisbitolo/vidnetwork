@@ -1,0 +1,460 @@
+.page {
+  min-height: 100vh;
+  background: #fafafc;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #6b6b7b;
+  margin: 8px 0 32px;
+}
+
+.link {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.adminLink {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 18px;
+  background: #ffffff;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344a;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.adminLink:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.empty {
+  padding: 48px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed #d8d8e3;
+  border-radius: 14px;
+  color: #9b9bab;
+  font-size: 15px;
+}
+
+.error {
+  font-size: 14px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 0 0 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 24px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: #d8d8e3;
+  box-shadow: 0 6px 20px rgba(23, 23, 28, 0.05);
+}
+
+.cardLink {
+  text-decoration: none;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 6px;
+}
+
+.cardTitle:hover {
+  color: #4f46e5;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.cardMeta {
+  font-size: 13px;
+  font-weight: 600;
+  color: #34344a;
+  margin: 0;
+}
+
+.accessBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.featureChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+
+.featureChip {
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #34344a;
+  background: #f5f5fa;
+  border: 1px solid #e6e6ef;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.memberNames {
+  font-weight: 400;
+  color: #6b6b7b;
+}
+
+.join {
+  height: 40px;
+  padding: 0 20px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.15s ease;
+}
+
+.join:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.joinActive {
+  background: #ffffff;
+  border: 1px solid #4f46e5;
+  color: #4f46e5;
+}
+
+.joinActive:hover:not(:disabled) {
+  background: #f0f0f5;
+}
+
+.join:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #9b9bab;
+  margin: 0 0 24px;
+}
+
+.breadcrumbSep {
+  color: #d8d8e3;
+}
+
+.spaceHeader {
+  margin-bottom: 32px;
+}
+
+.accessBadgeLg {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.notMember {
+  font-size: 14px;
+  color: #6b6b7b;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 16px 0 0;
+}
+
+.spaceChatLink {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  margin-top: 16px;
+  background: #4f46e5;
+  color: #ffffff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.spaceChatLink:hover {
+  background: #4338ca;
+}
+
+.spaceActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9b9bab;
+  margin: 32px 0 12px;
+}
+
+.memberList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.invite {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.inviteForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inviteSelect {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  background: #ffffff;
+}
+
+.inviteSelect:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.inviteButton {
+  height: 38px;
+  padding: 0 18px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inviteButton:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.inviteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.removeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.removeMember {
+  padding: 5px 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.removeMember:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.removeMember:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.memberPill {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #34344a;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 999px;
+}
+
+.roomGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.roomCard {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.roomCard:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.1);
+  transform: translateY(-2px);
+}
+
+.roomName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 6px;
+}
+
+.roomDesc {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.roomMeta {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+  margin: 0;
+}
+
+.courseList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.courseCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.courseCard:hover {
+  border-color: #4f46e5;
+}
+
+.courseName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0;
+}
+
+.courseDesc {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+}

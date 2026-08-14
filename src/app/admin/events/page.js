@@ -17,7 +17,9 @@ export default function AdminEventsPage() {
   const [capacity, setCapacity] = useState(0);
   const [recurFreq, setRecurFreq] = useState("");
   const [recurCount, setRecurCount] = useState(1);
+  const [spaceId, setSpaceId] = useState("");
   const [events, setEvents] = useState([]);
+  const [spaces, setSpaces] = useState([]);
   const [role, setRole] = useState("member");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,6 +29,11 @@ export default function AdminEventsPage() {
     if (res.ok) setEvents((await res.json()).events);
   }, []);
 
+  const loadSpaces = useCallback(async () => {
+    const res = await fetch("/api/spaces?admin=1");
+    if (res.ok) setSpaces((await res.json()).spaces);
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -34,9 +41,10 @@ export default function AdminEventsPage() {
         return;
       }
       loadEvents();
+      loadSpaces();
     });
     return unsub;
-  }, [router, loadEvents]);
+  }, [router, loadEvents, loadSpaces]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -52,6 +60,7 @@ export default function AdminEventsPage() {
         endTime: endTime ? new Date(endTime).toISOString() : null,
         roomSlug,
         capacity,
+        spaceId,
         recurrence: recurFreq ? { freq: recurFreq, interval: 1, count: Number(recurCount) || 2 } : null,
       }),
     });
@@ -67,6 +76,7 @@ export default function AdminEventsPage() {
     setEndTime("");
     setRoomSlug("");
     setCapacity(0);
+    setSpaceId("");
     setRecurFreq("");
     setRecurCount(1);
     await loadEvents();
@@ -155,6 +165,20 @@ export default function AdminEventsPage() {
               value={capacity}
               onChange={(e) => setCapacity(e.target.value)}
             />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="space">Space (optional)</label>
+            <select
+              id="space"
+              className={styles.input}
+              value={spaceId}
+              onChange={(e) => setSpaceId(e.target.value)}
+            >
+              <option value="">No space</option>
+              {spaces.map((space) => (
+                <option key={space.id} value={space.id}>{space.name}</option>
+              ))}
+            </select>
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="recurFreq">Repeat (optional)</label>

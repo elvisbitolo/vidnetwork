@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
+import { awardPoints, POINTS } from "@/lib/server/gamification";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -27,6 +28,8 @@ export async function POST(req) {
   const event = eventSnap.data();
 
   const userDoc = await getUserDoc(user.uid);
+  const memberName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
+
   const rsvpKey = occurrenceId || eventId;
   const ref = adminDb().collection("rsvps").doc(`${rsvpKey}_${user.uid}`);
   const mine = (await ref.get()).exists;
@@ -51,17 +54,19 @@ export async function POST(req) {
     eventId,
     occurrenceId,
     userId: user.uid,
-    name: userDoc?.name || user.name || user.email?.split("@")[0] || "Member",
+    name: memberName,
     email: user.email || "",
     createdAt: new Date(),
   });
+
+  await awardPoints(user.uid, POINTS.RSVP, memberName);
 
   if (event.createdBy && event.createdBy !== user.uid) {
     await createNotification({
       userId: event.createdBy,
       type: "rsvp",
       actorId: user.uid,
-      actorName: userDoc?.name || user.name || user.email?.split("@")[0] || "Member",
+      actorName: memberName,
       targetId: eventId,
       href: `/events`,
       text: `RSVP'd to "${event.title}"`,
@@ -74,7 +79,7 @@ export async function POST(req) {
         await sendEmail({
           to: creator.email,
           subject: `New RSVP for "${event.title}"`,
-          text: `${userDoc?.name || user.name} is going to "${event.title}".\n\nView RSVPs on the events page.`,
+          text: `${memberName} is going to "${event.title}".\n\nView RSVPs on the events page.`,
         }).catch(() => {});
       }
     }

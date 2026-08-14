@@ -13,8 +13,10 @@ export default function AdminRoomsPage() {
   const [description, setDescription] = useState("");
   const [maxParticipants, setMaxParticipants] = useState(20);
   const [groupId, setGroupId] = useState("");
+  const [spaceId, setSpaceId] = useState("");
   const [kind, setKind] = useState("standard");
   const [groups, setGroups] = useState([]);
+  const [spaces, setSpaces] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [role, setRole] = useState("member");
   const [error, setError] = useState("");
@@ -30,6 +32,11 @@ export default function AdminRoomsPage() {
     if (res.ok) setGroups((await res.json()).groups);
   }, []);
 
+  const loadSpaces = useCallback(async () => {
+    const res = await fetch("/api/spaces?admin=1");
+    if (res.ok) setSpaces((await res.json()).spaces);
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -38,9 +45,10 @@ export default function AdminRoomsPage() {
       }
       loadRooms();
       loadGroups();
+      loadSpaces();
     });
     return unsub;
-  }, [router, loadRooms, loadGroups]);
+  }, [router, loadRooms, loadGroups, loadSpaces]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -49,7 +57,7 @@ export default function AdminRoomsPage() {
     const res = await fetch("/api/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, maxParticipants, groupId, kind }),
+      body: JSON.stringify({ name, description, maxParticipants, groupId, spaceId, kind }),
     });
     const data = await res.json();
     setBusy(false);
@@ -61,6 +69,7 @@ export default function AdminRoomsPage() {
     setDescription("");
     setMaxParticipants(20);
     setGroupId("");
+    setSpaceId("");
     setKind("standard");
     await loadRooms();
   }
@@ -129,6 +138,20 @@ export default function AdminRoomsPage() {
               <option value="">Main community</option>
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>{group.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="space">Space (optional)</label>
+            <select
+              id="space"
+              className={styles.input}
+              value={spaceId}
+              onChange={(e) => setSpaceId(e.target.value)}
+            >
+              <option value="">No space</option>
+              {spaces.map((space) => (
+                <option key={space.id} value={space.id}>{space.name}</option>
               ))}
             </select>
           </div>

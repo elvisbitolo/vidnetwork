@@ -8,10 +8,13 @@ const LINKS = [
   { href: "/rooms", label: "Rooms" },
   { href: "/courses", label: "Courses" },
   { href: "/groups", label: "Groups" },
+  { href: "/spaces", label: "Spaces" },
   { href: "/feed", label: "Feed" },
   { href: "/chat", label: "Chat" },
   { href: "/members", label: "Members" },
   { href: "/events", label: "Events" },
+  { href: "/search", label: "Search" },
+  { href: "/leaderboard", label: "Leaderboard" },
 ];
 
 export default function Nav({ role }) {

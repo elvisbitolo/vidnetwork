@@ -13,7 +13,9 @@ export default function AdminCoursesPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("draft");
+  const [spaceId, setSpaceId] = useState("");
   const [courses, setCourses] = useState([]);
+  const [spaces, setSpaces] = useState([]);
   const [role, setRole] = useState("member");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,6 +25,11 @@ export default function AdminCoursesPage() {
     if (res.ok) setCourses((await res.json()).courses);
   }, []);
 
+  const loadSpaces = useCallback(async () => {
+    const res = await fetch("/api/spaces?admin=1");
+    if (res.ok) setSpaces((await res.json()).spaces);
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -30,9 +37,10 @@ export default function AdminCoursesPage() {
         return;
       }
       loadCourses();
+      loadSpaces();
     });
     return unsub;
-  }, [router, loadCourses]);
+  }, [router, loadCourses, loadSpaces]);
 
   useEffect(() => {
     fetch("/api/me")
@@ -47,7 +55,7 @@ export default function AdminCoursesPage() {
     const res = await fetch("/api/courses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, status }),
+      body: JSON.stringify({ title, description, status, spaceId }),
     });
     const data = await res.json();
     setBusy(false);
@@ -58,6 +66,7 @@ export default function AdminCoursesPage() {
     setTitle("");
     setDescription("");
     setStatus("draft");
+    setSpaceId("");
     await loadCourses();
   }
 
@@ -106,6 +115,20 @@ export default function AdminCoursesPage() {
             >
               <option value="draft">Draft</option>
               <option value="published">Published</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="space">Space (optional)</label>
+            <select
+              id="space"
+              className={styles.input}
+              value={spaceId}
+              onChange={(e) => setSpaceId(e.target.value)}
+            >
+              <option value="">No space</option>
+              {spaces.map((space) => (
+                <option key={space.id} value={space.id}>{space.name}</option>
+              ))}
             </select>
           </div>
           <button className={styles.submit} type="submit" disabled={busy}>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
@@ -30,7 +31,26 @@ function timeAgo(ts) {
   return new Date(millis).toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function LikeButton({ postId, likes, uid, disabled }) {  const [count, setCount] = useState(Object.keys(likes || {}).length);
+function renderHashtags(text) {
+  if (!text) return "";
+  const parts = text.split(/((?:^|\s)#[a-zA-Z0-9_]+)/g);
+  return parts.map((part, index) => {
+    const match = part.match(/^(\s*)#([a-zA-Z0-9_]+)$/);
+    if (!match) return part;
+    const [, space, tag] = match;
+    return (
+      <span key={index}>
+        {space}
+        <Link className={styles.hashtag} href={`/search?hashtag=${encodeURIComponent(tag)}`}>
+          #{tag}
+        </Link>
+      </span>
+    );
+  });
+}
+
+function LikeButton({ postId, likes, uid, disabled }) {
+  const [count, setCount] = useState(Object.keys(likes || {}).length);
   const [liked, setLiked] = useState(!!likes?.[uid]);
   const [busy, setBusy] = useState(false);
 
@@ -57,6 +77,91 @@ function LikeButton({ postId, likes, uid, disabled }) {  const [count, setCount]
     >
       {liked ? "❤" : "🤍"} {count}
     </button>
+  );
+}
+
+function BookmarkButton({ postId, bookmarks, uid, disabled }) {
+  const [bookmarked, setBookmarked] = useState(!!bookmarks?.[uid]);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    if (busy || disabled) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/posts/${postId}/bookmark`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setBookmarked(data.bookmarked);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      className={`${styles.bookmark} ${bookmarked ? styles.bookmarkActive : ""}`}
+      onClick={toggle}
+      disabled={busy || disabled}
+      title={bookmarked ? "Remove bookmark" : "Bookmark this post"}
+    >
+      {bookmarked ? "🔖" : "▢"}
+    </button>
+  );
+}
+
+function PollBlock({ postId, post, uid, disabled }) {
+  const [votes, setVotes] = useState(post.pollVotes || {});
+  const [busy, setBusy] = useState(false);
+  const votedOption = votes[uid];
+  const options = post.pollOptions || [];
+  const total = Object.keys(votes).length;
+
+  async function handleVote(option) {
+    if (busy || disabled || votedOption !== undefined) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/posts/${postId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ option }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVotes(data.pollVotes || {});
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className={styles.poll}>
+      <p className={styles.pollCount}>
+        {total} {total === 1 ? "vote" : "votes"}
+        {votedOption !== undefined ? " — you voted" : ""}
+      </p>
+      {options.map((option, index) => {
+        const count = Object.values(votes).filter((v) => v === index).length;
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+        const mine = votedOption === index;
+        return (
+          <button
+            key={index}
+            className={`${styles.pollOption} ${mine ? styles.pollOptionMine : ""}`}
+            onClick={() => handleVote(index)}
+            disabled={busy || disabled || votedOption !== undefined}
+          >
+            <span className={styles.pollOptionText}>{option}</span>
+            {votedOption !== undefined && (
+              <span className={styles.pollOptionPct}>
+                {count} · {pct}%
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -179,7 +284,9 @@ function CommentList({ postId, uid, canModerate }) {
   );
 }
 
-export default function Feed({ uid, userName, role, groupId }) {
+const EMPTY_POLL = ["", ""];
+
+export default function Feed({ uid, userName, role, groupId, spaceId }) {
   const canModerate = role === "owner" || role === "moderator";
   const [posts, setPosts] = useState([]);
   const [text, setText] = useState("");
@@ -187,6 +294,9 @@ export default function Feed({ uid, userName, role, groupId }) {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [kind, setKind] = useState("post");
+  const [pollOptions, setPollOptions] = useState(EMPTY_POLL);
+  const [filter, setFilter] = useState("all");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -197,9 +307,14 @@ export default function Feed({ uid, userName, role, groupId }) {
       }
     });
     const base = collection(db, "posts");
-    const q = groupId
-      ? query(base, where("groupId", "==", groupId))
-      : query(base, orderBy("createdAt", "desc"), limit(100));
+    let q;
+    if (spaceId) {
+      q = query(base, where("spaceId", "==", spaceId));
+    } else if (groupId) {
+      q = query(base, where("groupId", "==", groupId));
+    } else {
+      q = query(base, orderBy("createdAt", "desc"), limit(100));
+    }
     const unsubPosts = onSnapshot(q, (snap) =>
       setPosts(
         snap.docs
@@ -218,7 +333,7 @@ export default function Feed({ uid, userName, role, groupId }) {
       unsubAuth();
       unsubPosts();
     };
-  }, [groupId]);
+  }, [groupId, spaceId]);
 
   async function handleImageUpload(e) {
     const file = e.target.files?.[0];
@@ -247,25 +362,55 @@ export default function Feed({ uid, userName, role, groupId }) {
     async (e) => {
       e.preventDefault();
       const trimmed = text.trim();
-      if ((!trimmed && !imageUrl) || busy || uploading) return;
+      const cleanPoll = pollOptions
+        .map((opt) => opt.trim())
+        .filter((opt) => opt.length > 0);
+      if (kind === "poll") {
+        if (cleanPoll.length < 2 || busy || uploading) return;
+      } else if ((!trimmed && !imageUrl) || busy || uploading) {
+        return;
+      }
       setBusy(true);
       try {
         const res = await fetch("/api/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: trimmed, imageUrl, groupId: groupId || "" }),
+          body: JSON.stringify({
+            text: trimmed,
+            imageUrl,
+            groupId: groupId || "",
+            spaceId: spaceId || "",
+            kind,
+            pollOptions: kind === "poll" ? cleanPoll : [],
+          }),
         });
         if (!res.ok) throw new Error((await res.json()).error || "Post failed");
         setText("");
         setImageUrl("");
+        setKind("post");
+        setPollOptions(EMPTY_POLL);
       } catch (err) {
         console.error(err);
       } finally {
         setBusy(false);
       }
     },
-    [text, imageUrl, busy, uploading, groupId]
+    [text, imageUrl, busy, uploading, groupId, spaceId, kind, pollOptions]
   );
+
+  function setPollOption(index, value) {
+    setPollOptions((prev) => prev.map((opt, i) => (i === index ? value : opt)));
+  }
+
+  function addPollOption() {
+    setPollOptions((prev) =>
+      prev.length < 5 ? [...prev, ""] : prev
+    );
+  }
+
+  function removePollOption(index) {
+    setPollOptions((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleDelete(postId) {
     await deleteDoc(doc(db, "posts", postId));
@@ -276,24 +421,96 @@ export default function Feed({ uid, userName, role, groupId }) {
   }
 
   const queryText = search.trim().toLowerCase();
-  const filtered = queryText
-    ? posts.filter(
-        (p) =>
-          p.text?.toLowerCase().includes(queryText) ||
-          p.authorName?.toLowerCase().includes(queryText)
-      )
-    : posts;
+  let filtered = posts;
+  if (queryText) {
+    filtered = filtered.filter(
+      (p) =>
+        p.text?.toLowerCase().includes(queryText) ||
+        p.authorName?.toLowerCase().includes(queryText) ||
+        (p.pollOptions || []).some((opt) => opt.toLowerCase().includes(queryText))
+    );
+  }
+  if (filter === "popular") {
+    filtered = [...filtered].sort(
+      (a, b) => Object.keys(b.likes || {}).length - Object.keys(a.likes || {}).length
+    );
+  } else if (filter === "mine") {
+    filtered = filtered.filter((p) => p.authorId === uid);
+  } else if (filter === "bookmarked") {
+    filtered = filtered.filter((p) => p.bookmarks?.[uid]);
+  }
+
+  const postCount = posts.length;
+  const popularCount = posts.filter((p) => Object.keys(p.likes || {}).length > 0).length;
+  const mineCount = posts.filter((p) => p.authorId === uid).length;
+  const bookmarkedCount = posts.filter((p) => p.bookmarks?.[uid]).length;
+
+  const kindLabel =
+    kind === "poll" ? "Ask a poll" : kind === "question" ? "Ask a question" : "New post";
 
   return (
     <div className={styles.feed}>
       <form className={styles.composer} onSubmit={handlePost}>
+        <div className={styles.kindTabs}>
+          {[
+            { key: "post", label: "✍️ Post" },
+            { key: "poll", label: "📊 Poll" },
+            { key: "question", label: "❓ Question" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={kind === tab.key ? styles.kindTabActive : styles.kindTab}
+              onClick={() => setKind(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
         <textarea
           className={styles.composerInput}
           rows={3}
-          placeholder="Share something with the community…"
+          placeholder={
+            kind === "poll"
+              ? "Ask a question, then add options below…"
+              : kind === "question"
+              ? "What do you want to ask the community?…"
+              : "Share something with the community…"
+          }
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
+        {kind === "poll" && (
+          <div className={styles.pollComposer}>
+            {pollOptions.map((option, index) => (
+              <div key={index} className={styles.pollOptionRow}>
+                <input
+                  className={styles.pollOptionInput}
+                  type="text"
+                  placeholder={`Option ${index + 1}`}
+                  value={option}
+                  maxLength={100}
+                  onChange={(e) => setPollOption(index, e.target.value)}
+                />
+                {pollOptions.length > 2 && (
+                  <button
+                    type="button"
+                    className={styles.pollRemove}
+                    onClick={() => removePollOption(index)}
+                    aria-label="Remove option"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            {pollOptions.length < 5 && (
+              <button type="button" className={styles.pollAdd} onClick={addPollOption}>
+                + Add option
+              </button>
+            )}
+          </div>
+        )}
         {imageUrl && (
           <div className={styles.imagePreview}>
             <img src={imageUrl} alt="Attached" className={styles.imagePreviewImg} />
@@ -328,25 +545,61 @@ export default function Feed({ uid, userName, role, groupId }) {
           <button
             className={styles.postButton}
             type="submit"
-            disabled={(!text.trim() && !imageUrl) || busy || uploading}
+            disabled={
+              busy ||
+              uploading ||
+              (kind === "poll"
+                ? pollOptions.filter((opt) => opt.trim().length > 0).length < 2
+                : !text.trim() && !imageUrl)
+            }
           >
-            {busy ? "Posting…" : "Post"}
+            {busy ? "Posting…" : kindLabel}
           </button>
         </div>
       </form>
 
-      <input
-        className={styles.search}
-        type="search"
-        placeholder="Search posts…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className={styles.feedBar}>
+        <input
+          className={styles.search}
+          type="search"
+          placeholder="Search posts…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className={styles.filterTabs}>
+          <button
+            className={filter === "all" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("all")}
+          >
+            All ({postCount})
+          </button>
+          <button
+            className={filter === "popular" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("popular")}
+          >
+            Popular ({popularCount})
+          </button>
+          <button
+            className={filter === "mine" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("mine")}
+          >
+            Mine ({mineCount})
+          </button>
+          <button
+            className={filter === "bookmarked" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("bookmarked")}
+          >
+            Saved ({bookmarkedCount})
+          </button>
+        </div>
+      </div>
 
       {filtered.length === 0 ? (
         <p className={styles.empty}>
           {queryText
             ? "No posts match your search."
+            : spaceId
+            ? "No posts in this space yet — be the first to say hi."
             : groupId
             ? "No posts in this group yet — be the first to say hi."
             : "No posts yet — be the first to say hi."}
@@ -362,9 +615,9 @@ export default function Feed({ uid, userName, role, groupId }) {
                 <div>
                   <p className={styles.postAuthor}>
                     {post.authorName}
-                    {post.pinned && (
-                      <span className={styles.pinnedBadge}>📌 Pinned</span>
-                    )}
+                    {post.kind === "poll" && <span className={styles.kindBadge}>📊 Poll</span>}
+                    {post.kind === "question" && <span className={styles.kindBadge}>❓ Question</span>}
+                    {post.pinned && <span className={styles.pinnedBadge}>📌 Pinned</span>}
                   </p>
                   <p className={styles.postTime}>{timeAgo(post.createdAt)}</p>
                 </div>
@@ -390,12 +643,16 @@ export default function Feed({ uid, userName, role, groupId }) {
                   <ReportButton type="post" targetId={post.id} />
                 )}
               </div>
-              {post.text && <p className={styles.postText}>{post.text}</p>}
+              {post.text && <p className={styles.postText}>{renderHashtags(post.text)}</p>}
+              {post.kind === "poll" && (
+                <PollBlock postId={post.id} post={post} uid={uid} />
+              )}
               {post.imageUrl && (
                 <img src={post.imageUrl} alt="" className={styles.postImage} />
               )}
               <div className={styles.postActions}>
                 <LikeButton postId={post.id} likes={post.likes} uid={uid} />
+                <BookmarkButton postId={post.id} bookmarks={post.bookmarks} uid={uid} />
               </div>
               <CommentList postId={post.id} uid={uid} canModerate={canModerate} />
             </article>

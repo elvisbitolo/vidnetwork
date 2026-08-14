@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { listCourses } from "@/lib/server/courses";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { getSpace } from "@/lib/server/spaces";
 
 export async function GET() {
   const auth = await requireUser();
@@ -17,18 +18,25 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { title, description = "", status = "draft" } = await req.json();
+  const { title, description = "", status = "draft", spaceId = "" } = await req.json();
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "Course title required" }, { status: 400 });
   }
   if (!["draft", "published"].includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
+  if (spaceId) {
+    const space = await getSpace(spaceId);
+    if (!space || space.status !== "active") {
+      return NextResponse.json({ error: "Space not found" }, { status: 404 });
+    }
+  }
 
   const ref = await adminDb().collection("courses").add({
     title,
     description,
     status,
+    spaceId: spaceId || "",
     createdBy: auth.user.uid,
     createdAt: new Date(),
   });
@@ -38,7 +46,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "course.created",
     targetId: ref.id,
-    metadata: { title, status },
+    metadata: { title, status, spaceId },
   });
 
   return NextResponse.json({ id: ref.id });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { listEvents, createEvent } from "@/lib/server/events";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { getSpace } from "@/lib/server/spaces";
 
 export async function GET() {
   const auth = await requireUser();
@@ -16,13 +17,19 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { title, description = "", startTime, endTime = null, roomSlug = "", capacity = 0, recurrence = null } = await req.json();
+  const { title, description = "", startTime, endTime = null, roomSlug = "", capacity = 0, recurrence = null, spaceId = "" } = await req.json();
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "Event title required" }, { status: 400 });
   }
   const parsed = Date.parse(startTime);
   if (!Number.isFinite(parsed)) {
     return NextResponse.json({ error: "A valid start time is required" }, { status: 400 });
+  }
+  if (spaceId) {
+    const space = await getSpace(spaceId);
+    if (!space || space.status !== "active") {
+      return NextResponse.json({ error: "Space not found" }, { status: 404 });
+    }
   }
 
   const event = await createEvent({
@@ -33,6 +40,7 @@ export async function POST(req) {
     roomSlug,
     capacity,
     recurrence,
+    spaceId,
     createdBy: auth.user.uid,
   });
 
@@ -41,7 +49,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "event.created",
     targetId: event.id,
-    metadata: { title, startTime, recurrence },
+    metadata: { title, startTime, spaceId, recurrence },
   });
 
   return NextResponse.json({ event });

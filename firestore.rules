@@ -62,7 +62,11 @@ service cloud.firestore {
       allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isModerator());
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'imageUrl', 'createdAt', 'groupId']);
+        && request.resource.data.keys().hasOnly([
+          'authorId', 'authorName', 'text', 'imageUrl', 'createdAt',
+          'groupId', 'spaceId', 'kind', 'hashtags', 'bookmarks',
+          'pollOptions', 'pollVotes', 'pinned', 'likes'
+        ]);
       allow update: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
       allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
 
@@ -73,6 +77,21 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt']);
         allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
       }
+    }
+
+    match /spaces/{spaceId} {
+      allow read: if isSignedIn() && (isActiveSub() || isOwner());
+      allow create, update, delete: if isOwner();
+    }
+
+    match /spaceMembers/{id} {
+      allow read: if isSignedIn() && (isActiveSub() || isOwner() || resource.data.userId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
+    match /gamification/{uid} {
+      allow read: if isSignedIn() && (isActiveSub() || isOwner() || request.auth.uid == uid);
+      allow create, update, delete: if false;
     }
 
     match /roomEvents/{eventId} {

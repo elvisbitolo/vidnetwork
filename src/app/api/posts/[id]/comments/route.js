@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
+import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 
 export async function POST(req, { params }) {
   const { id: postId } = await params;
@@ -28,19 +29,23 @@ export async function POST(req, { params }) {
   const post = postSnap.data();
 
   const userDoc = await getUserDoc(user.uid);
+  const authorName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
   const commentRef = await adminDb().collection("posts").doc(postId).collection("comments").add({
     authorId: user.uid,
-    authorName: userDoc?.name || user.name || user.email?.split("@")[0] || "Member",
+    authorName,
     text: text.trim(),
     createdAt: new Date(),
   });
+
+  await awardPoints(user.uid, POINTS.COMMENT, authorName);
+  await awardBadge(user.uid, "first_comment", authorName);
 
   if (post.authorId !== user.uid) {
     await createNotification({
       userId: post.authorId,
       type: "comment",
       actorId: user.uid,
-      actorName: userDoc?.name || user.name || user.email?.split("@")[0] || "Member",
+      actorName: authorName,
       targetId: postId,
       href: `/feed`,
       text: `commented on your post`,
@@ -53,7 +58,7 @@ export async function POST(req, { params }) {
         await sendEmail({
           to: author.email,
           subject: `New comment on your post`,
-          text: `${userDoc?.name || user.name} commented: "${text.trim()}"\n\nView it in the community feed.`,
+          text: `${authorName} commented: "${text.trim()}"\n\nView it in the community feed.`,
         }).catch(() => {});
       }
     }

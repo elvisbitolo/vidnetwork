@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse, getProgress } from "@/lib/server/courses";
 import { requireActiveMember, guardJson } from "@/lib/server/authorize";
+import { getUserDoc } from "@/lib/server/auth";
+import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 
 export async function POST(req, { params }) {
   const { id: courseId } = await params;
@@ -27,6 +29,7 @@ export async function POST(req, { params }) {
   const ref = adminDb().collection("progress").doc(`${courseId}_${auth.user.uid}`);
   const progress = await getProgress(courseId, auth.user.uid);
   const completedLessons = new Set(progress.completedLessons || []);
+  const newlyCompleted = completed && !completedLessons.has(lessonId);
   if (completed) {
     completedLessons.add(lessonId);
   } else {
@@ -38,6 +41,16 @@ export async function POST(req, { params }) {
     completedLessons: [...completedLessons],
     updatedAt: new Date(),
   });
+
+  if (newlyCompleted) {
+    const userDoc = await getUserDoc(auth.user.uid);
+    const name = userDoc?.name || auth.user.name || "Member";
+    await awardPoints(auth.user.uid, POINTS.LESSON, name);
+    const lessonsSnap = await adminDb().collection("lessons").where("courseId", "==", courseId).get();
+    if (lessonsSnap.size > 0 && completedLessons.size >= lessonsSnap.size) {
+      await awardBadge(auth.user.uid, "course_complete", name);
+    }
+  }
 
   return NextResponse.json({ completedLessons: [...completedLessons] });
 }

@@ -1,0 +1,173 @@
+.page {
+  min-height: 100vh;
+  background: #fafafc;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #6b6b7b;
+  margin: 8px 0 28px;
+}
+
+.statsCard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat {
+  flex: 1;
+  min-width: 120px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: #4f46e5;
+  margin: 0 0 4px;
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9b9bab;
+  margin: 32px 0 12px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto auto;
+  align-items: center;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  padding: 12px 18px;
+}
+
+.rowMine {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.rank {
+  font-size: 14px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #17171c;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streak {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.badges {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.points {
+  font-size: 14px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin: 0;
+  min-width: 70px;
+  text-align: right;
+}
+
+.badgeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.badge {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.badgeLocked {
+  opacity: 0.55;
+}
+
+.badgeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 4px;
+}
+
+.badgeDesc {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.empty {
+  font-size: 14px;
+  color: #9b9bab;
+  margin: 8px 0 0;
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .row {
+    grid-template-columns: 40px 1fr auto;
+  }
+
+  .streak,
+  .badges {
+    display: none;
+  }
+}

@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { getOrCreateDm, getOrCreateGroupChat, listConversations } from "@/lib/server/chat";
+import {
+  getOrCreateDm,
+  getOrCreateGroupChat,
+  getOrCreateSpaceChat,
+  listConversations,
+} from "@/lib/server/chat";
 import { isGroupMember } from "@/lib/server/groups";
+import { isSpaceMember } from "@/lib/server/spaces";
 
 export async function GET(req) {
   const user = await getCurrentUser();
@@ -27,7 +33,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
 
-  const { type, otherId, groupId } = await req.json();
+  const { type, otherId, groupId, spaceId } = await req.json();
   if (type === "dm") {
     if (!otherId || otherId === user.uid) {
       return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
@@ -48,6 +54,22 @@ export async function POST(req) {
     const conversation = await getOrCreateGroupChat(user.uid, groupId);
     if (!conversation) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
+    }
+    return NextResponse.json({ conversation });
+  }
+
+  if (type === "space") {
+    if (!spaceId) {
+      return NextResponse.json({ error: "Space required" }, { status: 400 });
+    }
+    const userDoc = await getUserDoc(user.uid);
+    const membership = await isSpaceMember(spaceId, user.uid);
+    if (!membership && userDoc?.role !== "owner") {
+      return NextResponse.json({ error: "Join the space first" }, { status: 403 });
+    }
+    const conversation = await getOrCreateSpaceChat(user.uid, spaceId);
+    if (!conversation) {
+      return NextResponse.json({ error: "Space not found" }, { status: 404 });
     }
     return NextResponse.json({ conversation });
   }

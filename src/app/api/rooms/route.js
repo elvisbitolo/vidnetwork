@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { listRooms, createRoom } from "@/lib/server/rooms";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { getSpace } from "@/lib/server/spaces";
 
 export async function GET() {
   const auth = await requireUser();
@@ -17,7 +18,7 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { name, description = "", maxParticipants = 20, groupId = "", kind = "standard" } = await req.json();
+  const { name, description = "", maxParticipants = 20, groupId = "", spaceId = "", kind = "standard" } = await req.json();
   if (!name || typeof name !== "string") {
     return NextResponse.json({ error: "Room name required" }, { status: 400 });
   }
@@ -27,12 +28,19 @@ export async function POST(req) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }
   }
+  if (spaceId) {
+    const space = await getSpace(spaceId);
+    if (!space || space.status !== "active") {
+      return NextResponse.json({ error: "Space not found" }, { status: 404 });
+    }
+  }
 
   const room = await createRoom({
     name,
     description,
     maxParticipants: Number(maxParticipants) || 20,
     groupId,
+    spaceId,
     kind,
     createdBy: auth.user.uid,
   });
@@ -42,7 +50,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "room.created",
     targetId: room.id,
-    metadata: { name, slug: room.slug, groupId, kind },
+    metadata: { name, slug: room.slug, groupId, spaceId, kind },
   });
 
   return NextResponse.json({ room });

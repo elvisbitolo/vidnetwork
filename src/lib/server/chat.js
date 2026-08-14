@@ -84,6 +84,64 @@ export async function syncGroupChatParticipants(groupId, participantIds) {
   }
 }
 
+export async function getOrCreateSpaceChat(uid, spaceId) {
+  if (!spaceId) return null;
+  const snap = await adminDb()
+    .collection("conversations")
+    .where("type", "==", "space")
+    .where("spaceId", "==", spaceId)
+    .limit(1)
+    .get();
+  if (!snap.empty) {
+    const doc = snap.docs[0];
+    const data = doc.data();
+    if (!data.participantIds.includes(uid)) {
+      await doc.ref.update({
+        participantIds: [...new Set([...data.participantIds, uid])],
+        updatedAt: new Date(),
+      });
+      return { id: doc.id, ...data, participantIds: [...data.participantIds, uid] };
+    }
+    return { id: doc.id, ...data };
+  }
+  const spaceSnap = await adminDb().collection("spaces").doc(spaceId).get();
+  if (!spaceSnap.exists) return null;
+  const space = spaceSnap.data();
+  const membersSnap = await adminDb()
+    .collection("spaceMembers")
+    .where("spaceId", "==", spaceId)
+    .get();
+  const participantIds = [uid, ...membersSnap.docs.map((d) => d.data().userId)];
+  const ref = await adminDb().collection("conversations").add({
+    type: "space",
+    participantIds: [...new Set(participantIds)],
+    name: space.name,
+    spaceId,
+    createdBy: uid,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastMessage: "",
+    lastMessageAt: null,
+  });
+  return { id: ref.id, type: "space", name: space.name, spaceId };
+}
+
+export async function syncSpaceChatParticipants(spaceId, participantIds) {
+  const snap = await adminDb()
+    .collection("conversations")
+    .where("type", "==", "space")
+    .where("spaceId", "==", spaceId)
+    .limit(1)
+    .get();
+  if (snap.empty) return;
+  const doc = snap.docs[0];
+  const data = doc.data();
+  const next = [...new Set(participantIds)];
+  if (JSON.stringify(data.participantIds) !== JSON.stringify(next)) {
+    await doc.ref.update({ participantIds: next, updatedAt: new Date() });
+  }
+}
+
 export async function listConversations(uid) {
   const snap = await adminDb()
     .collection("conversations")

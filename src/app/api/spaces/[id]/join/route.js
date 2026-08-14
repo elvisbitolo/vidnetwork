@@ -1,0 +1,71 @@
+import { NextResponse } from "next/server";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { adminDb } from "@/lib/firebase/admin";
+import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { meetsTier } from "@/lib/server/plans";
+import {
+  getSpace,
+  isSpaceMember,
+  addSpaceMember,
+  removeSpaceMember,
+} from "@/lib/server/spaces";
+import { syncSpaceChatParticipants } from "@/lib/server/chat";
+
+export async function POST(req, { params }) {
+  const { id: spaceId } = await params;
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+
+  const sub = await getSubscription(user.uid);
+  if (!isActiveSub(sub)) {
+    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
+  }
+
+  const space = await getSpace(spaceId);
+  if (!space || space.status !== "active") {
+    return NextResponse.json({ error: "Space not found" }, { status: 404 });
+  }
+
+  const userDoc = await getUserDoc(user.uid);
+  const isOwner = userDoc?.role === "owner";
+  const membership = await isSpaceMember(spaceId, user.uid);
+  const joined = !!membership;
+
+  if (joined) {
+    await removeSpaceMember(spaceId, user.uid);
+    if (!isOwner) {
+      const membersSnap = await adminDb()
+        .collection("spaceMembers")
+        .where("spaceId", "==", spaceId)
+        .get();
+      await syncSpaceChatParticipants(
+        spaceId,
+        membersSnap.docs.map((d) => d.data().userId)
+      );
+    }
+    return NextResponse.json({ joined: false });
+  }
+
+  if (!isOwner) {
+    if (space.access === "invite") {
+      return NextResponse.json({ error: "This space is invite only" }, { status: 403 });
+    }
+    if (space.requiredTier && !meetsTier(sub.tier || "standard", space.requiredTier)) {
+      return NextResponse.json({ error: "Premium membership required" }, { status: 403 });
+    }
+  }
+
+  await addSpaceMember(spaceId, user.uid, userDoc?.name || user.name || user.email?.split("@")[0] || "Member");
+  const membersSnap = await adminDb()
+    .collection("spaceMembers")
+    .where("spaceId", "==", spaceId)
+    .get();
+  await syncSpaceChatParticipants(
+    spaceId,
+    membersSnap.docs.map((d) => d.data().userId)
+  );
+
+  return NextResponse.json({ joined: true });
+}

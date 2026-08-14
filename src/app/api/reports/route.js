@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -12,6 +13,8 @@ export async function POST(req) {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
+  const limited = rateLimitGuard(`report:${user.uid}`, { limit: 20 });
+  if (limited) return limited;
 
   const { type, targetId, commentPostId = "", reason } = await req.json();
   if (!["post", "comment", "member"].includes(type)) {

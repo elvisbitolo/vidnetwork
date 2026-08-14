@@ -5,6 +5,7 @@ import { TIERS, priceIdFor } from "@/lib/server/plans";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { planChange, buildSubscriptionDoc } from "@/lib/server/billing";
+import { appOrigin } from "@/lib/server/origin";
 
 const ALLOWED_PLANS = {
   monthly: "MONTHLY",
@@ -42,7 +43,7 @@ export async function POST(req) {
   }
 
   const stripe = getStripe();
-  const origin = req.headers.get("origin") || "http://localhost:3000";
+  const origin = appOrigin(req);
 
   const userDoc = auth.userDoc;
   let customerId = userDoc?.stripeCustomerId;

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
+import { canAccessRecording } from "@/lib/server/recordings";
 import Nav from "@/components/Nav";
 import DeleteRecording from "./DeleteRecording";
 import TranscribeButton from "./TranscribeButton";
@@ -20,7 +21,10 @@ export default async function RecordingsPage() {
   const snap = await adminDb().collection("recordings").orderBy("startedAt", "desc").get();
   const recordings = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-  const s3Host = process.env.LIVEKIT_EGRESS_S3_PUBLIC_URL || "";
+  const accessible = [];
+  for (const rec of recordings) {
+    if (await canAccessRecording(rec, userDoc, user.uid)) accessible.push(rec);
+  }
 
   return (
     <main className={styles.page}>
@@ -31,11 +35,11 @@ export default async function RecordingsPage() {
           Recordings of broadcasts. Start recording from inside a broadcast room.
         </p>
 
-        {recordings.length === 0 ? (
+        {accessible.length === 0 ? (
           <p className={styles.empty}>No recordings yet.</p>
         ) : (
           <div className={styles.list}>
-            {recordings.map((rec) => (
+            {accessible.map((rec) => (
               <div key={rec.id} className={styles.card}>
                 <div>
                   <p className={styles.cardName}>{rec.roomName}</p>
@@ -55,8 +59,8 @@ export default async function RecordingsPage() {
                     </details>
                   )}
                 </div>
-                {rec.status === "complete" && s3Host && (
-                  <a className={styles.download} href={`${s3Host}/${rec.filepath}`} target="_blank" rel="noreferrer">
+                {rec.status === "complete" && (
+                  <a className={styles.download} href={`/api/recordings/${rec.id}/download`} target="_blank" rel="noreferrer">
                     Download
                   </a>
                 )}

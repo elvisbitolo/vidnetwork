@@ -1,0 +1,51 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { normalizeProfile, profileChanged } from "../profile.js";
+
+test("normalizeProfile: name is required", () => {
+  const { patch, errors } = normalizeProfile({ name: "   " });
+  assert.equal(patch.name, undefined);
+  assert.equal(errors.name, "Name is required");
+});
+
+test("normalizeProfile: trims and caps name length", () => {
+  const { patch, errors } = normalizeProfile({ name: "  Ada Lovelace  " });
+  assert.deepEqual(errors, {});
+  assert.equal(patch.name, "Ada Lovelace");
+});
+
+test("normalizeProfile: optional fields are cleaned and capped", () => {
+  const { patch } = normalizeProfile({
+    headline: "  Engineer  ",
+    location: " London ",
+    bio: "x".repeat(900),
+  });
+  assert.equal(patch.headline, "Engineer");
+  assert.equal(patch.location, "London");
+  assert.equal(patch.bio.length, 600);
+});
+
+test("normalizeProfile: unknown fields are ignored", () => {
+  const { patch } = normalizeProfile({ name: "A", role: "owner", suspended: true });
+  assert.deepEqual(Object.keys(patch).sort(), ["name"]);
+});
+
+test("normalizeProfile: empty body yields no patch and no errors", () => {
+  const { patch, errors } = normalizeProfile({});
+  assert.deepEqual(patch, {});
+  assert.deepEqual(errors, {});
+});
+
+test("profileChanged: detects no-op saves", () => {
+  const prev = { name: "Ada", headline: "Engineer" };
+  const { changed, hasChanges } = profileChanged(prev, { name: "Ada", headline: "Engineer" });
+  assert.equal(changed.length, 0);
+  assert.equal(hasChanges, false);
+});
+
+test("profileChanged: detects real changes", () => {
+  const prev = { name: "Ada" };
+  const { changed, hasChanges } = profileChanged(prev, { name: "Grace", headline: "Dev" });
+  assert.deepEqual(changed, ["name", "headline"]);
+  assert.equal(hasChanges, true);
+});

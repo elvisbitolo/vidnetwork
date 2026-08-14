@@ -30,6 +30,9 @@ export async function PATCH(req, { params }) {
     update.role = role;
   }
   if (suspended !== undefined) {
+    if (snap.data().role === "owner" && suspended) {
+      return NextResponse.json({ error: "Cannot suspend the owner" }, { status: 400 });
+    }
     update.suspended = Boolean(suspended);
   }
 

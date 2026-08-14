@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSpace, isSpaceMember, updateSpace, deleteSpace } from "@/lib/server/spaces";
+import { getSpace, isSpaceMember, updateSpace, cascadeDeleteSpace } from "@/lib/server/spaces";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
 
@@ -85,7 +85,7 @@ export async function DELETE(req, { params }) {
     return NextResponse.json({ error: "Space not found" }, { status: 404 });
   }
 
-  await deleteSpace(id);
+  await cascadeDeleteSpace(id);
 
   await logAudit({
     actorId: auth.user.uid,

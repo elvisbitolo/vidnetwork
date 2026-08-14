@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { canAccessPost } from "@/lib/server/posts";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id } = await params;
@@ -9,10 +10,14 @@ export async function POST(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
+
+  const userDoc = await getUserDoc(user.uid);
+  const access = await canAccessPost(id, user.uid, userDoc);
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
   }
+  const limited = rateLimitGuard(`bookmark:${user.uid}`, { limit: 60 });
+  if (limited) return limited;
 
   const ref = adminDb().collection("posts").doc(id);
   const post = await ref.get();

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { canAccessPost, nextLikeState } from "@/lib/server/posts";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id } = await params;
@@ -9,20 +10,18 @@ export async function POST(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
-  }
 
+  const userDoc = await getUserDoc(user.uid);
+  const access = await canAccessPost(id, user.uid, userDoc);
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+  const limited = rateLimitGuard(`like:${user.uid}`, { limit: 60 });
+  if (limited) return limited;
+  const data = access.post;
   const ref = adminDb().collection("posts").doc(id);
-  const snap = await ref.get();
-  if (!snap.exists) {
-    return NextResponse.json({ error: "Post not found" }, { status: 404 });
-  }
 
-  const data = snap.data();
-  const likes = data.likes || {};
-  const already = !!likes[user.uid];
+  const { already, liked, count } = nextLikeState(data.likes, user.uid);
   const update = already
     ? { [`likes.${user.uid}`]: adminDb().FieldValue.delete() }
     : { [`likes.${user.uid}`]: new Date() };
@@ -46,5 +45,5 @@ export async function POST(req, { params }) {
     });
   }
 
-  return NextResponse.json({ liked: !already, count: Object.keys(likes).length + (already ? -1 : 1) });
+  return NextResponse.json({ liked, count });
 }

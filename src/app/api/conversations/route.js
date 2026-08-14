@@ -9,6 +9,8 @@ import {
 } from "@/lib/server/chat";
 import { isGroupMember } from "@/lib/server/groups";
 import { isSpaceMember } from "@/lib/server/spaces";
+import { adminDb } from "@/lib/firebase/admin";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function GET(req) {
   const user = await getCurrentUser();
@@ -37,6 +39,12 @@ export async function POST(req) {
   if (type === "dm") {
     if (!otherId || otherId === user.uid) {
       return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
+    }
+    const limited = rateLimitGuard(`dm:${user.uid}`, { limit: 20 });
+    if (limited) return limited;
+    const otherSnap = await adminDb().collection("users").doc(otherId).get();
+    if (!otherSnap.exists) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     const conversation = await getOrCreateDm(user.uid, otherId);
     return NextResponse.json({ conversation });

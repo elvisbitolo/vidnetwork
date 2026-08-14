@@ -79,6 +79,8 @@ export async function POST(req) {
       roomId: room.id,
       roomSlug: room.slug,
       roomName: room.name,
+      spaceId: room.spaceId || "",
+      groupId: room.groupId || "",
       egressId: info.egressId,
       filepath,
       status: "active",

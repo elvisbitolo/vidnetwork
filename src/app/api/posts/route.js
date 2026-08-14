@@ -62,7 +62,8 @@ export async function POST(req) {
       .map((opt) => (typeof opt === "string" ? opt.trim() : ""))
       .filter((opt) => opt.length > 0)
       .slice(0, 5);
-    data.pollVotes = {};
+    data.pollCounts = {};
+    data.pollTotal = 0;
   }
 
   let spaceSlug = "";

@@ -10,6 +10,7 @@ import {
   removeSpaceMember,
 } from "@/lib/server/spaces";
 import { syncSpaceChatParticipants } from "@/lib/server/chat";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id: spaceId } = await params;
@@ -22,6 +23,8 @@ export async function POST(req, { params }) {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
+  const limited = rateLimitGuard(`space-join:${user.uid}`, { limit: 20 });
+  if (limited) return limited;
 
   const space = await getSpace(spaceId);
   if (!space || space.status !== "active") {

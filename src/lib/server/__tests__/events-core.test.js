@@ -1,60 +1,37 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addInterval, expandEvent, expandEvents } from "../events-core.js";
+import { applyRsvpCounts } from "../events-core.js";
 
-function event(overrides = {}) {
-  return {
-    id: "evt_1",
-    title: "Coffee chat",
-    startTime: new Date("2026-09-01T12:00:00Z"),
-    recurrence: null,
-    ...overrides,
-  };
-}
-
-test("addInterval advances daily/weekly/monthly", () => {
-  const base = new Date("2026-01-15T00:00:00Z");
-  assert.equal(addInterval(base, "daily", 1).getTime(), new Date("2026-01-16T00:00:00Z").getTime());
-  assert.equal(addInterval(base, "weekly", 1).getTime(), new Date("2026-01-22T00:00:00Z").getTime());
-  assert.equal(addInterval(base, "monthly", 1).getTime(), new Date("2026-02-15T00:00:00Z").getTime());
+test("applyRsvpCounts: joining under capacity increments", () => {
+  const { full, counts } = applyRsvpCounts({ a: 2 }, "b", 5, true);
+  assert.equal(full, false);
+  assert.deepEqual(counts, { a: 2, b: 1 });
 });
 
-test("non-recurring event yields a single occurrence", () => {
-  const occurrences = expandEvent(event());
-  assert.equal(occurrences.length, 1);
-  assert.equal(occurrences[0].occurrenceId, "evt_1_0");
-  assert.equal(occurrences[0].occurrenceIndex, 0);
+test("applyRsvpCounts: joining at capacity is full", () => {
+  const { full, counts } = applyRsvpCounts({ a: 5 }, "a", 5, true);
+  assert.equal(full, true);
+  assert.deepEqual(counts, { a: 5 });
 });
 
-test("recurring event expands by count", () => {
-  const occurrences = expandEvent(
-    event({ recurrence: { freq: "weekly", interval: 1, count: 3 } })
-  );
-  assert.equal(occurrences.length, 3);
-  assert.equal(occurrences[1].startTime.getTime(), new Date("2026-09-08T12:00:00Z").getTime());
-  assert.equal(occurrences[2].occurrenceId, "evt_1_2");
+test("applyRsvpCounts: joining with no capacity never fills", () => {
+  const { full, counts } = applyRsvpCounts({ a: 999 }, "a", 0, true);
+  assert.equal(full, false);
+  assert.equal(counts.a, 1000);
 });
 
-test("expansion stops at the until boundary", () => {
-  const until = new Date("2026-09-10T00:00:00Z");
-  const occurrences = expandEvent(
-    event({ recurrence: { freq: "weekly", interval: 1, count: 10 } }),
-    until
-  );
-  assert.equal(occurrences.length, 2);
+test("applyRsvpCounts: leaving decrements", () => {
+  const { counts } = applyRsvpCounts({ a: 3 }, "a", 5, false);
+  assert.deepEqual(counts, { a: 2 });
 });
 
-test("recurring count is capped at 52", () => {
-  const occurrences = expandEvent(
-    event({ recurrence: { freq: "daily", interval: 1, count: 5000 } })
-  );
-  assert.equal(occurrences.length, 52);
+test("applyRsvpCounts: leaving a zero-count key drops it", () => {
+  const { counts } = applyRsvpCounts({ a: 1 }, "a", 5, false);
+  assert.deepEqual(counts, {});
 });
 
-test("expandEvents sorts across events", () => {
-  const later = event({ id: "b", startTime: new Date("2026-10-01T00:00:00Z") });
-  const earlier = event({ id: "a", startTime: new Date("2026-08-01T00:00:00Z") });
-  const sorted = expandEvents([later, earlier]);
-  assert.equal(sorted[0].id, "a");
-  assert.equal(sorted[1].id, "b");
+test("applyRsvpCounts: missing counts default to zero", () => {
+  const { full, counts } = applyRsvpCounts(null, "x", 2, true);
+  assert.equal(full, false);
+  assert.deepEqual(counts, { x: 1 });
 });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { addMessage, getConversation } from "@/lib/server/chat";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function GET(req, { params }) {
   const { id: conversationId } = await params;
@@ -32,6 +33,8 @@ export async function POST(req, { params }) {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
+  const limited = rateLimitGuard(`message:${user.uid}`, { limit: 30 });
+  if (limited) return limited;
 
   const { text } = await req.json();
   if (!text || typeof text !== "string" || !text.trim()) {

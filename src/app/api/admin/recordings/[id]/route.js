@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server";
-import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { adminDb } from "@/lib/firebase/admin";
 import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
-
-function getS3Config() {
-  const region = process.env.LIVEKIT_EGRESS_S3_REGION;
-  const bucket = process.env.LIVEKIT_EGRESS_S3_BUCKET;
-  const key = process.env.LIVEKIT_EGRESS_S3_ACCESS_KEY;
-  const secret = process.env.LIVEKIT_EGRESS_S3_SECRET;
-  if (!region || !bucket || !key || !secret) return null;
-  return { region, bucket, key, secret };
-}
+import { deleteS3Object } from "@/lib/server/recordings";
 
 export async function DELETE(req, { params }) {
   const { id } = await params;
@@ -32,15 +23,14 @@ export async function DELETE(req, { params }) {
     );
   }
 
-  const cfg = getS3Config();
-  if (cfg && data.filepath) {
-    const s3 = new S3Client({
-      region: cfg.region,
-      credentials: { accessKeyId: cfg.key, secretAccessKey: cfg.secret },
-    });
-    await s3.send(
-      new DeleteObjectCommand({ Bucket: cfg.bucket, Key: data.filepath })
-    );
+  if (data.filepath) {
+    const deleted = await deleteS3Object(data.filepath);
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Recording metadata kept — S3 storage not configured, so the file was not deleted." },
+        { status: 501 }
+      );
+    }
   }
 
   await ref.delete();

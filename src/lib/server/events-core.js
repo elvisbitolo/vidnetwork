@@ -51,3 +51,20 @@ export function expandEvents(events) {
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   );
 }
+
+export function applyRsvpCounts(counts, countKey, capacity, isJoining) {
+  const next = { ...(counts || {}) };
+  const current = Number(next[countKey]) || 0;
+  if (isJoining) {
+    const cap = Number(capacity) || 0;
+    if (cap > 0 && current >= cap) {
+      return { full: true, counts: next };
+    }
+    next[countKey] = current + 1;
+  } else if (current > 1) {
+    next[countKey] = current - 1;
+  } else {
+    delete next[countKey];
+  }
+  return { full: false, counts: next };
+}

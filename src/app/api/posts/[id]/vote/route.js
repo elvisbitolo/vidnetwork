@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { canAccessPost } from "@/lib/server/posts";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id } = await params;
@@ -9,32 +10,58 @@ export async function POST(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
+
+  const userDoc = await getUserDoc(user.uid);
+  const access = await canAccessPost(id, user.uid, userDoc);
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+  const limited = rateLimitGuard(`vote:${user.uid}`, { limit: 30 });
+  if (limited) return limited;
+  const post = access.post;
+  if (post.kind !== "poll" || !Array.isArray(post.pollOptions)) {
+    return NextResponse.json({ error: "Invalid poll option" }, { status: 400 });
   }
 
   const { option } = await req.json();
-  if (typeof option !== "number" || option < 0) {
+  if (typeof option !== "number" || option < 0 || option >= post.pollOptions.length) {
     return NextResponse.json({ error: "Invalid poll option" }, { status: 400 });
   }
 
-  const ref = adminDb().collection("posts").doc(id);
-  const post = await ref.get();
-  if (!post.exists) {
-    return NextResponse.json({ error: "Post not found" }, { status: 404 });
-  }
-  const data = post.data();
-  if (data.kind !== "poll" || !Array.isArray(data.pollOptions) || option >= data.pollOptions.length) {
-    return NextResponse.json({ error: "Invalid poll option" }, { status: 400 });
-  }
+  const postRef = adminDb().collection("posts").doc(id);
+  const voteRef = adminDb().collection("pollVotes").doc(`${id}_${user.uid}`);
 
-  const pollVotes = { ...(data.pollVotes || {}) };
-  pollVotes[user.uid] = option;
-  await ref.update({ pollVotes });
+  try {
+    const { counts, votedOption } = await adminDb().runTransaction(async (tx) => {
+      const postSnap = await tx.get(postRef);
+      if (!postSnap.exists) throw Object.assign(new Error("Post not found"), { code: 404 });
+      const data = postSnap.data();
+      if (data.kind !== "poll" || !Array.isArray(data.pollOptions) || option >= data.pollOptions.length) {
+        throw Object.assign(new Error("Invalid poll option"), { code: 400 });
+      }
 
-  const counts = data.pollOptions.map(
-    (_, index) => Object.values(pollVotes).filter((v) => v === index).length
-  );
-  return NextResponse.json({ pollVotes, counts, votedOption: option });
+      const existing = await tx.get(voteRef);
+      if (existing.exists) {
+        throw Object.assign(new Error("You already voted"), { code: 409 });
+      }
+
+      const counts = { ...(data.pollCounts || {}) };
+      counts[option] = (counts[option] || 0) + 1;
+
+      tx.set(voteRef, { postId: id, userId: user.uid, option, createdAt: new Date() });
+      tx.update(postRef, {
+        pollCounts: counts,
+        pollTotal: (data.pollTotal || 0) + 1,
+      });
+
+      return { counts, votedOption: option };
+    });
+    return NextResponse.json({ counts, votedOption });
+  } catch (err) {
+    const status = err.code || 500;
+    return NextResponse.json(
+      { error: status === 409 ? "You already voted" : err.message || "Vote failed" },
+      { status }
+    );
+  }
 }

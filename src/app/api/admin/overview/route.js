@@ -12,8 +12,13 @@ function toMillis(value) {
 }
 
 async function count(collectionName) {
-  const snap = await adminDb().collection(collectionName).limit(1000).get();
-  return snap.size;
+  try {
+    const snap = await adminDb().collection(collectionName).count().get();
+    return snap.data().count;
+  } catch {
+    const fallback = await adminDb().collection(collectionName).limit(1000).get();
+    return fallback.size;
+  }
 }
 
 export async function GET() {

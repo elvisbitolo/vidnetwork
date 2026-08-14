@@ -281,6 +281,16 @@
   font-weight: 600;
 }
 
+.formNotice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #f5f5fa;
+  border: 1px solid #e6e6ef;
+  color: #6b6b7b;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 28px 16px;

@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-} from "firebase/firestore";
-import { auth, db } from "@/lib/firebase/client";
+import { auth } from "@/lib/firebase/client";
 import styles from "./events.module.css";
 
 function getNow() {
@@ -31,6 +25,30 @@ export default function EventsBoard({ events, uid, userName }) {
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
 
+  const loadAttendees = useCallback(
+    async (event) => {
+      const key = event.occurrenceId || event.id;
+      try {
+        const res = await fetch(
+          `/api/events/${event.id}/attendees?occurrenceId=${encodeURIComponent(event.occurrenceId || "")}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setRsvpData((prev) => ({
+          ...prev,
+          [key]: {
+            count: data.count,
+            names: data.names,
+            mine: data.mine,
+          },
+        }));
+      } catch {
+        // Attendee counts are best-effort; the event list still renders.
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -38,31 +56,12 @@ export default function EventsBoard({ events, uid, userName }) {
         window.location.assign("/login");
       }
     });
-    const unsubs = [];
     for (const event of events) {
-      const q = query(
-        collection(db, "rsvps"),
-        where("eventId", "==", event.id),
-        where("occurrenceId", "==", event.occurrenceId || "")
-      );
-      unsubs.push(
-        onSnapshot(q, (snap) => {
-          const attendees = snap.docs.map((d) => d.data());
-          setRsvpData((prev) => ({
-            ...prev,
-            [event.occurrenceId || event.id]: {
-              attendees,
-              mine: attendees.some((a) => a.userId === uid),
-            },
-          }));
-        })
-      );
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- async one-shot fetch of attendee counts per event; no local state is read or synced here
+      loadAttendees(event);
     }
-    return () => {
-      unsubAuth();
-      unsubs.forEach((u) => u());
-    };
-  }, [events, uid]);
+    return () => unsubAuth();
+  }, [events, loadAttendees]);
 
   async function handleRsvp(eventId, occurrenceId) {
     if (!uid) return;
@@ -84,6 +83,8 @@ export default function EventsBoard({ events, uid, userName }) {
         return;
       }
       setError("");
+      const event = events.find((e) => (e.occurrenceId || e.id) === (occurrenceId || eventId));
+      if (event) loadAttendees(event);
     } finally {
       setBusyId("");
     }
@@ -96,9 +97,9 @@ export default function EventsBoard({ events, uid, userName }) {
   function renderEvent(event) {
     const key = event.occurrenceId || event.id;
     const data = rsvpData[key];
-    const attendees = data?.attendees || [];
+    const attendees = data?.names || [];
     const mine = data?.mine || false;
-    const count = attendees.length;
+    const count = data?.count || 0;
     const isLive = new Date(event.startTime).getTime() <= now;
     const atCapacity = event.capacity > 0 && count >= event.capacity;
     const joinDisabled = !!busyId || (atCapacity && !mine);
@@ -139,7 +140,7 @@ export default function EventsBoard({ events, uid, userName }) {
               )}
               {attendees.length <= 6 && (
                 <span className={styles.attendeeNames}>
-                  {" — "}{attendees.map((a) => a.name).join(", ")}
+                  {" — "}{attendees.join(", ")}
                 </span>
               )}
             </p>

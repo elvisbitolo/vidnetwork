@@ -111,11 +111,17 @@ function BookmarkButton({ postId, bookmarks, uid, disabled }) {
 }
 
 function PollBlock({ postId, post, uid, disabled }) {
-  const [votes, setVotes] = useState(post.pollVotes || {});
+  const [counts, setCounts] = useState(post.pollCounts || {});
+  const [total, setTotal] = useState(
+    post.pollTotal ?? (post.pollVotes ? Object.keys(post.pollVotes).length : 0)
+  );
+  const [votedOption, setVotedOption] = useState(
+    post.pollVotes && post.pollVotes[uid] !== undefined
+      ? post.pollVotes[uid]
+      : undefined
+  );
   const [busy, setBusy] = useState(false);
-  const votedOption = votes[uid];
   const options = post.pollOptions || [];
-  const total = Object.keys(votes).length;
 
   async function handleVote(option) {
     if (busy || disabled || votedOption !== undefined) return;
@@ -128,7 +134,9 @@ function PollBlock({ postId, post, uid, disabled }) {
       });
       if (res.ok) {
         const data = await res.json();
-        setVotes(data.pollVotes || {});
+        setCounts(data.counts || {});
+        setTotal(Object.values(data.counts || {}).reduce((a, b) => a + b, 0));
+        setVotedOption(data.votedOption);
       }
     } finally {
       setBusy(false);
@@ -142,7 +150,7 @@ function PollBlock({ postId, post, uid, disabled }) {
         {votedOption !== undefined ? " — you voted" : ""}
       </p>
       {options.map((option, index) => {
-        const count = Object.values(votes).filter((v) => v === index).length;
+        const count = counts[index] || 0;
         const pct = total > 0 ? Math.round((count / total) * 100) : 0;
         const mine = votedOption === index;
         return (

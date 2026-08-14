@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { canAccessPost } from "@/lib/server/posts";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id: postId } = await params;
@@ -12,23 +13,21 @@ export async function POST(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
-    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
-  }
+  const limited = rateLimitGuard(`comment:${user.uid}`, { limit: 20 });
+  if (limited) return limited;
 
   const { text } = await req.json();
   if (!text || typeof text !== "string" || !text.trim()) {
     return NextResponse.json({ error: "Comment text required" }, { status: 400 });
   }
 
-  const postSnap = await adminDb().collection("posts").doc(postId).get();
-  if (!postSnap.exists) {
-    return NextResponse.json({ error: "Post not found" }, { status: 404 });
-  }
-  const post = postSnap.data();
-
   const userDoc = await getUserDoc(user.uid);
+  const access = await canAccessPost(postId, user.uid, userDoc);
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+  const post = access.post;
+
   const authorName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
   const commentRef = await adminDb().collection("posts").doc(postId).collection("comments").add({
     authorId: user.uid,

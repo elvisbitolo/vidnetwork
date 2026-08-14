@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { canAccessRecording } from "@/lib/server/recordings";
+import { canAccessRecording, signedDownloadUrl } from "@/lib/server/recordings";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req, { params }) {
   const { id } = await params;
@@ -19,21 +21,22 @@ export async function GET(req, { params }) {
   if (!snap.exists) {
     return NextResponse.json({ error: "Recording not found" }, { status: 404 });
   }
-  const data = snap.data();
+  const rec = snap.data();
+  if (rec.status !== "complete") {
+    return NextResponse.json({ error: "Recording is not ready" }, { status: 400 });
+  }
 
   const userDoc = await getUserDoc(user.uid);
-  if (!(await canAccessRecording(data, userDoc, user.uid))) {
+  if (!(await canAccessRecording(rec, userDoc, user.uid))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  if (data.status !== "complete" || data.transcriptionStatus !== "complete") {
-    return NextResponse.json({ transcript: null }, { status: 200 });
+  const url = await signedDownloadUrl(rec);
+  if (!url) {
+    return NextResponse.json(
+      { error: "Download not configured — recording storage unavailable" },
+      { status: 501 }
+    );
   }
-
-  return NextResponse.json({
-    transcript: data.transcript || "",
-    roomName: data.roomName || "",
-    roomSlug: data.roomSlug || "",
-    startedAt: data.startedAt || null,
-  });
+  return NextResponse.redirect(url);
 }

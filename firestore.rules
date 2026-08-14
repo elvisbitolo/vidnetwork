@@ -5,25 +5,72 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function role() {
+      return isSignedIn() && me().exists ? me().data.role : '';
+    }
+
     function isOwner() {
-      return isSignedIn()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+      return isSignedIn() && role() == 'owner';
     }
 
     function isModerator() {
-      return isSignedIn()
-        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['owner', 'moderator']);
+      return isSignedIn() && (role() in ['owner', 'moderator']);
+    }
+
+    function isNotSuspended() {
+      return isSignedIn() && (!me().exists || me().data.suspended != true);
+    }
+
+    function subTier() {
+      let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
+      return sub != null && sub.tier != null ? sub.tier : 'standard';
     }
 
     function isActiveSub() {
       let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
-      return sub != null
-        && (sub.status == 'active' || sub.status == 'trialing')
+      return isNotSuspended()
+        && sub != null
+        && (sub.status in ['active', 'trialing', 'past_due'])
         && (sub.currentPeriodEnd == null || sub.currentPeriodEnd > request.time);
     }
 
+    function isSpaceMember(spaceId) {
+      return spaceId == null || spaceId == ''
+        || get(/databases/$(database)/documents/spaceMembers/$(spaceId + '_' + request.auth.uid)).exists;
+    }
+
+    function isGroupMember(groupId) {
+      return groupId == null || groupId == ''
+        || get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).exists;
+    }
+
+    function canReadPost(post) {
+      return isOwner()
+        || (isActiveSub()
+          && isSpaceMember(post.spaceId)
+          && isGroupMember(post.groupId));
+    }
+
+    function meetsTier(requiredTier) {
+      return requiredTier == null || requiredTier == '' || requiredTier == 'standard'
+        || subTier() == 'premium';
+    }
+
+    function canReadCourse(courseId) {
+      let course = get(/databases/$(database)/documents/courses/$(courseId)).data;
+      return isOwner()
+        || (isActiveSub()
+          && course != null
+          && course.status == 'published'
+          && meetsTier(course.requiredTier));
+    }
+
     match /users/{uid} {
-      allow read: if isSignedIn() && (request.auth.uid == uid || isActiveSub() || isOwner());
+      allow read: if isSignedIn() && (request.auth.uid == uid || isOwner());
       allow create: if isSignedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'createdAt'])
         && request.resource.data.role == 'member';
@@ -39,7 +86,9 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && (isOwner() || (isActiveSub()
+        && isSpaceMember(resource.data.spaceId)
+        && isGroupMember(resource.data.groupId)));
       allow create: if isOwner();
       allow update, delete: if isOwner();
     }
@@ -50,31 +99,43 @@ service cloud.firestore {
     }
 
     match /rsvps/{id} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isActiveSub() || isOwner());
-      allow create: if isSignedIn()
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isOwner());
+      allow create: if isSignedIn() && isActiveSub()
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.keys().hasOnly(['eventId', 'userId', 'name', 'createdAt']);
+        && request.resource.data.keys().hasOnly(['eventId', 'occurrenceId', 'userId', 'name', 'createdAt']);
       allow update: if false;
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
+    match /pollVotes/{voteId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if isSignedIn()
+        && request.auth.uid == resource.data.userId;
+    }
+
     match /posts/{postId} {
-      allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isModerator());
+      allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || canReadPost(resource.data));
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid
         && request.resource.data.keys().hasOnly([
           'authorId', 'authorName', 'text', 'imageUrl', 'createdAt',
-          'groupId', 'spaceId', 'kind', 'hashtags', 'bookmarks',
-          'pollOptions', 'pollVotes', 'pinned', 'likes'
+          'groupId', 'spaceId', 'kind', 'hashtags'
         ]);
-      allow update: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
+      allow update: if isSignedIn() && (
+        (resource.data.authorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'imageUrl']))
+        || (isModerator()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned']))
+      );
       allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
 
       match /comments/{commentId} {
-        allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid || isActiveSub() || isModerator());
+        allow read: if isSignedIn() && (resource.data.authorId == request.auth.uid
+          || canReadPost(get(/databases/$(database)/documents/posts/$(postId)).data));
         allow create: if isSignedIn()
           && request.resource.data.authorId == request.auth.uid
-          && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt']);
+          && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt'])
+          && canReadPost(get(/databases/$(database)/documents/posts/$(postId)).data);
         allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
       }
     }
@@ -85,7 +146,7 @@ service cloud.firestore {
     }
 
     match /spaceMembers/{id} {
-      allow read: if isSignedIn() && (isActiveSub() || isOwner() || resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isOwner());
       allow create, update, delete: if false;
     }
 
@@ -109,12 +170,12 @@ service cloud.firestore {
     }
 
     match /modules/{moduleId} {
-      allow read: if isSignedIn() && (isOwner() || isActiveSub());
+      allow read: if isSignedIn() && canReadCourse(resource.data.courseId);
       allow create, update, delete: if isOwner();
     }
 
     match /lessons/{lessonId} {
-      allow read: if isSignedIn() && (isOwner() || isActiveSub());
+      allow read: if isSignedIn() && canReadCourse(resource.data.courseId);
       allow create, update, delete: if isOwner();
     }
 
@@ -124,13 +185,13 @@ service cloud.firestore {
     }
 
     match /groups/{groupId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() && isNotSuspended();
       allow create: if isOwner();
       allow update, delete: if isOwner();
     }
 
     match /groupMembers/{id} {
-      allow read: if isSignedIn() && (isActiveSub() || isOwner() || resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isOwner());
       allow create, update, delete: if false;
     }
 
@@ -140,8 +201,7 @@ service cloud.firestore {
     }
 
     match /recordings/{id} {
-      allow read: if isSignedIn() && (isOwner() || isActiveSub());
-      allow create, update, delete: if false;
+      allow read, create, update, delete: if false;
     }
 
     match /pushSubscriptions/{userId} {

@@ -1,4 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { deleteDocs } from "@/lib/server/delete";
 
 export function slugify(name) {
   return name
@@ -46,4 +47,32 @@ export async function createRoom({ name, description, maxParticipants, groupId, 
     createdAt: new Date(),
   });
   return { id: ref.id, slug, name, description };
+}
+
+async function endLiveKitRoom(slug) {
+  const host = process.env.LIVEKIT_URL;
+  const key = process.env.LIVEKIT_API_KEY;
+  const secret = process.env.LIVEKIT_API_SECRET;
+  if (!host || !key || !secret || !slug) return;
+  try {
+    const { RoomServiceClient } = await import("livekit-server-sdk");
+    const url = new URL(host);
+    const client = new RoomServiceClient(`${url.protocol}//${url.host}`, key, secret);
+    const rooms = await client.listRooms();
+    if (rooms.some((r) => r.name === slug)) {
+      await client.deleteRoom(slug);
+    }
+  } catch {
+    // Room teardown is best-effort; the Firestore record is still removed.
+  }
+}
+
+export async function deleteRoom(room) {
+  await endLiveKitRoom(room.slug);
+  const eventsSnap = await adminDb()
+    .collection("roomEvents")
+    .where("roomId", "==", room.id)
+    .get();
+  await deleteDocs(eventsSnap.docs);
+  await adminDb().collection("rooms").doc(room.id).delete();
 }

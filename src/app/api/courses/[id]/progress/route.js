@@ -4,6 +4,7 @@ import { getCourse, getProgress } from "@/lib/server/courses";
 import { requireActiveMember, guardJson } from "@/lib/server/authorize";
 import { getUserDoc } from "@/lib/server/auth";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
   const { id: courseId } = await params;
@@ -15,6 +16,8 @@ export async function POST(req, { params }) {
   const auth = await requireActiveMember({ tier: course.requiredTier });
   const denied = guardJson(auth);
   if (denied) return denied;
+  const limited = rateLimitGuard(`progress:${auth.user.uid}`, { limit: 60 });
+  if (limited) return limited;
 
   const { lessonId, completed } = await req.json();
   if (!lessonId || typeof lessonId !== "string") {

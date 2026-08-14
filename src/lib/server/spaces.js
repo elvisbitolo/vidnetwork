@@ -112,6 +112,33 @@ export async function deleteSpace(spaceId) {
   await batch.commit();
 }
 
+export async function cascadeDeleteSpace(spaceId) {
+  const { deleteWhere, deletePostWithComments } = await import("@/lib/server/delete");
+  const { deleteRoom } = await import("@/lib/server/rooms");
+
+  const roomsSnap = await adminDb().collection("rooms").where("spaceId", "==", spaceId).get();
+  for (const doc of roomsSnap.docs) {
+    await deleteRoom({ id: doc.id, ...doc.data() });
+  }
+
+  await deleteWhere("events", "spaceId", spaceId);
+
+  const coursesSnap = await adminDb().collection("courses").where("spaceId", "==", spaceId).get();
+  for (const doc of coursesSnap.docs) {
+    await deleteWhere("lessons", "courseId", doc.id);
+    await deleteWhere("modules", "courseId", doc.id);
+    await doc.ref.delete();
+  }
+
+  const postsSnap = await adminDb().collection("posts").where("spaceId", "==", spaceId).get();
+  for (const doc of postsSnap.docs) {
+    await deletePostWithComments(doc.ref);
+  }
+
+  await deleteWhere("spaceMembers", "spaceId", spaceId);
+  await adminDb().collection("spaces").doc(spaceId).delete();
+}
+
 export async function listRoomsForSpace(spaceId) {
   const snap = await adminDb().collection("rooms").where("spaceId", "==", spaceId).get();
   return snap.docs

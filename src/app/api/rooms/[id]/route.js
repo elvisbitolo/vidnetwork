@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { deleteRoom } from "@/lib/server/rooms";
 
 export async function DELETE(req, { params }) {
   const { id } = await params;
@@ -11,14 +12,18 @@ export async function DELETE(req, { params }) {
 
   const ref = adminDb().collection("rooms").doc(id);
   const snap = await ref.get();
-  await ref.delete();
+  if (!snap.exists) {
+    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+  }
+  const room = snap.data();
+  await deleteRoom({ id, slug: room.slug, name: room.name });
 
   await logAudit({
     actorId: auth.user.uid,
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "room.deleted",
     targetId: id,
-    metadata: { name: snap.exists ? snap.data().name : "" },
+    metadata: { name: room.name || "" },
   });
 
   return NextResponse.json({ ok: true });

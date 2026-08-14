@@ -6,11 +6,6 @@ import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
 import { logError } from "@/lib/server/log";
 
-async function isProcessed(eventId) {
-  const snap = await adminDb().collection("stripeEvents").doc(eventId).get();
-  return snap.exists && snap.data().status === "processed";
-}
-
 async function markEvent(eventId, status, error = "", extra = {}) {
   await adminDb().collection("stripeEvents").doc(eventId).set({
     status,
@@ -73,7 +68,13 @@ export async function POST(req) {
     );
   }
 
-  if (await isProcessed(event.id)) {
+  try {
+    await adminDb().collection("stripeEvents").doc(event.id).create({
+      status: "processing",
+      type: event.type,
+      receivedAt: new Date(),
+    });
+  } catch {
     return NextResponse.json({ received: true, duplicate: true });
   }
 

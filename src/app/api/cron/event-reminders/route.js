@@ -29,9 +29,12 @@ export async function GET(req) {
     const rsvpSnap = await adminDb().collection("rsvps").where("eventId", "==", doc.id).get();
     for (const rsvpDoc of rsvpSnap.docs) {
       const rsvp = rsvpDoc.data();
-      if (rsvp.email && rsvp.reminded !== true) {
+      if (rsvp.reminded !== true) {
+        const userSnap = await adminDb().collection("users").doc(rsvp.userId).get();
+        const email = userSnap.exists ? userSnap.data().email : "";
+        if (!email) continue;
         await sendEmail({
-          to: rsvp.email,
+          to: email,
           subject: `Reminder: "${event.title}" starts soon`,
           text:
             `You're going to "${event.title}" — it starts in ${Math.round(hoursUntil)} hour(s) at ` +

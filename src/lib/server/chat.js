@@ -147,7 +147,10 @@ export async function listConversations(uid) {
     .collection("conversations")
     .where("participantIds", "array-contains", uid)
     .get();
-  const names = await loadNames();
+  const ids = uniqueIds(
+    snap.docs.flatMap((d) => (d.data().participantIds || []).filter((id) => id !== uid))
+  );
+  const names = await loadNames(ids);
   return snap.docs
     .map((doc) => {
       const data = doc.data();
@@ -180,7 +183,8 @@ export async function getConversation(id, uid) {
   if (!doc.exists) return null;
   const data = doc.data();
   if (!data.participantIds.includes(uid)) return null;
-  const names = await loadNames();
+  const ids = uniqueIds((data.participantIds || []).filter((id) => id !== uid));
+  const names = await loadNames(ids);
   return {
     id: doc.id,
     ...data,
@@ -192,12 +196,19 @@ export async function getConversation(id, uid) {
   };
 }
 
-async function loadNames() {
-  const snap = await adminDb().collection("users").get();
+function uniqueIds(ids) {
+  return [...new Set(ids.filter(Boolean))].slice(0, 100);
+}
+
+async function loadNames(ids) {
   const names = {};
-  for (const doc of snap.docs) {
-    names[doc.id] = doc.data().name || "Member";
-  }
+  if (ids.length === 0) return names;
+  const db = adminDb();
+  const refs = ids.map((id) => db.collection("users").doc(id));
+  const snaps = await db.getAll(...refs);
+  snaps.forEach((snap, i) => {
+    if (snap.exists) names[ids[i]] = snap.data().name || "Member";
+  });
   return names;
 }
 

@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { AccessToken } from "livekit-server-sdk";
 import { getRoomBySlug } from "@/lib/server/rooms";
-import { requireActiveMember, guardJson } from "@/lib/server/authorize";
+import { getSpace, isSpaceMember } from "@/lib/server/spaces";
+import {
+  requireActiveMember,
+  requireGroupMember,
+  guardJson,
+} from "@/lib/server/authorize";
+import { meetsTier } from "@/lib/server/plans";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req) {
@@ -25,14 +31,31 @@ export async function POST(req) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  let canPublish = true;
-  if (room.groupId) {
+  const isOwner = auth.userDoc?.role === "owner";
+
+  if (room.spaceId) {
+    const space = await getSpace(room.spaceId);
+    if (!space || space.status !== "active") {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+    if (!isOwner) {
+      const membership = await isSpaceMember(room.spaceId, auth.user.uid);
+      if (!membership) {
+        return NextResponse.json({ error: "Join the space first" }, { status: 403 });
+      }
+      if (space.requiredTier && !meetsTier(auth.sub?.tier || "standard", space.requiredTier)) {
+        return NextResponse.json({ error: "Premium membership required" }, { status: 403 });
+      }
+    }
+  }
+
+  if (room.groupId && !isOwner) {
     const groupAuth = await requireGroupMember(room.groupId);
     const groupDenied = guardJson(groupAuth);
     if (groupDenied) return groupDenied;
   }
 
-  const isOwner = auth.userDoc?.role === "owner";
+  let canPublish = true;
   if (room.kind === "broadcast" && !isOwner) {
     canPublish = false;
   }

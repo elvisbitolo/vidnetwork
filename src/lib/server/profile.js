@@ -14,6 +14,9 @@ export function normalizeProfile(body) {
   if ("headline" in body) patch.headline = clean(body.headline, 120);
   if ("location" in body) patch.location = clean(body.location, 80);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
+  if ("notifications" in body) {
+    patch.notifications = body.notifications === "off" ? "off" : "on";
+  }
 
   return { patch, errors };
 }

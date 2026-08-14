@@ -18,12 +18,16 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { title, description = "", status = "draft", spaceId = "" } = await req.json();
+  const { title, description = "", status = "draft", spaceId = "", purchasePriceCents = 0 } = await req.json();
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "Course title required" }, { status: 400 });
   }
   if (!["draft", "published"].includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+  const price = Number(purchasePriceCents) || 0;
+  if (price < 0 || price > 1000000) {
+    return NextResponse.json({ error: "Invalid price" }, { status: 400 });
   }
   if (spaceId) {
     const space = await getSpace(spaceId);
@@ -37,6 +41,7 @@ export async function POST(req) {
     description,
     status,
     spaceId: spaceId || "",
+    purchasePriceCents: price,
     createdBy: auth.user.uid,
     createdAt: new Date(),
   });
@@ -46,7 +51,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "course.created",
     targetId: ref.id,
-    metadata: { title, status, spaceId },
+    metadata: { title, status, spaceId, purchasePriceCents: price },
   });
 
   return NextResponse.json({ id: ref.id });

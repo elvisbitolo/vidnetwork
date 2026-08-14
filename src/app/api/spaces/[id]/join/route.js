@@ -11,6 +11,7 @@ import {
 } from "@/lib/server/spaces";
 import { syncSpaceChatParticipants } from "@/lib/server/chat";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { hasPurchased } from "@/lib/server/purchases";
 
 export async function POST(req, { params }) {
   const { id: spaceId } = await params;
@@ -57,6 +58,9 @@ export async function POST(req, { params }) {
     }
     if (space.requiredTier && !meetsTier(sub.tier || "standard", space.requiredTier)) {
       return NextResponse.json({ error: "Premium membership required" }, { status: 403 });
+    }
+    if (Number(space.purchasePriceCents) > 0 && !(await hasPurchased(user.uid, "space", spaceId))) {
+      return NextResponse.json({ error: "Buy this space to join" }, { status: 403 });
     }
   }
 

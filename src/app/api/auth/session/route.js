@@ -22,12 +22,32 @@ export async function POST(req) {
     const userRef = users.doc(decoded.uid);
     const snap = await userRef.get();
     if (!snap.exists) {
+      const memberName =
+        name || decoded.name || decoded.email?.split("@")[0] || "Member";
       await userRef.set({
-        name: name || decoded.name || decoded.email?.split("@")[0] || "Member",
+        name: memberName,
         email: decoded.email || "",
         role: "member",
         createdAt: new Date(),
       });
+
+      if (decoded.email) {
+        const { sendEmail } = await import("@/lib/server/email");
+        await sendEmail({
+          to: decoded.email,
+          subject: "Welcome to VidNetwork",
+          text:
+            `Hi ${memberName},\n\n` +
+            `Welcome to VidNetwork! You're now a member of the community.\n\n` +
+            `Here's what's inside:\n` +
+            `- Live video rooms for real-time conversation\n` +
+            `- Courses with lessons and progress tracking\n` +
+            `- Events with RSVPs and reminders\n` +
+            `- Groups, spaces, direct messages and a community feed\n\n` +
+            `To pick a plan and start exploring: ${process.env.NEXT_PUBLIC_APP_URL || ""}/pricing\n\n` +
+            `We're glad you're here.\n\n— The VidNetwork Team`,
+        }).catch(() => {});
+      }
     }
 
     const sessionCookie = await adminAuth().createSessionCookie(idToken, {

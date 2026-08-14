@@ -31,6 +31,7 @@ export async function GET(req) {
       description: space.description || "",
       access: space.access,
       requiredTier: space.requiredTier || "",
+      purchasePriceCents: space.purchasePriceCents || 0,
       features: space.features || {},
       memberCount: membersSnap.size,
       joined: !!membership,
@@ -44,12 +45,16 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { name, description = "", features = {}, access = "public", requiredTier = "" } = await req.json();
+  const { name, description = "", features = {}, access = "public", requiredTier = "", purchasePriceCents = 0 } = await req.json();
   if (!name || typeof name !== "string") {
     return NextResponse.json({ error: "Space name required" }, { status: 400 });
   }
   if (!SPACE_ACCESS.includes(access)) {
     return NextResponse.json({ error: "Invalid access type" }, { status: 400 });
+  }
+  const price = Number(purchasePriceCents) || 0;
+  if (price < 0 || price > 1000000) {
+    return NextResponse.json({ error: "Invalid price" }, { status: 400 });
   }
 
   const space = await createSpace({
@@ -58,6 +63,7 @@ export async function POST(req) {
     features,
     access,
     requiredTier,
+    purchasePriceCents: price,
     createdBy: auth.user.uid,
   });
 

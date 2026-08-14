@@ -184,6 +184,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /purchases/{id} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
     match /groups/{groupId} {
       allow read: if isSignedIn() && isNotSuspended();
       allow create: if isOwner();

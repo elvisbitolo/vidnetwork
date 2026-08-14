@@ -13,8 +13,10 @@ import {
 } from "@/lib/server/spaces";
 import { expandEvents } from "@/lib/server/events";
 import { meetsTier } from "@/lib/server/plans";
+import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import BuyButton from "@/components/BuyButton";
 import Feed from "@/app/feed/Feed";
 import EventsBoard from "@/app/events/EventsBoard";
 import SpaceInvite from "../SpaceInvite";
@@ -52,6 +54,8 @@ export default async function SpacePage({ params }) {
   const features = space.features || {};
 
   const tierOk = !space.requiredTier || isOwner || meetsTier(sub.tier || "standard", space.requiredTier);
+  const purchasedKeys = await getPurchasedKeys(user.uid);
+  const purchaseOk = isOwner || canAccessPaid("space", space, purchasedKeys);
   const canEnter = membership || isOwner;
   const isInviteOnly = space.access === "invite";
 
@@ -69,6 +73,7 @@ export default async function SpacePage({ params }) {
       endTime: event.endTime ? new Date(event.endTime.toMillis ? event.endTime.toMillis() : event.endTime).toISOString() : null,
       roomSlug: event.roomSlug || "",
       capacity: Number(event.capacity) || 0,
+      purchasePriceCents: Number(event.purchasePriceCents) || 0,
     }));
   }
 
@@ -121,14 +126,21 @@ export default async function SpacePage({ params }) {
             )}
           </p>
 
-          {!canEnter ? (
+          {!canEnter || !purchaseOk ? (
             <p className={styles.notMember}>
-              {isInviteOnly
+              {!purchaseOk
+                ? "This space is sold separately — buy access to join."
+                : isInviteOnly
                 ? "This space is invite only — ask the host to add you."
                 : !tierOk
                 ? "This space requires a Premium membership. Upgrade to join."
                 : "You're not a member yet — join to see and post in this space."}{" "}
-              <Link className={styles.link} href="/pricing">See membership options</Link>.
+              {!purchaseOk ? (
+                <BuyButton targetType="space" targetId={space.id} priceCents={space.purchasePriceCents} />
+              ) : (
+                <Link className={styles.link} href="/pricing">See membership options</Link>
+              )}
+              .
             </p>
           ) : (
             <div className={styles.spaceActions}>

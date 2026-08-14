@@ -452,6 +452,12 @@ export default function Home() {
               <Link className={styles.footerLink} href="/pricing">
                 Pricing
               </Link>
+              <Link className={styles.footerLink} href="/about">
+                About
+              </Link>
+              <Link className={styles.footerLink} href="/guidelines">
+                Community Guidelines
+              </Link>
             </nav>
             <nav aria-label="Account links" className={styles.footerCol}>
               <p className={styles.footerTitle}>Account</p>

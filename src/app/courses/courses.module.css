@@ -40,6 +40,27 @@
   text-decoration: underline;
 }
 
+.paywall {
+  margin-top: 24px;
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  text-align: center;
+}
+
+.paywallTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 8px;
+}
+
+.paywallText {
+  color: #6b6b7b;
+  margin: 0 0 20px;
+}
+
 .adminLink {
   height: 40px;
   display: inline-flex;

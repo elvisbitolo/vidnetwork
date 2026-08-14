@@ -3,6 +3,8 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { addMessage, getConversation } from "@/lib/server/chat";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { adminDb } from "@/lib/firebase/admin";
+import { sendEmail } from "@/lib/server/email";
 
 export async function GET(req, { params }) {
   const { id: conversationId } = await params;
@@ -45,13 +47,35 @@ export async function POST(req, { params }) {
   }
 
   const userDoc = await getUserDoc(user.uid);
+  const senderName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
   const messageId = await addMessage(conversationId, {
     uid: user.uid,
-    name: userDoc?.name || user.name || user.email?.split("@")[0] || "Member",
+    name: senderName,
   }, text.trim());
 
   if (!messageId) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
+
+  const conv = await getConversation(conversationId, user.uid);
+  if (conv && conv.type === "dm") {
+    const otherId = (conv.participantIds || []).find((id) => id !== user.uid);
+    if (otherId) {
+      const otherSnap = await adminDb().collection("users").doc(otherId).get();
+      if (otherSnap.exists) {
+        const other = otherSnap.data();
+        if (other.email && other.notifications !== "off") {
+          await sendEmail({
+            to: other.email,
+            subject: `New message from ${senderName}`,
+            text:
+              `${senderName} sent you a message:\n\n"${text.trim()}"\n\n` +
+              `Reply in the community chat: ${process.env.NEXT_PUBLIC_APP_URL || ""}/chat/${conversationId}`,
+          }).catch(() => {});
+        }
+      }
+    }
+  }
+
   return NextResponse.json({ id: messageId });
 }

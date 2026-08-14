@@ -35,7 +35,7 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
-  const { title, description, status, requiredTier } = await req.json();
+  const { title, description, status, requiredTier, purchasePriceCents } = await req.json();
   const patch = {};
   if (title !== undefined) patch.title = String(title);
   if (description !== undefined) patch.description = String(description);
@@ -44,6 +44,13 @@ export async function PATCH(req, { params }) {
       return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
     }
     patch.requiredTier = requiredTier;
+  }
+  if (purchasePriceCents !== undefined) {
+    const price = Number(purchasePriceCents) || 0;
+    if (price < 0 || price > 1000000) {
+      return NextResponse.json({ error: "Invalid price" }, { status: 400 });
+    }
+    patch.purchasePriceCents = price;
   }
   if (status !== undefined) {
     if (!["draft", "published"].includes(status)) {

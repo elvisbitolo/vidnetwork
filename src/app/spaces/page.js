@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { listSpaces, getSpaceMembers, isSpaceMember } from "@/lib/server/spaces";
+import { getPurchasedKeys } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import SpacesBoard from "./SpacesBoard";
 import styles from "./spaces.module.css";
@@ -18,6 +19,7 @@ export default async function SpacesPage() {
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const spaces = await listSpaces();
+  const purchasedKeys = await getPurchasedKeys(user.uid);
   const visible = [];
   for (const space of spaces) {
     if (space.status !== "active") continue;
@@ -31,9 +33,11 @@ export default async function SpacesPage() {
       description: space.description || "",
       access: space.access,
       requiredTier: space.requiredTier || "",
+      purchasePriceCents: Number(space.purchasePriceCents) || 0,
       features: space.features || {},
       memberCount: members.length,
       joined: !!membership,
+      purchased: purchasedKeys.has(`space:${space.id}`),
     });
   }
 

@@ -24,6 +24,7 @@ export default function AdminSpacesPage() {
   const [description, setDescription] = useState("");
   const [access, setAccess] = useState("public");
   const [requiredTier, setRequiredTier] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
   const [features, setFeatures] = useState(DEFAULT_FEATURES);
   const [spaces, setSpaces] = useState([]);
   const [role, setRole] = useState("member");
@@ -57,7 +58,7 @@ export default function AdminSpacesPage() {
     const res = await fetch("/api/spaces", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, access, requiredTier, features }),
+      body: JSON.stringify({ name, description, access, requiredTier, features, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0 }),
     });
     const data = await res.json();
     setBusy(false);
@@ -69,6 +70,7 @@ export default function AdminSpacesPage() {
     setDescription("");
     setAccess("public");
     setRequiredTier("");
+    setPurchasePrice("");
     setFeatures(DEFAULT_FEATURES);
     await loadSpaces();
   }
@@ -146,6 +148,19 @@ export default function AdminSpacesPage() {
                 <option value="premium">Premium only</option>
               </select>
             </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="purchasePrice">One-time price (optional)</label>
+              <input
+                id="purchasePrice"
+                className={styles.input}
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder="e.g. 19.00 for a paid space"
+                value={purchasePrice}
+                onChange={(e) => setPurchasePrice(e.target.value)}
+              />
+            </div>
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Features</label>
@@ -180,7 +195,8 @@ export default function AdminSpacesPage() {
                 <div>
                   <p className={styles.itemName}>{space.name}</p>
                   <p className={styles.itemMeta}>
-                    {accessLabel[space.access]} {space.requiredTier === "premium" ? "· Premium" : ""} ·{" "}
+                    {accessLabel[space.access]} {space.requiredTier === "premium" ? "· Premium" : ""}
+                    {space.purchasePriceCents ? ` · $${(space.purchasePriceCents / 100).toFixed(2)}` : ""} ·{" "}
                     {space.memberCount} members ·{" "}
                     {Object.entries(space.features)
                       .filter(([, enabled]) => enabled)

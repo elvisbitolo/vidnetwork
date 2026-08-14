@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import BuyButton from "@/components/BuyButton";
 import styles from "./spaces.module.css";
 
 const FEATURE_ICONS = {
@@ -57,6 +58,11 @@ export default function SpacesBoard({ spaces, uid }) {
                 {space.description && <p className={styles.cardDesc}>{space.description}</p>}
                 <p className={styles.cardMeta}>
                   {space.memberCount} {space.memberCount === 1 ? "member" : "members"}
+                  {space.purchasePriceCents > 0 && (
+                    <span className={styles.priceBadge}>
+                      ${(space.purchasePriceCents / 100).toFixed(2)}
+                    </span>
+                  )}
                   <span className={styles.accessBadge}>
                     {space.access === "public"
                       ? "Public"
@@ -76,13 +82,21 @@ export default function SpacesBoard({ spaces, uid }) {
                   </p>
                 )}
               </div>
-              <button
-                className={space.joined ? `${styles.join} ${styles.joinActive}` : styles.join}
-                onClick={() => handleJoin(space.id)}
-                disabled={!!busyId}
-              >
-                {busyId === space.id ? "Saving…" : space.joined ? "Joined ✓" : "Join space"}
-              </button>
+              {space.purchasePriceCents > 0 && !space.purchased ? (
+                <BuyButton
+                  targetType="space"
+                  targetId={space.id}
+                  priceCents={space.purchasePriceCents}
+                />
+              ) : (
+                <button
+                  className={space.joined ? `${styles.join} ${styles.joinActive}` : styles.join}
+                  onClick={() => handleJoin(space.id)}
+                  disabled={!!busyId}
+                >
+                  {busyId === space.id ? "Saving…" : space.joined ? "Joined ✓" : "Join space"}
+                </button>
+              )}
             </div>
           );
         })}

@@ -15,6 +15,7 @@ export default function AdminEventsPage() {
   const [endTime, setEndTime] = useState("");
   const [roomSlug, setRoomSlug] = useState("");
   const [capacity, setCapacity] = useState(0);
+  const [purchasePrice, setPurchasePrice] = useState("");
   const [recurFreq, setRecurFreq] = useState("");
   const [recurCount, setRecurCount] = useState(1);
   const [spaceId, setSpaceId] = useState("");
@@ -61,6 +62,7 @@ export default function AdminEventsPage() {
         roomSlug,
         capacity,
         spaceId,
+        purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0,
         recurrence: recurFreq ? { freq: recurFreq, interval: 1, count: Number(recurCount) || 2 } : null,
       }),
     });
@@ -77,6 +79,7 @@ export default function AdminEventsPage() {
     setRoomSlug("");
     setCapacity(0);
     setSpaceId("");
+    setPurchasePrice("");
     setRecurFreq("");
     setRecurCount(1);
     await loadEvents();
@@ -167,6 +170,19 @@ export default function AdminEventsPage() {
             />
           </div>
           <div className={styles.field}>
+            <label className={styles.label} htmlFor="purchasePrice">One-time price (optional)</label>
+            <input
+              id="purchasePrice"
+              className={styles.input}
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="e.g. 29.00 for a paid event"
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(e.target.value)}
+            />
+          </div>
+          <div className={styles.field}>
             <label className={styles.label} htmlFor="space">Space (optional)</label>
             <select
               id="space"
@@ -229,6 +245,7 @@ export default function AdminEventsPage() {
                       minute: "2-digit",
                     })}
                     {event.roomSlug ? ` · ${event.roomSlug}` : ""}
+                    {event.purchasePriceCents ? ` · $${(event.purchasePriceCents / 100).toFixed(2)}` : ""}
                   </p>
                 </div>
                 <button className={styles.delete} onClick={() => handleDelete(event.id)}>

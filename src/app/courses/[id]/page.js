@@ -3,8 +3,10 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { getCourseFull, getProgress, canAccessCourse } from "@/lib/server/courses";
+import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import BuyButton from "@/components/BuyButton";
 import styles from "../courses.module.css";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +37,9 @@ export default async function CoursePage({ params }) {
   const tier = sub.tier || "standard";
   const needsHigherTier = !isOwner && !canAccessCourse(course, tier);
 
+  const purchasedKeys = await getPurchasedKeys(user.uid);
+  const needsPurchase = !isOwner && !canAccessPaid("course", course, purchasedKeys);
+
   if (needsHigherTier) {
     return (
       <main className={styles.page}>
@@ -45,6 +50,30 @@ export default async function CoursePage({ params }) {
             This course requires the Premium membership tier. Upgrade to unlock it.
           </p>
           <Link className={styles.link} href="/pricing">See membership options</Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (needsPurchase) {
+    return (
+      <main className={styles.page}>
+        <Nav role={userDoc?.role} />
+        <div className={styles.container}>
+          <BackButton fallback="/courses" label="All courses" />
+          <div className={styles.courseHeader}>
+            <h1 className={styles.title}>{course.title}</h1>
+            {course.description && <p className={styles.subtitle}>{course.description}</p>}
+          </div>
+          <div className={styles.paywall}>
+            <h2 className={styles.paywallTitle}>
+              {course.title} is sold separately
+            </h2>
+            <p className={styles.paywallText}>
+              Buy one-time access to all lessons in this course. Your purchase never expires.
+            </p>
+            <BuyButton targetType="course" targetId={course.id} priceCents={course.purchasePriceCents} />
+          </div>
         </div>
       </main>
     );

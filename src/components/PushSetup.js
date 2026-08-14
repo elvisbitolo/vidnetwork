@@ -6,6 +6,11 @@ import { auth } from "@/lib/firebase/client";
 
 export default function PushSetup() {
   useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) return;
 
@@ -18,7 +23,7 @@ export default function PushSetup() {
       if (Notification.permission !== "granted") return;
 
       try {
-        const reg = await navigator.serviceWorker.register("/sw.js");
+        const reg = await navigator.serviceWorker.getRegistration();
         let subscription = await reg.pushManager.getSubscription();
         if (!subscription) {
           subscription = await reg.pushManager.subscribe({

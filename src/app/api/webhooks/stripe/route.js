@@ -4,7 +4,17 @@ import { getStripe } from "@/lib/server/stripe";
 import { buildSubscriptionDoc, fromEpoch } from "@/lib/server/billing";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
+import { recordPurchase, PURCHASE_TYPES } from "@/lib/server/purchases";
+import { getCourse } from "@/lib/server/courses";
+import { getEvent } from "@/lib/server/events";
+import { getSpace } from "@/lib/server/spaces";
 import { logError } from "@/lib/server/log";
+
+async function loadTarget(targetType, targetId) {
+  if (targetType === "course") return getCourse(targetId);
+  if (targetType === "event") return getEvent(targetId);
+  return getSpace(targetId);
+}
 
 async function markEvent(eventId, status, error = "", extra = {}) {
   await adminDb().collection("stripeEvents").doc(eventId).set({
@@ -82,6 +92,34 @@ export async function POST(req) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+        if (
+          session.metadata?.uid &&
+          PURCHASE_TYPES.includes(session.metadata?.targetType) &&
+          session.metadata?.targetId
+        ) {
+          const uid = session.metadata.uid;
+          const { targetType, targetId } = session.metadata;
+          await recordPurchase({ uid, targetType, targetId, sessionId: session.id });
+          const item = await loadTarget(targetType, targetId);
+          const label = item?.title || item?.name || "content";
+          await createNotification({
+            userId: uid,
+            type: "purchase",
+            actorId: "",
+            actorName: "Community",
+            targetId,
+            href: targetType === "course" ? `/courses/${targetId}` : targetType === "event" ? "/events" : `/spaces/${item?.slug || ""}`,
+            text: `You now have access to "${label}"`,
+          });
+          if (session.customer_details?.email) {
+            await sendEmail({
+              to: session.customer_details.email,
+              subject: `Your purchase of "${label}" is complete`,
+              text: `Thanks for buying "${label}". You now have access — enjoy!\n\n— The VidNetwork Team`,
+            }).catch(() => {});
+          }
+          break;
+        }
         if (!session.subscription) break;
         const { uid, subscription } = await syncSubscription(session.subscription);
         if (subscription.status === "trialing") {

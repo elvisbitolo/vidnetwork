@@ -36,6 +36,7 @@ export async function GET(req, { params }) {
       description: space.description || "",
       access: space.access,
       requiredTier: space.requiredTier || "",
+      purchasePriceCents: space.purchasePriceCents || 0,
       features: space.features || {},
       memberCount: membersSnap.size,
       joined: !!membership,
@@ -55,12 +56,16 @@ export async function PATCH(req, { params }) {
   }
 
   const body = await req.json();
+  if (body.purchasePriceCents !== undefined && (Number(body.purchasePriceCents) < 0 || Number(body.purchasePriceCents) > 1000000)) {
+    return NextResponse.json({ error: "Invalid price" }, { status: 400 });
+  }
   const updated = await updateSpace(id, {
     name: body.name,
     description: body.description,
     features: body.features,
     access: body.access,
     requiredTier: body.requiredTier,
+    purchasePriceCents: body.purchasePriceCents,
   });
 
   await logAudit({

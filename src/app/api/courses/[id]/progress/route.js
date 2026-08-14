@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getCourse, getProgress } from "@/lib/server/courses";
 import { requireActiveMember, guardJson } from "@/lib/server/authorize";
 import { getUserDoc } from "@/lib/server/auth";
+import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
@@ -16,6 +17,14 @@ export async function POST(req, { params }) {
   const auth = await requireActiveMember({ tier: course.requiredTier });
   const denied = guardJson(auth);
   if (denied) return denied;
+
+  if (auth.userDoc?.role !== "owner") {
+    const purchasedKeys = await getPurchasedKeys(auth.user.uid);
+    if (!canAccessPaid("course", course, purchasedKeys)) {
+      return NextResponse.json({ error: "Purchase required for this course" }, { status: 403 });
+    }
+  }
+
   const limited = rateLimitGuard(`progress:${auth.user.uid}`, { limit: 60 });
   if (limited) return limited;
 

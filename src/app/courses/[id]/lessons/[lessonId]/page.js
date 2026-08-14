@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { getCourse, getLesson, getNextLessonId, getProgress, canAccessCourse } from "@/lib/server/courses";
+import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import LessonView from "./LessonView";
@@ -57,6 +58,24 @@ export default async function LessonPage({ params }) {
         </div>
       </main>
     );
+  }
+
+  if (!isOwner) {
+    const purchasedKeys = await getPurchasedKeys(user.uid);
+    if (!canAccessPaid("course", course, purchasedKeys)) {
+      return (
+        <main className={styles.page}>
+          <Nav role={userDoc?.role} />
+          <div className={styles.container}>
+            <h1 className={styles.title}>Purchase required</h1>
+            <p className={styles.lockedText}>
+              This course is sold separately. Buy it to unlock the lessons.
+            </p>
+            <Link className={styles.link} href={`/courses/${courseId}`}>Back to course</Link>
+          </div>
+        </main>
+      );
+    }
   }
 
   const releaseAt = lesson.releaseAt ? new Date(lesson.releaseAt.toMillis ? lesson.releaseAt.toMillis() : lesson.releaseAt) : null;

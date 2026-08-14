@@ -7,6 +7,7 @@ import { sendEmail } from "@/lib/server/email";
 import { awardPoints, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { applyRsvpCounts } from "@/lib/server/events-core";
+import { hasPurchased } from "@/lib/server/purchases";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -29,6 +30,17 @@ export async function POST(req) {
   const eventRef = adminDb().collection("events").doc(eventId);
   const userDoc = await getUserDoc(user.uid);
   const memberName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
+
+  if (userDoc?.role !== "owner") {
+    const eventSnap = await eventRef.get();
+    const eventData = eventSnap.data();
+    if (!eventData) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+    if (Number(eventData.purchasePriceCents) > 0 && !(await hasPurchased(user.uid, "event", eventId))) {
+      return NextResponse.json({ error: "Buy this event to RSVP" }, { status: 403 });
+    }
+  }
 
   const rsvpKey = occurrenceId || eventId;
   const ref = adminDb().collection("rsvps").doc(`${rsvpKey}_${user.uid}`);

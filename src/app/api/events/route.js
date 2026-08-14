@@ -17,13 +17,17 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { title, description = "", startTime, endTime = null, roomSlug = "", capacity = 0, recurrence = null, spaceId = "" } = await req.json();
+  const { title, description = "", startTime, endTime = null, roomSlug = "", capacity = 0, recurrence = null, spaceId = "", purchasePriceCents = 0 } = await req.json();
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "Event title required" }, { status: 400 });
   }
   const parsed = Date.parse(startTime);
   if (!Number.isFinite(parsed)) {
     return NextResponse.json({ error: "A valid start time is required" }, { status: 400 });
+  }
+  const price = Number(purchasePriceCents) || 0;
+  if (price < 0 || price > 1000000) {
+    return NextResponse.json({ error: "Invalid price" }, { status: 400 });
   }
   if (spaceId) {
     const space = await getSpace(spaceId);
@@ -41,6 +45,7 @@ export async function POST(req) {
     capacity,
     recurrence,
     spaceId,
+    purchasePriceCents: price,
     createdBy: auth.user.uid,
   });
 
@@ -49,7 +54,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "event.created",
     targetId: event.id,
-    metadata: { title, startTime, spaceId, recurrence },
+    metadata: { title, startTime, spaceId, recurrence, purchasePriceCents: price },
   });
 
   return NextResponse.json({ event });

@@ -13,7 +13,7 @@ export async function getEvent(id) {
   return doc.exists ? { id: doc.id, ...doc.data() } : null;
 }
 
-export async function createEvent({ title, description, startTime, endTime, roomSlug, capacity, recurrence, spaceId, createdBy }) {
+export async function createEvent({ title, description, startTime, endTime, roomSlug, capacity, recurrence, spaceId, purchasePriceCents, createdBy }) {
   const ref = adminDb().collection("events").doc();
   const data = {
     title,
@@ -23,6 +23,7 @@ export async function createEvent({ title, description, startTime, endTime, room
     roomSlug: roomSlug || "",
     capacity: Number(capacity) || 0,
     spaceId: spaceId || "",
+    purchasePriceCents: Math.max(Number(purchasePriceCents) || 0, 0),
     createdBy,
     createdAt: new Date(),
   };

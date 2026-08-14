@@ -7,6 +7,7 @@ import LogoutButton from "./LogoutButton";
 import ManageSubscription from "./ManageSubscription";
 import ProfileEditor from "./ProfileEditor";
 import WelcomeChecklist from "./WelcomeChecklist";
+import EmailNotifications from "./EmailNotifications";
 import styles from "./account.module.css";
 
 export const dynamic = "force-dynamic";
@@ -67,6 +68,11 @@ export default async function AccountPage({ searchParams }) {
         </section>
 
         <ProfileEditor uid={user.uid} initial={initialProfile} />
+
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>Notifications</h2>
+          <EmailNotifications enabled={userDoc?.notifications} />
+        </section>
       </div>
     </main>
   );

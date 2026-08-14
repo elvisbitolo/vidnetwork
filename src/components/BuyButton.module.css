@@ -1,0 +1,30 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.buy {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.buy:hover {
+  background: #34d399;
+}
+
+.buy:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  font-size: 13px;
+  color: #f87171;
+}

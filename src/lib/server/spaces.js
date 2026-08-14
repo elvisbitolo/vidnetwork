@@ -71,7 +71,7 @@ export async function removeSpaceMember(spaceId, uid) {
   await adminDb().collection("spaceMembers").doc(`${spaceId}_${uid}`).delete();
 }
 
-export async function createSpace({ name, description, features, access, requiredTier, createdBy }) {
+export async function createSpace({ name, description, features, access, requiredTier, purchasePriceCents, createdBy }) {
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const ref = adminDb().collection("spaces").doc();
   await ref.set({
@@ -81,6 +81,7 @@ export async function createSpace({ name, description, features, access, require
     features: normalizeFeatures(features),
     access: normalizeAccess(access),
     requiredTier: requiredTier === "premium" ? "premium" : "",
+    purchasePriceCents: Math.max(Number(purchasePriceCents) || 0, 0),
     status: "active",
     createdBy,
     createdAt: new Date(),
@@ -88,7 +89,7 @@ export async function createSpace({ name, description, features, access, require
   return { id: ref.id, slug, name, description };
 }
 
-export async function updateSpace(spaceId, { name, description, features, access, requiredTier }) {
+export async function updateSpace(spaceId, { name, description, features, access, requiredTier, purchasePriceCents }) {
   const ref = adminDb().collection("spaces").doc(spaceId);
   const doc = await ref.get();
   if (!doc.exists) return null;
@@ -98,6 +99,9 @@ export async function updateSpace(spaceId, { name, description, features, access
   if (features) data.features = normalizeFeatures(features);
   if (access) data.access = normalizeAccess(access);
   data.requiredTier = requiredTier === "premium" ? "premium" : "";
+  if (purchasePriceCents !== undefined) {
+    data.purchasePriceCents = Math.max(Number(purchasePriceCents) || 0, 0);
+  }
   await ref.update(data);
   return { id: spaceId, ...doc.data(), ...data };
 }

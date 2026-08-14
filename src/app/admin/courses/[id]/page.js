@@ -20,6 +20,7 @@ export default function AdminCourseDetailPage() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("draft");
   const [requiredTier, setRequiredTier] = useState("standard");
+  const [purchasePrice, setPurchasePrice] = useState("");
 
   const [moduleTitle, setModuleTitle] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
@@ -41,6 +42,7 @@ export default function AdminCourseDetailPage() {
       setDescription(course.description || "");
       setStatus(course.status);
       setRequiredTier(course.requiredTier || "standard");
+      setPurchasePrice(course.purchasePriceCents ? String((course.purchasePriceCents / 100).toFixed(2)) : "");
     }
   }, [id]);
 
@@ -81,7 +83,7 @@ export default function AdminCourseDetailPage() {
     const res = await fetch(`/api/courses/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, status, requiredTier }),
+      body: JSON.stringify({ title, description, status, requiredTier, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0 }),
     });
     const data = await res.json();
     setBusy(false);
@@ -212,6 +214,19 @@ export default function AdminCourseDetailPage() {
               <option value="standard">Standard</option>
               <option value="premium">Premium</option>
             </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="purchase-price">One-time price (optional)</label>
+            <input
+              id="purchase-price"
+              className={styles.input}
+              type="number"
+              min={0}
+              step="0.01"
+              placeholder="e.g. 49.00 to sell this course separately"
+              value={purchasePrice}
+              onChange={(e) => setPurchasePrice(e.target.value)}
+            />
           </div>
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? "Saving…" : "Save details"}

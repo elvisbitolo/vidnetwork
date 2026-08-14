@@ -109,6 +109,41 @@
   color: #6b6b7b;
 }
 
+.hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #9b9bab;
+}
+
+.toggle {
+  align-self: center;
+  min-width: 56px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #d4d4de;
+  background: #fafafe;
+  color: #6b6b7b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  border-color: #4f46e5;
+}
+
+.toggleOn {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #15803d;
+}
+
+.error {
+  color: #b91c1c;
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+
 .value {
   color: #17171c;
   font-weight: 600;

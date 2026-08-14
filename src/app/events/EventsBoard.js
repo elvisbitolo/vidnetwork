@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
+import BuyButton from "@/components/BuyButton";
 import styles from "./events.module.css";
 
 function getNow() {
@@ -24,6 +25,14 @@ export default function EventsBoard({ events, uid, userName }) {
   const [rsvpData, setRsvpData] = useState({});
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
+  const [purchasedKeys, setPurchasedKeys] = useState(new Set());
+
+  useEffect(() => {
+    fetch("/api/purchases")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setPurchasedKeys(new Set(data.keys)))
+      .catch(() => {});
+  }, []);
 
   const loadAttendees = useCallback(
     async (event) => {
@@ -102,7 +111,9 @@ export default function EventsBoard({ events, uid, userName }) {
     const count = data?.count || 0;
     const isLive = new Date(event.startTime).getTime() <= now;
     const atCapacity = event.capacity > 0 && count >= event.capacity;
-    const joinDisabled = !!busyId || (atCapacity && !mine);
+    const isPaid = Number(event.purchasePriceCents) > 0;
+    const hasAccess = !isPaid || purchasedKeys.has(`event:${event.id}`);
+    const joinDisabled = !!busyId || (atCapacity && !mine) || !hasAccess;
 
     return (
       <div key={key} className={styles.eventCard}>
@@ -126,6 +137,12 @@ export default function EventsBoard({ events, uid, userName }) {
         </div>
         <div className={styles.eventBody}>
           <h2 className={styles.eventTitle}>{event.title}</h2>
+          {isPaid && (
+            <p className={styles.priceTag}>
+              Ticket ${(Number(event.purchasePriceCents) / 100).toFixed(2)}
+              {hasAccess && " · purchased"}
+            </p>
+          )}
           {event.description && <p className={styles.eventDesc}>{event.description}</p>}
           <p className={styles.eventMeta}>
             {formatDate(event.startTime)}
@@ -149,13 +166,17 @@ export default function EventsBoard({ events, uid, userName }) {
             <p className={styles.capacityFull}>This event is full.</p>
           )}
           <div className={styles.actions}>
-            <button
-              className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
-              onClick={() => handleRsvp(event.id, event.occurrenceId)}
-              disabled={joinDisabled}
-            >
-              {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
-            </button>
+            {isPaid && !hasAccess ? (
+              <BuyButton targetType="event" targetId={event.id} priceCents={event.purchasePriceCents} />
+            ) : (
+              <button
+                className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+                onClick={() => handleRsvp(event.id, event.occurrenceId)}
+                disabled={joinDisabled}
+              >
+                {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+              </button>
+            )}
             <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
               Add to calendar
             </a>

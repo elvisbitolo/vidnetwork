@@ -6,6 +6,37 @@
   justify-content: center;
 }
 
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.headerBrand {
+  font-size: 18px;
+  font-weight: 800;
+  color: #17171c;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.headerLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344a;
+  text-decoration: none;
+}
+
+.headerLink:hover {
+  text-decoration: underline;
+}
+
 .container {
   max-width: 920px;
   padding: 64px 24px;
@@ -187,6 +218,21 @@
   margin: 14px 0 0;
   font-size: 12px;
   color: #9b9bab;
+}
+
+.promoRow {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 24px;
+}
+
+.promo {
+  width: 260px;
+  padding: 10px 14px;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #17171c;
 }
 
 @media (max-width: 480px) {

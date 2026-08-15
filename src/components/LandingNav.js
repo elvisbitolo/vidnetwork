@@ -6,10 +6,7 @@ import styles from "./LandingNav.module.css";
 import { PlayIcon } from "./LandingIcons";
 
 const LINKS = [
-  { href: "/rooms", label: "Rooms" },
-  { href: "/courses", label: "Courses" },
-  { href: "/events", label: "Events" },
-  { href: "/groups", label: "Community" },
+  { href: "/explore", label: "Explore" },
   { href: "/pricing", label: "Pricing" },
 ];
 

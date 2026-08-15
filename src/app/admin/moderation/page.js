@@ -65,8 +65,7 @@ export default function AdminModerationPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Moderation</h1>
         {error && <p className={styles.error}>{error}</p>}
@@ -98,6 +97,6 @@ export default function AdminModerationPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

@@ -26,8 +26,7 @@ export default async function ConversationPage({ params }) {
   const messages = await listMessages(id);
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/chat" label="All chats" />
         <div className={styles.thread}>
@@ -41,6 +40,6 @@ export default async function ConversationPage({ params }) {
           />
         </div>
       </div>
-    </main>
+</Nav>
   );
 }

@@ -15,6 +15,17 @@ async function createSession(idToken, name) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(name ? { idToken, name } : { idToken }),
   });
+  if (res.status === 403) {
+    const data = await res.json().catch(() => ({}));
+    if (data.error === "email_not_verified") {
+      const err = new Error(
+        "Please verify your email first — check your inbox for the confirmation link."
+      );
+      err.code = "email_not_verified";
+      throw err;
+    }
+    throw new Error(data.error || "Could not create session");
+  }
   if (!res.ok) throw new Error("Failed to create session");
   return res.json();
 }

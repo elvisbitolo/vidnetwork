@@ -1,7 +1,9 @@
+import { logError } from "@/lib/server/log";
+
 export async function sendEmail({ to, subject, text, html }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.log(`[email:not-configured] to=${to} subject="${subject}" text="${text}"`);
+    logError("email.not_configured", { to });
     return { skipped: true };
   }
 

@@ -13,7 +13,7 @@ export async function getEvent(id) {
   return doc.exists ? { id: doc.id, ...doc.data() } : null;
 }
 
-export async function createEvent({ title, description, startTime, endTime, roomSlug, capacity, recurrence, spaceId, purchasePriceCents, createdBy }) {
+export async function createEvent({ title, description, startTime, endTime, roomSlug, capacity, recurrence, spaceId, purchasePriceCents, publicPreview, createdBy }) {
   const ref = adminDb().collection("events").doc();
   const data = {
     title,
@@ -24,6 +24,7 @@ export async function createEvent({ title, description, startTime, endTime, room
     capacity: Number(capacity) || 0,
     spaceId: spaceId || "",
     purchasePriceCents: Math.max(Number(purchasePriceCents) || 0, 0),
+    publicPreview: !!publicPreview,
     createdBy,
     createdAt: new Date(),
   };
@@ -41,4 +42,22 @@ export async function createEvent({ title, description, startTime, endTime, room
 export async function listRsvps(eventId) {
   const snap = await adminDb().collection("rsvps").where("eventId", "==", eventId).get();
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function getUpcomingRoomStart(slug, now = Date.now()) {
+  if (!slug) return null;
+  const snap = await adminDb()
+    .collection("events")
+    .where("roomSlug", "==", slug)
+    .get();
+  let earliest = null;
+  snap.docs.forEach((doc) => {
+    for (const occurrence of expandEvent({ id: doc.id, ...doc.data() })) {
+      const start = new Date(occurrence.startTime).getTime();
+      if (start > now && (earliest === null || start < earliest)) {
+        earliest = start;
+      }
+    }
+  });
+  return earliest;
 }

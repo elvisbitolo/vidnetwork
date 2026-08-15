@@ -19,8 +19,7 @@ export default async function FeedPage() {
   recordDailyVisit(user.uid, userDoc?.name || user.name || "Member").catch(() => {});
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Feed</h1>
         <p className={styles.subtitle}>Conversations between video sessions.</p>
@@ -30,6 +29,6 @@ export default async function FeedPage() {
           role={userDoc?.role || "member"}
         />
       </div>
-    </main>
+</Nav>
   );
 }

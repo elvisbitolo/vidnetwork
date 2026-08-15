@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "@/lib/firebase/client";
+import ReportModal from "./ReportModal";
 import styles from "./feed.module.css";
 
 function timeAgo(ts) {
@@ -74,8 +75,22 @@ function LikeButton({ postId, likes, uid, disabled }) {
       className={`${styles.like} ${liked ? styles.likeActive : ""}`}
       onClick={toggle}
       disabled={busy || disabled}
+      title={liked ? "Unlike this post" : "Like this post"}
+      aria-pressed={liked}
     >
-      {liked ? "❤" : "🤍"} {count}
+      <svg
+        className={styles.likeIcon}
+        viewBox="0 0 24 24"
+        fill={liked ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M19 14c1.5-1.5 3-3.5 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2 1.5 4 3 5.5l7 7 7-7z" />
+      </svg>
+      <span>{count}</span>
     </button>
   );
 }
@@ -104,8 +119,20 @@ function BookmarkButton({ postId, bookmarks, uid, disabled }) {
       onClick={toggle}
       disabled={busy || disabled}
       title={bookmarked ? "Remove bookmark" : "Bookmark this post"}
+      aria-pressed={bookmarked}
     >
-      {bookmarked ? "🔖" : "▢"}
+      <svg
+        className={styles.bookmarkIcon}
+        viewBox="0 0 24 24"
+        fill={bookmarked ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+      </svg>
     </button>
   );
 }
@@ -174,38 +201,26 @@ function PollBlock({ postId, post, uid, disabled }) {
 }
 
 function ReportButton({ type, targetId, commentPostId, small }) {
-  const [busy, setBusy] = useState(false);
-
-  async function handleReport() {
-    const reason = window.prompt("What's the issue with this content? (e.g. spam, harassment, misinformation)");
-    if (!reason || !reason.trim()) return;
-    if (busy) return;
-    setBusy(true);
-    try {
-      const res = await fetch("/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, targetId, commentPostId, reason: reason.trim() }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error || "Report failed");
-      alert("Thanks — a moderator will review this.");
-    } catch (err) {
-      console.error(err);
-      alert("Report failed. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
+  const [open, setOpen] = useState(false);
 
   return (
-    <button
-      className={small ? styles.reportSmall : styles.report}
-      onClick={handleReport}
-      disabled={busy}
-      title="Report this content"
-    >
-      Report
-    </button>
+    <>
+      <button
+        className={small ? styles.reportSmall : styles.report}
+        onClick={() => setOpen(true)}
+        title="Report this content"
+      >
+        Report
+      </button>
+      {open && (
+        <ReportModal
+          type={type}
+          targetId={targetId}
+          commentPostId={commentPostId}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
   );
 }
 

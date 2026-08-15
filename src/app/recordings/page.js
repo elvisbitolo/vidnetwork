@@ -27,8 +27,7 @@ export default async function RecordingsPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Recordings</h1>
         <p className={styles.subtitle}>
@@ -75,6 +74,6 @@ export default async function RecordingsPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

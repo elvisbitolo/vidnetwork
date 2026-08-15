@@ -161,9 +161,17 @@ export default function SearchBoard({ initialQ, initialHashtag, initialResults }
           <Section title="Events" count={results.events.length}>
             <div className={styles.cardList}>
               {results.events.map((event) => (
-                <Link key={event.id} href="/events" className={styles.card}>
+                <Link key={event.id} href={`/events/${event.id}`} className={styles.card}>
                   <p className={styles.cardTitle}>{event.title}</p>
-                  <p className={styles.cardMeta}>{timeAgo(event.startTime)}</p>
+                  <p className={styles.cardMeta}>
+                    {new Date(event.startTime).toLocaleString([], {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 </Link>
               ))}
             </div>

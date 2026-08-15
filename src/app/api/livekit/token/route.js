@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { AccessToken } from "livekit-server-sdk";
 import { getRoomBySlug } from "@/lib/server/rooms";
 import { getSpace, isSpaceMember } from "@/lib/server/spaces";
+import { getUpcomingRoomStart } from "@/lib/server/events";
 import {
   requireActiveMember,
   requireGroupMember,
@@ -32,6 +33,15 @@ export async function POST(req) {
   }
 
   const isOwner = auth.userDoc?.role === "owner";
+  const isHost = isOwner || auth.userDoc?.role === "moderator";
+
+  const opensAt = await getUpcomingRoomStart(room.slug);
+  if (opensAt && !isHost) {
+    return NextResponse.json(
+      { error: "This room opens at the scheduled time", opensAt },
+      { status: 423 }
+    );
+  }
 
   if (room.spaceId) {
     const space = await getSpace(room.spaceId);

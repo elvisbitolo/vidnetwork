@@ -32,8 +32,7 @@ export default async function EventsPage() {
   }));
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Events</h1>
@@ -48,6 +47,6 @@ export default async function EventsPage() {
           userName={userDoc?.name || user.name || "Member"}
         />
       </div>
-    </main>
+</Nav>
   );
 }

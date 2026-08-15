@@ -19,8 +19,10 @@ export default function AdminEventsPage() {
   const [recurFreq, setRecurFreq] = useState("");
   const [recurCount, setRecurCount] = useState(1);
   const [spaceId, setSpaceId] = useState("");
+  const [publicPreview, setPublicPreview] = useState(false);
   const [events, setEvents] = useState([]);
   const [spaces, setSpaces] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [role, setRole] = useState("member");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,6 +37,11 @@ export default function AdminEventsPage() {
     if (res.ok) setSpaces((await res.json()).spaces);
   }, []);
 
+  const loadRooms = useCallback(async () => {
+    const res = await fetch("/api/rooms");
+    if (res.ok) setRooms((await res.json()).rooms);
+  }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -43,9 +50,10 @@ export default function AdminEventsPage() {
       }
       loadEvents();
       loadSpaces();
+      loadRooms();
     });
     return unsub;
-  }, [router, loadEvents, loadSpaces]);
+  }, [router, loadEvents, loadSpaces, loadRooms]);
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -63,6 +71,7 @@ export default function AdminEventsPage() {
         capacity,
         spaceId,
         purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0,
+        publicPreview,
         recurrence: recurFreq ? { freq: recurFreq, interval: 1, count: Number(recurCount) || 2 } : null,
       }),
     });
@@ -80,6 +89,7 @@ export default function AdminEventsPage() {
     setCapacity(0);
     setSpaceId("");
     setPurchasePrice("");
+    setPublicPreview(false);
     setRecurFreq("");
     setRecurCount(1);
     await loadEvents();
@@ -90,6 +100,15 @@ export default function AdminEventsPage() {
     await loadEvents();
   }
 
+  async function handleTogglePreview(id, value) {
+    await fetch(`/api/events/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicPreview: value }),
+    });
+    await loadEvents();
+  }
+
   useEffect(() => {
     fetch("/api/me")
       .then((res) => (res.ok ? res.json() : null))
@@ -97,8 +116,7 @@ export default function AdminEventsPage() {
   }, []);
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Manage events</h1>
 
@@ -148,15 +166,20 @@ export default function AdminEventsPage() {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="roomSlug">Room slug (optional)</label>
-            <input
+            <label className={styles.label} htmlFor="roomSlug">Live room (optional)</label>
+            <select
               id="roomSlug"
               className={styles.input}
-              type="text"
-              placeholder="e.g. morning-coffee"
               value={roomSlug}
               onChange={(e) => setRoomSlug(e.target.value)}
-            />
+            >
+              <option value="">No room</option>
+              {rooms
+                .filter((room) => room.status === "active")
+                .map((room) => (
+                  <option key={room.id} value={room.slug}>{room.name}</option>
+                ))}
+            </select>
           </div>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="capacity">Capacity (optional)</label>
@@ -223,6 +246,20 @@ export default function AdminEventsPage() {
               />
             </div>
           </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Public preview</label>
+            <label className={styles.checkCard}>
+              <input
+                type="checkbox"
+                checked={publicPreview}
+                onChange={(e) => setPublicPreview(e.target.checked)}
+              />
+              <span className={styles.checkText}>
+                <strong>Show on the public explore page</strong>
+                <small>Reveals this event (title, time, description) to visitors.</small>
+              </span>
+            </label>
+          </div>
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? "Creating…" : "Create event"}
           </button>
@@ -248,14 +285,22 @@ export default function AdminEventsPage() {
                     {event.purchasePriceCents ? ` · $${(event.purchasePriceCents / 100).toFixed(2)}` : ""}
                   </p>
                 </div>
-                <button className={styles.delete} onClick={() => handleDelete(event.id)}>
-                  Delete
-                </button>
+                <div className={styles.itemActions}>
+                  <button
+                    className={event.publicPreview ? styles.toggleOn : styles.toggle}
+                    onClick={() => handleTogglePreview(event.id, !event.publicPreview)}
+                  >
+                    {event.publicPreview ? "On explore" : "Off explore"}
+                  </button>
+                  <button className={styles.delete} onClick={() => handleDelete(event.id)}>
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

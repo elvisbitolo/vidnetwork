@@ -49,7 +49,21 @@ Status: PHASE 1 (discovery) and PHASE 2 (plan) complete; PHASE 3 hardening in pr
 | No CI | — | Added `.github/workflows/ci.yml` (lint + test + build) |
 | No regression tests for authz / billing / capacity / like / profile-save | — | Added `posts.test.js`, `events-core.test.js`, `profile.test.js` (54 total) |
 
-## Outstanding / follow-up
+## Addendum 2026-08-14 (VidNetwork evolution per IMPLEMENTATION_PRD + Mighty research)
+
+Added new findings from the review pass:
+
+| ID | Finding | Status |
+|----|---------|--------|
+| A-1 | No `/dashboard` member home; `/account` is post-login home; `Nav.js` brand hardcodes "Community" | Fixed (dashboard + brand) |
+| A-2 | No public `/explore`; all content behind auth/subscription | Fixed (publicPreview flags + explore) |
+| A-3 | No event detail page; search events deep-link to `/events`; admin room field is free-text slug | Fixed (detail page + room dropdown) |
+| A-4 | Admin analytics limited to counts + leaderboard | Extended (`/admin/analytics`) |
+| A-5 | Member nav is horizontal scroll; pricing page lacks nav; group detail lacks join button; about/guidelines dark-theme mismatch; feed uses `window.prompt/alert` reporting | Fixed (Phase 5) |
+| A-6 | Profile: `notifications` coercion bug, `GET /api/me` omits profile fields, name not synced to Firebase Auth, no PATCH rate limit | Fixed |
+| A-7 | WIP purchases feature uncommitted | Committed as checkpoint + hardened (Phase 7) |
+
+Outstanding / follow-up
 
 - **Initialize Firebase Storage** on `christa-patel` (project setup), then deploy `storage.rules`. Until then the lesson tier rules are authored but not enforced (no bucket).
 - In-memory rate limiter is per-instance and resets on deploys; move to a shared store (Upstash/Redis) for strict production enforcement.

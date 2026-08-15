@@ -64,8 +64,7 @@ export default function AdminGroupsPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Manage groups</h1>
 
@@ -119,6 +118,6 @@ export default function AdminGroupsPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

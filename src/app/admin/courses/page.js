@@ -76,8 +76,7 @@ export default function AdminCoursesPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Manage courses</h1>
 
@@ -163,6 +162,6 @@ export default function AdminCoursesPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

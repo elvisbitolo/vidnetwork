@@ -1,7 +1,7 @@
 .page {
   min-height: 100vh;
-  background: var(--background, #0b1220);
-  color: var(--foreground, #e2e8f0);
+  background: #fafafc;
+  color: #17171c;
 }
 
 .container {
@@ -12,14 +12,16 @@
 
 .title {
   font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0 0 0.5rem;
-  color: #fff;
+  color: #17171c;
 }
 
 .lead {
   font-size: 1.15rem;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: #6b6b7b;
 }
 
 .sections {
@@ -29,20 +31,35 @@
 .section,
 .enforcement {
   padding: 1.25rem 1.5rem;
-  border-radius: 12px;
-  background: rgba(148, 163, 184, 0.08);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
   margin-bottom: 1rem;
 }
 
 .heading {
   font-size: 1.15rem;
-  color: #7dd3fc;
+  font-weight: 700;
+  color: #4f46e5;
   margin: 0 0 0.5rem;
 }
 
 .body {
   margin: 0;
   line-height: 1.7;
-  color: #cbd5e1;
+  color: #34344a;
+}
+
+@media (max-width: 520px) {
+  .container {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .lead {
+    font-size: 1.05rem;
+  }
 }

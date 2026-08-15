@@ -203,6 +203,21 @@ a.statCard:hover {
   margin: 0 0 16px;
 }
 
+.linkRow {
+  margin: -16px 0 20px;
+}
+
+.link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
 .empty {
   padding: 32px;
   text-align: center;
@@ -258,6 +273,41 @@ a.statCard:hover {
 .delete:hover {
   background: #b91c1c;
   color: #ffffff;
+}
+
+.toggle {
+  height: 36px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1px solid #d8d8e3;
+  color: #34344a;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.toggle:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.toggleOn {
+  height: 36px;
+  padding: 0 14px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toggleOn:hover {
+  background: #e0e7ff;
 }
 
 @media (max-width: 480px) {

@@ -1,7 +1,7 @@
 .page {
   min-height: 100vh;
-  background: var(--background, #0b1220);
-  color: var(--foreground, #e2e8f0);
+  background: #fafafc;
+  color: #17171c;
 }
 
 .container {
@@ -12,14 +12,16 @@
 
 .title {
   font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0 0 0.5rem;
-  color: #fff;
+  color: #17171c;
 }
 
 .lead {
   font-size: 1.15rem;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: #6b6b7b;
 }
 
 .section {
@@ -28,7 +30,8 @@
 
 .heading {
   font-size: 1.25rem;
-  color: #7dd3fc;
+  font-weight: 700;
+  color: #4f46e5;
   margin: 0 0 0.75rem;
 }
 
@@ -36,7 +39,7 @@
   margin: 0;
   padding-left: 1.1rem;
   line-height: 1.7;
-  color: #cbd5e1;
+  color: #34344a;
 }
 
 .list li {
@@ -45,15 +48,15 @@
 
 .section p {
   line-height: 1.7;
-  color: #cbd5e1;
+  color: #34344a;
 }
 
 .cta {
   margin-top: 3rem;
   padding: 1.5rem;
-  border-radius: 12px;
-  background: rgba(14, 165, 233, 0.12);
-  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -63,18 +66,33 @@
 .cta p {
   margin: 0;
   font-weight: 600;
-  color: #fff;
+  color: #17171c;
 }
 
 .ctaLink {
   padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  background: #0ea5e9;
-  color: #fff;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: #ffffff;
   text-decoration: none;
   font-weight: 600;
+  transition: background 0.15s ease;
 }
 
 .ctaLink:hover {
-  background: #38bdf8;
+  background: #4338ca;
+}
+
+@media (max-width: 520px) {
+  .container {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .title {
+    font-size: 1.9rem;
+  }
+
+  .lead {
+    font-size: 1.05rem;
+  }
 }

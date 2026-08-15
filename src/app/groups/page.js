@@ -34,8 +34,7 @@ export default async function GroupsPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Groups</h1>
@@ -53,6 +52,6 @@ export default async function GroupsPage() {
           <GroupsBoard groups={withCounts} uid={user.uid} />
         )}
       </div>
-    </main>
+</Nav>
   );
 }

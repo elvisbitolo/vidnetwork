@@ -4,13 +4,14 @@ import { listRooms, createRoom } from "@/lib/server/rooms";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
 import { getSpace } from "@/lib/server/spaces";
+import { serialize } from "@/lib/server/serialize";
 
 export async function GET() {
   const auth = await requireUser();
   const denied = guardJson(auth);
   if (denied) return denied;
   const rooms = await listRooms();
-  return NextResponse.json({ rooms });
+  return NextResponse.json({ rooms: serialize(rooms) });
 }
 
 export async function POST(req) {
@@ -18,7 +19,7 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { name, description = "", maxParticipants = 20, groupId = "", spaceId = "", kind = "standard" } = await req.json();
+  const { name, description = "", maxParticipants = 20, groupId = "", spaceId = "", kind = "standard", publicPreview = false } = await req.json();
   if (!name || typeof name !== "string") {
     return NextResponse.json({ error: "Room name required" }, { status: 400 });
   }
@@ -42,6 +43,7 @@ export async function POST(req) {
     groupId,
     spaceId,
     kind,
+    publicPreview,
     createdBy: auth.user.uid,
   });
 

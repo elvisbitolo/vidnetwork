@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
@@ -14,7 +14,11 @@ import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
 import styles from "./room.module.css";
 
-export default function RoomClient({ roomName, slug, roomId, kind, role }) {
+function currentTime() {
+  return Date.now();
+}
+
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -25,9 +29,25 @@ export default function RoomClient({ roomName, slug, roomId, kind, role }) {
   const [recording, setRecording] = useState(false);
   const [recordBusy, setRecordBusy] = useState(false);
   const [recordError, setRecordError] = useState("");
+  const [now, setNow] = useState(() => currentTime());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(currentTime()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
+  const waiting = Boolean(opensAt) && !isHost && now < opensAt;
+  const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
+
+  function formatWait(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const pad = (n) => String(n).padStart(2, "0");
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  }
 
   async function toggleRecording() {
     if (recordBusy) return;
@@ -87,6 +107,39 @@ export default function RoomClient({ roomName, slug, roomId, kind, role }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (waiting) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.prejoinWrap}>
+            <BackButton fallback="/rooms" label="Back to rooms" />
+            <div className={styles.prejoin}>
+              <h1 className={styles.title}>{roomName}</h1>
+              <p className={styles.subtitle}>This room opens at the scheduled time.</p>
+              <p className={styles.countdown} role="timer" aria-label="Time until the room opens">
+                {formatWait(waitSeconds)}
+              </p>
+              <p className={styles.waitHint}>
+                {opensAt
+                  ? new Date(opensAt).toLocaleString([], {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })
+                  : ""}
+              </p>
+              <p className={styles.waitHint}>
+                We&apos;ll let you in automatically when it starts.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (!joined) {

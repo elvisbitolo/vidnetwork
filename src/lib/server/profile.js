@@ -15,7 +15,11 @@ export function normalizeProfile(body) {
   if ("location" in body) patch.location = clean(body.location, 80);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
   if ("notifications" in body) {
-    patch.notifications = body.notifications === "off" ? "off" : "on";
+    if (body.notifications === "on" || body.notifications === "off") {
+      patch.notifications = body.notifications;
+    } else {
+      errors.notifications = "Notifications must be \"on\" or \"off\"";
+    }
   }
 
   return { patch, errors };

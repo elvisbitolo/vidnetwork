@@ -5,6 +5,7 @@ import { addMessage, getConversation } from "@/lib/server/chat";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
+import { logError } from "@/lib/server/log";
 
 export async function GET(req, { params }) {
   const { id: conversationId } = await params;
@@ -71,7 +72,9 @@ export async function POST(req, { params }) {
             text:
               `${senderName} sent you a message:\n\n"${text.trim()}"\n\n` +
               `Reply in the community chat: ${process.env.NEXT_PUBLIC_APP_URL || ""}/chat/${conversationId}`,
-          }).catch(() => {});
+          }).catch((err) => {
+            logError("email.dm_notify_failed", { conversationId, error: err.message });
+          });
         }
       }
     }

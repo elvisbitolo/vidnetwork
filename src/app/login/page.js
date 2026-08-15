@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase/client";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
 import { loginWithEmail, loginWithGoogle } from "@/lib/client-auth";
 import GoogleIcon from "@/components/GoogleIcon";
 import styles from "../auth.module.css";
@@ -15,16 +15,38 @@ export default function LoginPage() {
   const [busy, setBusy] = useState("");
   const [forgotPassword, setForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [verifyNotice, setVerifyNotice] = useState("");
+  const [resent, setResent] = useState(false);
+
+  async function resendVerification() {
+    if (!auth.currentUser) return;
+    setBusy("verify");
+    setError("");
+    try {
+      await sendEmailVerification(auth.currentUser);
+      setResent(true);
+    } catch (err) {
+      setError(err.message || "Could not resend verification email");
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function handleGoogle() {
     setError("");
+    setVerifyNotice("");
     setBusy("google");
     try {
       await loginWithGoogle();
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/account");
+      window.location.assign("/dashboard");
     } catch (err) {
-      setError(err.message || "Google sign-in failed");
+      if (err.code === "email_not_verified") {
+        setVerifyNotice(err.message);
+        setResent(false);
+      } else {
+        setError(err.message || "Google sign-in failed");
+      }
     } finally {
       setBusy("");
     }
@@ -33,13 +55,19 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setVerifyNotice("");
     setBusy("email");
     try {
       await loginWithEmail(email, password);
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/account");
+      window.location.assign("/dashboard");
     } catch (err) {
-      setError(err.message || "Sign-in failed");
+      if (err.code === "email_not_verified") {
+        setVerifyNotice(err.message);
+        setResent(false);
+      } else {
+        setError(err.message || "Sign-in failed");
+      }
     } finally {
       setBusy("");
     }
@@ -63,7 +91,7 @@ export default function LoginPage() {
     return (
       <main className={styles.page}>
         <div className={styles.card}>
-          <p className={styles.brand}><Link href="/">Community</Link></p>
+          <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
           <h1 className={styles.title}>Reset your password</h1>
           <p className={styles.subtitle}>
             Enter your email and we&apos;ll send you a reset link.
@@ -75,7 +103,23 @@ export default function LoginPage() {
             </p>
           ) : (
             <>
-              {error && <p className={styles.error}>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
+        {verifyNotice && (
+          <div className={styles.verifyBox}>
+            <p className={styles.verifyText}>{verifyNotice}</p>
+            {resent ? (
+              <p className={styles.verifyText}>Verification email resent — check your inbox.</p>
+            ) : (
+              <button
+                className={styles.linkBtn}
+                onClick={resendVerification}
+                disabled={!!busy}
+              >
+                {busy === "verify" ? "Sending…" : "Resend verification email"}
+              </button>
+            )}
+          </div>
+        )}
               <form onSubmit={handleReset}>
                 <div className={styles.field}>
                   <label className={styles.label} htmlFor="reset-email">Email</label>
@@ -109,7 +153,7 @@ export default function LoginPage() {
   return (
     <main className={styles.page}>
       <div className={styles.card}>
-        <p className={styles.brand}><Link href="/">Community</Link></p>
+        <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
         <h1 className={styles.title}>Welcome back</h1>
         <p className={styles.subtitle}>Sign in to join the community</p>
 

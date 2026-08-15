@@ -217,6 +217,48 @@
   background: #4338ca;
 }
 
+.joinBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 20px;
+  margin-top: 16px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.joinBtn:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.joinBtnActive {
+  background: #ffffff;
+  border: 1px solid #d8d8e3;
+  color: #34344a;
+}
+
+.joinBtnActive:hover:not(:disabled) {
+  background: #f0f0f5;
+}
+
+.joinBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.joinError {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
 .sectionTitle {
   font-size: 14px;
   font-weight: 700;

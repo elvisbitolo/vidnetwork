@@ -42,8 +42,7 @@ export default async function CoursePage({ params }) {
 
   if (needsHigherTier) {
     return (
-      <main className={styles.page}>
-        <Nav role={userDoc?.role} />
+        <Nav role={userDoc?.role}>
         <div className={styles.container}>
           <h1 className={styles.title}>Membership upgrade required</h1>
           <p className={styles.subtitle}>
@@ -51,14 +50,13 @@ export default async function CoursePage({ params }) {
           </p>
           <Link className={styles.link} href="/pricing">See membership options</Link>
         </div>
-      </main>
+</Nav>
     );
   }
 
   if (needsPurchase) {
     return (
-      <main className={styles.page}>
-        <Nav role={userDoc?.role} />
+        <Nav role={userDoc?.role}>
         <div className={styles.container}>
           <BackButton fallback="/courses" label="All courses" />
           <div className={styles.courseHeader}>
@@ -75,7 +73,7 @@ export default async function CoursePage({ params }) {
             <BuyButton targetType="course" targetId={course.id} priceCents={course.purchasePriceCents} />
           </div>
         </div>
-      </main>
+</Nav>
     );
   }
 
@@ -97,8 +95,7 @@ export default async function CoursePage({ params }) {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/courses" label="All courses" />
         <p className={styles.breadcrumb}>
@@ -178,6 +175,6 @@ export default async function CoursePage({ params }) {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

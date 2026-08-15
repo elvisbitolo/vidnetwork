@@ -1,0 +1,163 @@
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 0 0 24px;
+}
+
+.error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.cardLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b8b9c;
+  margin: 0 0 8px;
+}
+
+.cardValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 6px;
+}
+
+.cardMeta {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 12px;
+}
+
+.table {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f0f0f5;
+  font-size: 14px;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.cellMain {
+  flex: 1;
+  font-weight: 600;
+  color: #17171c;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cell {
+  color: #6b6b7b;
+  white-space: nowrap;
+}
+
+.cellStrong {
+  color: #17171c;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4f46e5;
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.promoTag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background: #ecfdf5;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  margin: 0;
+  font-size: 14px;
+  color: #9b9bab;
+}
+
+.link {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cellMain {
+    width: 100%;
+  }
+}

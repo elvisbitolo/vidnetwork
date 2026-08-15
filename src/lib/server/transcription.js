@@ -107,7 +107,9 @@ export async function transcribeRecording(recording) {
   const ref = adminDb().collection("recordings").doc(recording.id);
   await ref
     .update({ transcriptionStatus: "processing", transcribedAt: new Date() })
-    .catch(() => {});
+    .catch((err) => {
+      logError("transcription.mark_processing_failed", { recordingId: recording.id, error: err.message });
+    });
 
   try {
     let buffer = null;
@@ -133,7 +135,9 @@ export async function transcribeRecording(recording) {
   } catch (err) {
     await ref
       .update({ transcriptionStatus: "failed", transcript: "", transcribedAt: new Date() })
-      .catch(() => {});
+      .catch((err2) => {
+        logError("transcription.mark_failed_failed", { recordingId: recording.id, error: err2.message });
+      });
     logError("transcription.failed", { recordingId: recording.id, provider, error: err.message });
     return { ok: false, error: err.message };
   }

@@ -6,6 +6,11 @@ import { requireUser, guardJson } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { planChange, buildSubscriptionDoc } from "@/lib/server/billing";
 import { appOrigin } from "@/lib/server/origin";
+import {
+  getPromoByCode,
+  validatePromo,
+  getOrCreateStripeCoupon,
+} from "@/lib/server/promocodes";
 
 const ALLOWED_PLANS = {
   monthly: "MONTHLY",
@@ -25,13 +30,22 @@ export async function POST(req) {
   const limitedIp = rateLimitGuard(`checkout-ip:${ip}`, { limit: 30 });
   if (limitedIp) return limitedIp;
 
-  const { plan, tier = "standard" } = await req.json();
+  const { plan, tier = "standard", promoCode } = await req.json();
   const planKey = ALLOWED_PLANS[plan];
   if (!planKey) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
   if (!TIERS.includes(tier)) {
     return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
+  }
+
+  let promo = null;
+  if (promoCode) {
+    promo = await getPromoByCode(promoCode);
+    const verdict = validatePromo(promo);
+    if (!verdict.ok) {
+      return NextResponse.json({ error: verdict.reason }, { status: 400 });
+    }
   }
 
   const priceId = priceIdFor(tier, planKey);
@@ -123,14 +137,17 @@ export async function POST(req) {
       }
     : {};
 
+  const coupon = promo ? await getOrCreateStripeCoupon(promo) : null;
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { uid: auth.user.uid, tier },
+    ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
+    metadata: { uid: auth.user.uid, tier, promoCode: promo ? promo.code : "" },
     subscription_data: {
       ...subscriptionData,
-      metadata: { tier },
+      metadata: { tier, promoCode: promo ? promo.code : "" },
     },
     payment_method_collection: isFirstSubscription ? "if_required" : "always",
     payment_method_types: ["card", "paypal"],

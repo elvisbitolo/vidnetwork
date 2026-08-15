@@ -51,8 +51,7 @@ export default function AdminMembersPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Members</h1>
         {error && <p className={styles.error}>{error}</p>}
@@ -100,6 +99,6 @@ export default function AdminMembersPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

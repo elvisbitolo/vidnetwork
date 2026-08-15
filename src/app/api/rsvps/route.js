@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/server/log";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
@@ -8,6 +9,7 @@ import { awardPoints, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { applyRsvpCounts } from "@/lib/server/events-core";
 import { hasPurchased } from "@/lib/server/purchases";
+import { runAutomations } from "@/lib/server/automations";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -108,6 +110,17 @@ export async function POST(req) {
 
   await awardPoints(user.uid, POINTS.RSVP, memberName);
 
+  runAutomations("event_rsvp", {
+    rsvpName: memberName,
+    rsvpUid: user.uid,
+    eventTitle: event?.title || "",
+    eventId,
+    subjectUid: user.uid,
+    subjectName: memberName,
+  }).catch((err) => {
+    logError("automation.event_rsvp_failed", { eventId, uid: user.uid, error: err.message });
+  });
+
   if (event.createdBy && event.createdBy !== user.uid) {
     await createNotification({
       userId: event.createdBy,
@@ -127,7 +140,9 @@ export async function POST(req) {
           to: creator.email,
           subject: `New RSVP for "${event.title}"`,
           text: `${memberName} is going to "${event.title}".\n\nView RSVPs on the events page.`,
-        }).catch(() => {});
+        }).catch((err) => {
+          logError("email.rsvp_notify_failed", { eventId, to: creator.email, error: err.message });
+        });
       }
     }
   }

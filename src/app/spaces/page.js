@@ -42,8 +42,7 @@ export default async function SpacesPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Spaces</h1>
@@ -61,6 +60,6 @@ export default async function SpacesPage() {
           <SpacesBoard spaces={visible} uid={user.uid} />
         )}
       </div>
-    </main>
+</Nav>
   );
 }

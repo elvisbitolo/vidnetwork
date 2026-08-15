@@ -66,6 +66,7 @@ export async function PATCH(req, { params }) {
     access: body.access,
     requiredTier: body.requiredTier,
     purchasePriceCents: body.purchasePriceCents,
+    publicPreview: body.publicPreview,
   });
 
   await logAudit({

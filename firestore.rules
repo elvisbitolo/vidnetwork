@@ -120,10 +120,14 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'authorId', 'authorName', 'text', 'imageUrl', 'createdAt',
           'groupId', 'spaceId', 'kind', 'hashtags'
-        ]);
+        ])
+        && request.resource.data.text.size() <= 5000
+        && request.resource.data.imageUrl.size() <= 2048;
       allow update: if isSignedIn() && (
         (resource.data.authorId == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'imageUrl']))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'imageUrl'])
+          && request.resource.data.text.size() <= 5000
+          && request.resource.data.imageUrl.size() <= 2048)
         || (isModerator()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned']))
       );
@@ -135,6 +139,7 @@ service cloud.firestore {
         allow create: if isSignedIn()
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.keys().hasOnly(['authorId', 'authorName', 'text', 'createdAt'])
+          && request.resource.data.text.size() <= 2000
           && canReadPost(get(/databases/$(database)/documents/posts/$(postId)).data);
         allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isModerator());
       }
@@ -233,6 +238,18 @@ service cloud.firestore {
     }
 
     match /stripeEvents/{eventId} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /promoCodes/{id} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /collections/{id} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /settings/{id} {
       allow read, create, update, delete: if false;
     }
 

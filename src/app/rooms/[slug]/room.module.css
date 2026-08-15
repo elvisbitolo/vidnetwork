@@ -157,6 +157,20 @@
   cursor: not-allowed;
 }
 
+.countdown {
+  font-size: 44px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #4f46e5;
+  margin: 8px 0 4px;
+}
+
+.waitHint {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 4px 0 0;
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 24px 16px;

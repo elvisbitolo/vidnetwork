@@ -1,19 +1,26 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { getStripe } from "@/lib/server/stripe";
+import {
+  purchaseKey,
+  isPurchasable,
+  canAccessPaid,
+  verifyPurchaseAmount,
+} from "@/lib/server/purchases-core";
+
+export {
+  purchaseKey,
+  isPurchasable,
+  canAccessPaid,
+  verifyPurchaseAmount,
+};
 
 export const PURCHASE_TYPES = ["course", "event", "space"];
 
-export function purchaseKey(targetType, targetId) {
-  return `${targetType}:${targetId}`;
-}
-
-export function isPurchasable(item) {
-  return Number(item?.purchasePriceCents) > 0;
-}
-
-export function canAccessPaid(targetType, item, purchasedKeys) {
-  if (!isPurchasable(item)) return true;
-  return !!purchasedKeys && purchasedKeys.has(purchaseKey(targetType, item.id));
-}
+export const PURCHASE_COLLECTIONS = {
+  course: "courses",
+  event: "events",
+  space: "spaces",
+};
 
 export async function getPurchasedKeys(uid) {
   const snap = await adminDb().collection("purchases").where("uid", "==", uid).get();
@@ -35,7 +42,7 @@ export async function hasPurchased(uid, targetType, targetId) {
   return doc.exists;
 }
 
-export async function recordPurchase({ uid, targetType, targetId, sessionId }) {
+export async function recordPurchase({ uid, targetType, targetId, sessionId, promoCode }) {
   const ref = adminDb().collection("purchases").doc(`${uid}_${targetType}_${targetId}`);
   await ref.set(
     {
@@ -43,8 +50,46 @@ export async function recordPurchase({ uid, targetType, targetId, sessionId }) {
       targetType,
       targetId,
       sessionId: sessionId || "",
+      promoCode: promoCode || "",
       purchasedAt: new Date(),
     },
     { merge: true }
   );
+}
+
+export async function getOrCreateStripePrice({ targetType, targetId, collection, item }) {
+  const stripe = getStripe();
+  const expected = Math.round(Number(item?.purchasePriceCents) || 0);
+  if (expected <= 0) {
+    throw new Error("Item is not purchasable");
+  }
+
+  if (item?.stripePriceId) {
+    try {
+      const existing = await stripe.prices.retrieve(item.stripePriceId);
+      if (existing && existing.active && Number(existing.unit_amount) === expected) {
+        return existing;
+      }
+    } catch {
+      // Fall through and create a fresh price if the cached one is gone.
+    }
+  }
+
+  const product = await stripe.products.create({
+    name: `${item.title || item.name || "Community content"} (${targetType})`,
+    metadata: { targetType, targetId },
+  });
+  const price = await stripe.prices.create({
+    product: product.id,
+    unit_amount: expected,
+    currency: "usd",
+    metadata: { targetType, targetId },
+  });
+
+  await adminDb()
+    .collection(collection)
+    .doc(targetId)
+    .update({ stripeProductId: product.id, stripePriceId: price.id });
+
+  return price;
 }

@@ -18,6 +18,13 @@ export async function POST(req) {
 
     const decoded = await adminAuth().verifyIdToken(idToken);
 
+    if (decoded.email && !decoded.email_verified) {
+      return NextResponse.json(
+        { error: "email_not_verified" },
+        { status: 403 }
+      );
+    }
+
     const users = adminDb().collection("users");
     const userRef = users.doc(decoded.uid);
     const snap = await userRef.get();
@@ -46,8 +53,21 @@ export async function POST(req) {
             `- Groups, spaces, direct messages and a community feed\n\n` +
             `To pick a plan and start exploring: ${process.env.NEXT_PUBLIC_APP_URL || ""}/pricing\n\n` +
             `We're glad you're here.\n\n— The VidNetwork Team`,
-        }).catch(() => {});
+        }).catch((err) => {
+          logError("email.welcome_failed", { uid: decoded.uid, error: err.message });
+        });
       }
+
+      const { runAutomations } = await import("@/lib/server/automations");
+      runAutomations("new_member", {
+        memberName,
+        memberEmail: decoded.email || "",
+        memberUid: decoded.uid,
+        subjectUid: decoded.uid,
+        subjectName: memberName,
+      }).catch((err) => {
+        logError("automation.new_member_failed", { uid: decoded.uid, error: err.message });
+      });
     }
 
     const sessionCookie = await adminAuth().createSessionCookie(idToken, {

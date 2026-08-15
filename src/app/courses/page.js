@@ -19,8 +19,7 @@ export default async function CoursesPage() {
   const courses = await listCourses(false);
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Courses</h1>
@@ -49,6 +48,6 @@ export default async function CoursesPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

@@ -4,8 +4,10 @@ import { adminDb } from "@/lib/firebase/admin";
 import { canAccessPost } from "@/lib/server/posts";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
+import { logError } from "@/lib/server/log";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { validateCommentText } from "@/lib/server/posts-core";
 
 export async function POST(req, { params }) {
   const { id: postId } = await params;
@@ -17,8 +19,9 @@ export async function POST(req, { params }) {
   if (limited) return limited;
 
   const { text } = await req.json();
-  if (!text || typeof text !== "string" || !text.trim()) {
-    return NextResponse.json({ error: "Comment text required" }, { status: 400 });
+  const check = validateCommentText(text);
+  if (!check.ok) {
+    return NextResponse.json({ error: check.error }, { status: 400 });
   }
 
   const userDoc = await getUserDoc(user.uid);
@@ -32,7 +35,7 @@ export async function POST(req, { params }) {
   const commentRef = await adminDb().collection("posts").doc(postId).collection("comments").add({
     authorId: user.uid,
     authorName,
-    text: text.trim(),
+    text: check.text,
     createdAt: new Date(),
   });
 
@@ -58,7 +61,9 @@ export async function POST(req, { params }) {
           to: author.email,
           subject: `New comment on your post`,
           text: `${authorName} commented: "${text.trim()}"\n\nView it in the community feed.`,
-        }).catch(() => {});
+        }).catch((err) => {
+          logError("email.comment_notify_failed", { postId: id, error: err.message });
+        });
       }
     }
   }

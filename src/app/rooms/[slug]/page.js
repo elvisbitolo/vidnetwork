@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getRoomBySlug } from "@/lib/server/rooms";
+import { getUpcomingRoomStart } from "@/lib/server/events";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import Nav from "@/components/Nav";
 import RoomClient from "./RoomClient";
@@ -43,16 +44,22 @@ export default async function RoomPage({ params }) {
     );
   }
 
+  const opensAt = await getUpcomingRoomStart(slug);
+  const isHost = userDoc?.role === "owner" || userDoc?.role === "moderator";
+
   return (
     <>
-      <Nav role={userDoc?.role} />
+<Nav role={userDoc?.role}>
       <RoomClient
         roomName={room.name}
         slug={room.slug}
         roomId={room.id}
         kind={room.kind}
         role={userDoc?.role}
+        opensAt={opensAt}
+        isHost={isHost}
       />
+</Nav>
     </>
   );
 }

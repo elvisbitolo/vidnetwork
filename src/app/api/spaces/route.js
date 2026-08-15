@@ -33,6 +33,7 @@ export async function GET(req) {
       requiredTier: space.requiredTier || "",
       purchasePriceCents: space.purchasePriceCents || 0,
       features: space.features || {},
+      publicPreview: !!space.publicPreview,
       memberCount: membersSnap.size,
       joined: !!membership,
     });
@@ -45,7 +46,7 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { name, description = "", features = {}, access = "public", requiredTier = "", purchasePriceCents = 0 } = await req.json();
+  const { name, description = "", features = {}, access = "public", requiredTier = "", purchasePriceCents = 0, publicPreview = false } = await req.json();
   if (!name || typeof name !== "string") {
     return NextResponse.json({ error: "Space name required" }, { status: 400 });
   }
@@ -64,6 +65,7 @@ export async function POST(req) {
     access,
     requiredTier,
     purchasePriceCents: price,
+    publicPreview,
     createdBy: auth.user.uid,
   });
 

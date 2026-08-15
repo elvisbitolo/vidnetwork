@@ -21,6 +21,7 @@ export default function AdminCourseDetailPage() {
   const [status, setStatus] = useState("draft");
   const [requiredTier, setRequiredTier] = useState("standard");
   const [purchasePrice, setPurchasePrice] = useState("");
+  const [publicPreview, setPublicPreview] = useState(false);
 
   const [moduleTitle, setModuleTitle] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
@@ -43,6 +44,7 @@ export default function AdminCourseDetailPage() {
       setStatus(course.status);
       setRequiredTier(course.requiredTier || "standard");
       setPurchasePrice(course.purchasePriceCents ? String((course.purchasePriceCents / 100).toFixed(2)) : "");
+      setPublicPreview(!!course.publicPreview);
     }
   }, [id]);
 
@@ -83,7 +85,7 @@ export default function AdminCourseDetailPage() {
     const res = await fetch(`/api/courses/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, status, requiredTier, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0 }),
+      body: JSON.stringify({ title, description, status, requiredTier, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0, publicPreview }),
     });
     const data = await res.json();
     setBusy(false);
@@ -158,8 +160,7 @@ export default function AdminCourseDetailPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <p className={styles.listTitle}>
           <Link className={styles.itemMeta} href="/admin/courses">← All courses</Link>
@@ -227,6 +228,20 @@ export default function AdminCourseDetailPage() {
               value={purchasePrice}
               onChange={(e) => setPurchasePrice(e.target.value)}
             />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Public preview</label>
+            <label className={styles.checkCard}>
+              <input
+                type="checkbox"
+                checked={publicPreview}
+                onChange={(e) => setPublicPreview(e.target.checked)}
+              />
+              <span className={styles.checkText}>
+                <strong>Show on the public explore page</strong>
+                <small>Reveals this course (title, description) to visitors.</small>
+              </span>
+            </label>
           </div>
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? "Saving…" : "Save details"}
@@ -376,6 +391,6 @@ export default function AdminCourseDetailPage() {
           ))
         )}
       </div>
-    </main>
+</Nav>
   );
 }

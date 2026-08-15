@@ -33,8 +33,7 @@ export default async function RoomsPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Rooms</h1>
@@ -68,6 +67,6 @@ export default async function RoomsPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

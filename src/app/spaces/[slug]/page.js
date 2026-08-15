@@ -100,8 +100,7 @@ export default async function SpacePage({ params }) {
   }
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/spaces" label="All spaces" />
         <p className={styles.breadcrumb}>
@@ -248,6 +247,6 @@ export default async function SpacePage({ params }) {
           </>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

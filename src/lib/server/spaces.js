@@ -71,7 +71,7 @@ export async function removeSpaceMember(spaceId, uid) {
   await adminDb().collection("spaceMembers").doc(`${spaceId}_${uid}`).delete();
 }
 
-export async function createSpace({ name, description, features, access, requiredTier, purchasePriceCents, createdBy }) {
+export async function createSpace({ name, description, features, access, requiredTier, purchasePriceCents, publicPreview, createdBy }) {
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const ref = adminDb().collection("spaces").doc();
   await ref.set({
@@ -82,6 +82,7 @@ export async function createSpace({ name, description, features, access, require
     access: normalizeAccess(access),
     requiredTier: requiredTier === "premium" ? "premium" : "",
     purchasePriceCents: Math.max(Number(purchasePriceCents) || 0, 0),
+    publicPreview: !!publicPreview,
     status: "active",
     createdBy,
     createdAt: new Date(),
@@ -89,7 +90,7 @@ export async function createSpace({ name, description, features, access, require
   return { id: ref.id, slug, name, description };
 }
 
-export async function updateSpace(spaceId, { name, description, features, access, requiredTier, purchasePriceCents }) {
+export async function updateSpace(spaceId, { name, description, features, access, requiredTier, purchasePriceCents, publicPreview }) {
   const ref = adminDb().collection("spaces").doc(spaceId);
   const doc = await ref.get();
   if (!doc.exists) return null;
@@ -102,6 +103,7 @@ export async function updateSpace(spaceId, { name, description, features, access
   if (purchasePriceCents !== undefined) {
     data.purchasePriceCents = Math.max(Number(purchasePriceCents) || 0, 0);
   }
+  if (publicPreview !== undefined) data.publicPreview = !!publicPreview;
   await ref.update(data);
   return { id: spaceId, ...doc.data(), ...data };
 }

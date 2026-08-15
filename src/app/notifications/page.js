@@ -28,13 +28,12 @@ export default async function NotificationsPage() {
   }));
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Notifications</h1>
         <p className={styles.subtitle}>Replies, RSVPs, and activity across the community.</p>
         <NotificationsList notifications={serialized} />
       </div>
-    </main>
+</Nav>
   );
 }

@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { canAccessRecording } from "@/lib/server/recordings";
+import { serializeTimestamp } from "@/lib/server/serialize";
 
 export async function GET(req, { params }) {
   const { id } = await params;
@@ -34,6 +35,6 @@ export async function GET(req, { params }) {
     transcript: data.transcript || "",
     roomName: data.roomName || "",
     roomSlug: data.roomSlug || "",
-    startedAt: data.startedAt || null,
+    startedAt: serializeTimestamp(data.startedAt),
   });
 }

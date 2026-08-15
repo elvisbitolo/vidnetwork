@@ -47,8 +47,7 @@ export default async function LessonPage({ params }) {
   const tier = sub.tier || "standard";
   if (!isOwner && !canAccessCourse(course, tier)) {
     return (
-      <main className={styles.page}>
-        <Nav role={userDoc?.role} />
+        <Nav role={userDoc?.role}>
         <div className={styles.container}>
           <h1 className={styles.title}>Membership upgrade required</h1>
           <p className={styles.lockedText}>
@@ -56,7 +55,7 @@ export default async function LessonPage({ params }) {
           </p>
           <Link className={styles.link} href="/pricing">See membership options</Link>
         </div>
-      </main>
+</Nav>
     );
   }
 
@@ -64,8 +63,7 @@ export default async function LessonPage({ params }) {
     const purchasedKeys = await getPurchasedKeys(user.uid);
     if (!canAccessPaid("course", course, purchasedKeys)) {
       return (
-        <main className={styles.page}>
-          <Nav role={userDoc?.role} />
+          <Nav role={userDoc?.role}>
           <div className={styles.container}>
             <h1 className={styles.title}>Purchase required</h1>
             <p className={styles.lockedText}>
@@ -73,7 +71,7 @@ export default async function LessonPage({ params }) {
             </p>
             <Link className={styles.link} href={`/courses/${courseId}`}>Back to course</Link>
           </div>
-        </main>
+</Nav>
       );
     }
   }
@@ -84,8 +82,7 @@ export default async function LessonPage({ params }) {
 
   if (locked) {
     return (
-      <main className={styles.page}>
-        <Nav role={userDoc?.role} />
+        <Nav role={userDoc?.role}>
         <div className={styles.container}>
           <BackButton fallback={`/courses/${courseId}`} label="Back to course" />
           <div className={styles.locked}>
@@ -98,7 +95,7 @@ export default async function LessonPage({ params }) {
             <Link className={styles.link} href={`/courses/${courseId}`}>Back to course</Link>
           </div>
         </div>
-      </main>
+</Nav>
     );
   }
 
@@ -107,8 +104,7 @@ export default async function LessonPage({ params }) {
   const nextLessonId = await getNextLessonId(courseId, lesson);
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback={`/courses/${courseId}`} label="Back to course" />
         <p className={styles.breadcrumb}>
@@ -124,6 +120,6 @@ export default async function LessonPage({ params }) {
           isOwner={isOwner}
         />
       </div>
-    </main>
+</Nav>
   );
 }

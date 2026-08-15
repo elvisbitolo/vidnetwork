@@ -53,10 +53,12 @@ export default function AdminOverviewPage() {
     : [];
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Admin overview</h1>
+        <p className={styles.linkRow}>
+          <Link className={styles.link} href="/admin/analytics">View analytics →</Link>
+        </p>
         {error && <p className={styles.error}>{error}</p>}
         {!data ? (
           <p className={styles.empty}>Loading…</p>
@@ -119,6 +121,6 @@ export default function AdminOverviewPage() {
           </>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

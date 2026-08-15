@@ -6,6 +6,9 @@ import { getSpace, isSpaceMember } from "@/lib/server/spaces";
 import { extractHashtags } from "@/lib/server/hashtags";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { createNotification } from "@/lib/server/notifications";
+import { runAutomations } from "@/lib/server/automations";
+import { logError } from "@/lib/server/log";
+import { validatePostText, isValidImageUrl, POST_TEXT_MAX } from "@/lib/server/posts-core";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -26,9 +29,8 @@ export async function POST(req) {
     pollOptions = [],
   } = await req.json();
 
-  const cleanText = typeof text === "string" ? text.trim() : "";
+  let cleanText = typeof text === "string" ? text.trim() : "";
   const postKind = ["post", "poll", "question"].includes(kind) ? kind : "post";
-
   if (postKind === "poll") {
     const cleanOptions = (Array.isArray(pollOptions) ? pollOptions : [])
       .map((opt) => (typeof opt === "string" ? opt.trim() : ""))
@@ -36,8 +38,23 @@ export async function POST(req) {
     if (cleanOptions.length < 2 || cleanOptions.length > 5) {
       return NextResponse.json({ error: "Polls need 2-5 options" }, { status: 400 });
     }
-  } else if (!cleanText) {
-    return NextResponse.json({ error: "Post text required" }, { status: 400 });
+  } else {
+    const check = validatePostText(cleanText);
+    if (!check.ok) {
+      return NextResponse.json({ error: check.error }, { status: 400 });
+    }
+    cleanText = check.text;
+  }
+
+  if (cleanText.length > POST_TEXT_MAX) {
+    return NextResponse.json(
+      { error: `Post text too long (max ${POST_TEXT_MAX} characters)` },
+      { status: 400 }
+    );
+  }
+
+  if (imageUrl && !isValidImageUrl(imageUrl)) {
+    return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
   }
 
   const userDoc = await getUserDoc(user.uid);
@@ -96,6 +113,18 @@ export async function POST(req) {
   }
 
   const ref = await adminDb().collection("posts").add(data);
+
+  runAutomations("new_post", {
+    authorName,
+    authorUid: user.uid,
+    postText: cleanText.slice(0, 200),
+    postKind,
+    postId: ref.id,
+    subjectUid: user.uid,
+    subjectName: authorName,
+  }).catch((err) => {
+    logError("automation.new_post_failed", { uid: user.uid, postId: ref.id, error: err.message });
+  });
 
   const postCount = (await adminDb().collection("posts").where("authorId", "==", user.uid).get()).size;
   await awardPoints(user.uid, POINTS.POST, authorName);

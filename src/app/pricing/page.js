@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import styles from "./pricing.module.css";
@@ -43,6 +44,7 @@ export default function PricingPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [signedIn, setSignedIn] = useState(false);
+  const [promo, setPromo] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => setSignedIn(!!user));
@@ -57,7 +59,7 @@ export default function PricingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: billing, tier }),
+        body: JSON.stringify({ plan: billing, tier, promoCode: promo.trim() || undefined }),
       });
       if (res.status === 401) {
         router.push("/login");
@@ -86,6 +88,16 @@ export default function PricingPage() {
 
   return (
     <main className={styles.page}>
+      <header className={styles.header}>
+        <Link className={styles.headerBrand} href={signedIn ? "/dashboard" : "/"}>
+          VidNetwork
+        </Link>
+        {signedIn ? (
+          <Link className={styles.headerLink} href="/dashboard">Back to your dashboard</Link>
+        ) : (
+          <Link className={styles.headerLink} href="/login">Sign in</Link>
+        )}
+      </header>
       <div className={styles.container}>
         <h1 className={styles.title}>Choose your membership</h1>
         <p className={styles.subtitle}>Pay with credit card or PayPal. Cancel anytime.</p>
@@ -107,6 +119,17 @@ export default function PricingPage() {
 
         {error && <p className={styles.error}>{error}</p>}
         {notice && <p className={styles.notice}>{notice}</p>}
+
+        <div className={styles.promoRow}>
+          <input
+            type="text"
+            className={styles.promo}
+            value={promo}
+            onChange={(e) => setPromo(e.target.value)}
+            placeholder="Promo code (optional)"
+            aria-label="Promo code"
+          />
+        </div>
 
         <div className={styles.grid}>
           {TIERS.map((tier) => (

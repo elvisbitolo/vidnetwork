@@ -55,8 +55,7 @@ export default async function ChatPage({ searchParams }) {
   const conversations = await listConversations(user.uid);
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Chat</h1>
         <p className={styles.subtitle}>Direct messages and group conversations.</p>
@@ -86,6 +85,6 @@ export default async function ChatPage({ searchParams }) {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

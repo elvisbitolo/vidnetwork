@@ -1,0 +1,159 @@
+.page {
+  min-height: 100vh;
+  background: #fafafc;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 28px;
+}
+
+.error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed #d8d8e3;
+  border-radius: 14px;
+  color: #9b9bab;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.statCard:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.1);
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 800;
+  color: #4f46e5;
+  margin: 0 0 4px;
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.listTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 28px 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 12px;
+}
+
+.cardStat {
+  font-size: 14px;
+  font-weight: 600;
+  color: #34344a;
+  margin: 0 0 6px;
+}
+
+.cardMeta {
+  font-size: 12px;
+  color: #9b9bab;
+  margin: 4px 0 0;
+}
+
+.subBreakdown {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eef0f6;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.itemName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 4px;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: #9b9bab;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 32px 16px;
+  }
+
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

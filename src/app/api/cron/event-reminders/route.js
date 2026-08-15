@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
+import { logError } from "@/lib/server/log";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -33,16 +34,20 @@ export async function GET(req) {
         const userSnap = await adminDb().collection("users").doc(rsvp.userId).get();
         const email = userSnap.exists ? userSnap.data().email : "";
         if (!email) continue;
-        await sendEmail({
-          to: email,
-          subject: `Reminder: "${event.title}" starts soon`,
-          text:
-            `You're going to "${event.title}" — it starts in ${Math.round(hoursUntil)} hour(s) at ` +
-            `${start.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.` +
-            (event.roomSlug ? `\n\nJoin the room: ${process.env.NEXT_PUBLIC_APP_URL || ""}/rooms/${event.roomSlug}` : ""),
-        }).catch(() => {});
-        await rsvpDoc.ref.update({ reminded: true });
-        sent++;
+        try {
+          await sendEmail({
+            to: email,
+            subject: `Reminder: "${event.title}" starts soon`,
+            text:
+              `You're going to "${event.title}" — it starts in ${Math.round(hoursUntil)} hour(s) at ` +
+              `${start.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.` +
+              (event.roomSlug ? `\n\nJoin the room: ${process.env.NEXT_PUBLIC_APP_URL || ""}/rooms/${event.roomSlug}` : ""),
+          });
+          await rsvpDoc.ref.update({ reminded: true });
+          sent++;
+        } catch (err) {
+          logError("email.event_reminder_failed", { eventId: doc.id, userId: rsvp.userId, error: err.message });
+        }
       }
     }
   }

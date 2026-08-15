@@ -97,7 +97,21 @@
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.nameLink {
+  font-size: 15px;
+  font-weight: 600;
+  color: #17171c;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.nameLink:hover {
+  color: #4f46e5;
+  text-decoration: underline;
 }
 
 .streak {

@@ -4,10 +4,12 @@ import { getStripe } from "@/lib/server/stripe";
 import { buildSubscriptionDoc, fromEpoch } from "@/lib/server/billing";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
-import { recordPurchase, PURCHASE_TYPES } from "@/lib/server/purchases";
+import { recordPurchase, PURCHASE_TYPES, verifyPurchaseAmount } from "@/lib/server/purchases";
 import { getCourse } from "@/lib/server/courses";
 import { getEvent } from "@/lib/server/events";
 import { getSpace } from "@/lib/server/spaces";
+import { runAutomations } from "@/lib/server/automations";
+import { recordPromoUse } from "@/lib/server/promocodes";
 import { logError } from "@/lib/server/log";
 
 async function loadTarget(targetType, targetId) {
@@ -89,6 +91,7 @@ export async function POST(req) {
   }
 
   try {
+    let shouldMarkProcessed = true;
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
@@ -99,8 +102,52 @@ export async function POST(req) {
         ) {
           const uid = session.metadata.uid;
           const { targetType, targetId } = session.metadata;
-          await recordPurchase({ uid, targetType, targetId, sessionId: session.id });
           const item = await loadTarget(targetType, targetId);
+          const paid = Number(session.amount_subtotal) || Number(session.amount_total) || 0;
+          const expected = Number(item?.purchasePriceCents) || 0;
+          const verified = verifyPurchaseAmount(paid, expected);
+          if (!verified.ok) {
+            shouldMarkProcessed = false;
+            await markEvent(event.id, "failed", verified.reason, { type: event.type });
+            const paymentIntent =
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : session.payment_intent?.id;
+            if (paymentIntent) {
+              try {
+                await getStripe().refunds.create({ payment_intent: paymentIntent });
+                logError("stripe.purchase_amount_mismatch_refunded", {
+                  uid,
+                  targetType,
+                  targetId,
+                  paid,
+                  expected,
+                  reason: verified.reason,
+                });
+              } catch (refundErr) {
+                logError("stripe.refund_failed", {
+                  uid,
+                  targetType,
+                  targetId,
+                  paymentIntent,
+                  error: refundErr.message,
+                });
+              }
+            }
+            break;
+          }
+          await recordPurchase({
+            uid,
+            targetType,
+            targetId,
+            sessionId: session.id,
+            promoCode: session.metadata?.promoCode || "",
+          });
+          if (session.metadata?.promoCode) {
+            await recordPromoUse(session.metadata.promoCode).catch((err) => {
+              logError("promo.record_use_failed", { code: session.metadata.promoCode, error: err.message });
+            });
+          }
           const label = item?.title || item?.name || "content";
           await createNotification({
             userId: uid,
@@ -110,6 +157,19 @@ export async function POST(req) {
             targetId,
             href: targetType === "course" ? `/courses/${targetId}` : targetType === "event" ? "/events" : `/spaces/${item?.slug || ""}`,
             text: `You now have access to "${label}"`,
+          });
+          await runAutomations("purchase", {
+            subjectUid: uid,
+            subjectName: session.customer_details?.name || session.customer_email || "Member",
+            memberName: session.customer_details?.name || session.customer_email || "Member",
+            memberEmail: session.customer_email || "",
+            targetType,
+            targetId,
+            itemName: label,
+            priceCents: paid,
+            spaceId: targetType === "space" ? targetId : (item?.spaceId || ""),
+          }).catch((err) => {
+            logError("automation.purchase_hook_failed", { uid, targetType, targetId, error: err.message });
           });
           if (session.customer_details?.email) {
             await sendEmail({
@@ -122,11 +182,43 @@ export async function POST(req) {
         }
         if (!session.subscription) break;
         const { uid, subscription } = await syncSubscription(session.subscription);
+        if (session.metadata?.promoCode) {
+          await recordPromoUse(session.metadata.promoCode).catch((err) => {
+            logError("promo.record_use_failed", { code: session.metadata.promoCode, error: err.message });
+          });
+        }
         if (subscription.status === "trialing") {
           await notifyBilling(
             uid,
             "Your 14-day free trial has started. Explore the community, rooms and courses."
           );
+        }
+        break;
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object;
+        const paymentIntentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id;
+        if (paymentIntentId) {
+          try {
+            const intent = await getStripe().paymentIntents.retrieve(paymentIntentId);
+            const meta = intent?.metadata || {};
+            const { uid, targetType, targetId } = meta;
+            if (uid && PURCHASE_TYPES.includes(targetType) && targetId) {
+              await adminDb().collection("purchases").doc(`${uid}_${targetType}_${targetId}`).delete();
+              logError("stripe.purchase_refunded_access_revoked", {
+                uid,
+                targetType,
+                targetId,
+                paymentIntentId,
+              });
+            }
+          } catch (err) {
+            logError("stripe.refund_revoke_failed", { paymentIntentId, error: err.message });
+          }
         }
         break;
       }
@@ -213,7 +305,9 @@ export async function POST(req) {
         break;
     }
 
-    await markEvent(event.id, "processed", "", { type: event.type });
+    if (shouldMarkProcessed) {
+      await markEvent(event.id, "processed", "", { type: event.type });
+    }
   } catch (err) {
     logError("stripe.webhook_failed", { event: event.id, type: event.type, error: err.message });
     await markEvent(event.id, "failed", err.message, { type: event.type });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { WebhookReceiver } from "livekit-server-sdk";
 import { adminDb } from "@/lib/firebase/admin";
 import { transcribeRecording } from "@/lib/server/transcription";
+import { logError } from "@/lib/server/log";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,9 @@ export async function POST(req) {
             resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
             transcriptionStatus: data.transcriptionStatus,
             transcribedAt: data.transcribedAt,
-          }).catch(() => {});
+          }).catch((err) => {
+            logError("transcription.kickoff_failed", { id: doc.id, error: err.message });
+          });
         }
       }
     }

@@ -31,7 +31,7 @@ export async function getRoomBySlug(slug) {
   return { id: doc.id, ...doc.data() };
 }
 
-export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, createdBy }) {
+export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview, createdBy }) {
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const ref = adminDb().collection("rooms").doc();
   await ref.set({
@@ -43,6 +43,7 @@ export async function createRoom({ name, description, maxParticipants, groupId, 
     groupId: groupId || "",
     spaceId: spaceId || "",
     kind: kind === "broadcast" ? "broadcast" : "standard",
+    publicPreview: !!publicPreview,
     createdBy,
     createdAt: new Date(),
   });

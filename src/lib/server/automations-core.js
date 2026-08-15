@@ -1,0 +1,30 @@
+export const AUTOMATION_TRIGGERS = [
+  "new_member",
+  "new_post",
+  "event_rsvp",
+  "purchase",
+  "checklist_complete",
+];
+
+export const AUTOMATION_ACTIONS = [
+  "send_email",
+  "create_notification",
+  "award_points",
+  "add_member_to_space",
+];
+
+export function fillTemplate(template, values = {}) {
+  if (typeof template !== "string") return template;
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    const value = values[key];
+    return value === undefined || value === null ? match : String(value);
+  });
+}
+
+export function normalizeAutomation(body = {}) {
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const trigger = AUTOMATION_TRIGGERS.includes(body.trigger) ? body.trigger : "";
+  const action = AUTOMATION_ACTIONS.includes(body.action) ? body.action : "";
+  const config = body.config && typeof body.config === "object" ? { ...body.config } : {};
+  return { name, trigger, action, config };
+}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { requireModerator, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { logError } from "@/lib/server/log";
 
 export async function POST(req, { params }) {
   const { id } = await params;
@@ -30,7 +31,14 @@ export async function POST(req, { params }) {
       : report.type === "member"
         ? adminDb().collection("users").doc(report.targetId)
         : adminDb().collection("posts").doc(report.targetId);
-    await targetRef.delete().catch(() => {});
+    await targetRef.delete().catch((err) => {
+      logError("moderation.content_delete_failed", {
+        reportId: id,
+        targetPath: report.targetPath || report.type,
+        targetId: report.targetId,
+        error: err.message,
+      });
+    });
   }
 
   await ref.update({

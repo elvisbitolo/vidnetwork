@@ -3,8 +3,11 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
+import { getRecognitionCount, listRecognitions } from "@/lib/server/recognition";
+import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognition-core";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import RecognitionForm from "./RecognitionForm";
 import styles from "./profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -25,21 +28,22 @@ export default async function MemberProfilePage({ params }) {
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const userRef = adminDb().collection("users").doc(id);
-  const [memberDoc, postsSnap] = await Promise.all([
+  const [memberDoc, postsSnap, recognitionCount, recognitions] = await Promise.all([
     userRef.get(),
     adminDb().collection("posts").where("authorId", "==", id).get(),
+    getRecognitionCount(id),
+    listRecognitions(id, 10),
   ]);
 
   if (!memberDoc.exists) {
     return (
-      <main className={styles.page}>
-        <Nav role={viewerDoc?.role} />
+        <Nav role={viewerDoc?.role}>
         <div className={styles.container}>
           <h1 className={styles.title}>Member not found</h1>
           <p className={styles.subtitle}>This member isn&apos;t available.</p>
           <Link className={styles.link} href="/members">Back to members</Link>
         </div>
-      </main>
+</Nav>
     );
   }
 
@@ -56,8 +60,7 @@ export default async function MemberProfilePage({ params }) {
   const isSelf = viewer.uid === id;
 
   return (
-    <main className={styles.page}>
-      <Nav role={viewerDoc?.role} />
+      <Nav role={viewerDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/members" label="All members" />
 
@@ -73,6 +76,9 @@ export default async function MemberProfilePage({ params }) {
             {member.headline && <p className={styles.headline}>{member.headline}</p>}
             {member.location && <p className={styles.location}>{member.location}</p>}
             {member.bio && <p className={styles.bio}>{member.bio}</p>}
+            {recognitionCount > 0 && (
+              <p className={styles.recognitionCount}>{recognitionCountLabel(recognitionCount)}</p>
+            )}
             {!isSelf && (
               <Link className={styles.messageBtn} href={`/chat?with=${id}`}>
                 Message
@@ -80,6 +86,34 @@ export default async function MemberProfilePage({ params }) {
             )}
           </div>
         </div>
+
+        {!isSelf && <RecognitionForm toUid={id} values={RECOGNITION_VALUES} />}
+
+        {recognitions.length > 0 && (
+          <>
+            <h2 className={styles.sectionTitle}>Recognitions</h2>
+            <div className={styles.postList}>
+              {recognitions.map((rec) => (
+                <div key={rec.id} className={styles.post}>
+                  <p className={styles.postText}>
+                    <Link className={styles.link} href={`/members/${rec.fromUid}`}>
+                      {rec.fromName}
+                    </Link>{" "}
+                    recognized for being <strong>{rec.value}</strong>
+                  </p>
+                  {rec.note && <p className={styles.bio}>{rec.note}</p>}
+                  <p className={styles.postMeta}>
+                    {new Date(rec.createdAt).toLocaleDateString([], {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         <h2 className={styles.sectionTitle}>Recent posts</h2>
         {posts.length === 0 ? (
@@ -102,6 +136,6 @@ export default async function MemberProfilePage({ params }) {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

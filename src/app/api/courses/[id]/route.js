@@ -35,10 +35,11 @@ export async function PATCH(req, { params }) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
 
-  const { title, description, status, requiredTier, purchasePriceCents } = await req.json();
+  const { title, description, status, requiredTier, purchasePriceCents, publicPreview } = await req.json();
   const patch = {};
   if (title !== undefined) patch.title = String(title);
   if (description !== undefined) patch.description = String(description);
+  if (publicPreview !== undefined) patch.publicPreview = !!publicPreview;
   if (requiredTier !== undefined) {
     if (!["standard", "premium"].includes(requiredTier)) {
       return NextResponse.json({ error: "Invalid tier" }, { status: 400 });

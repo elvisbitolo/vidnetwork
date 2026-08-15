@@ -24,6 +24,15 @@
   cursor: default;
 }
 
+.promo {
+  width: 130px;
+  padding: 7px 10px;
+  border: 1px solid #d8d8e3;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #17171c;
+}
+
 .error {
   font-size: 13px;
   color: #f87171;

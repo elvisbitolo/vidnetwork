@@ -3,6 +3,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { listGroups, isGroupMember } from "@/lib/server/groups";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { serialize } from "@/lib/server/serialize";
 
 export async function GET() {
   const auth = await requireUser();
@@ -22,7 +23,7 @@ export async function GET() {
       joined: !!membership,
     });
   }
-  return NextResponse.json({ groups: withMembership });
+  return NextResponse.json({ groups: serialize(withMembership) });
 }
 
 export async function POST(req) {

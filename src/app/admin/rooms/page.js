@@ -15,6 +15,7 @@ export default function AdminRoomsPage() {
   const [groupId, setGroupId] = useState("");
   const [spaceId, setSpaceId] = useState("");
   const [kind, setKind] = useState("standard");
+  const [publicPreview, setPublicPreview] = useState(false);
   const [groups, setGroups] = useState([]);
   const [spaces, setSpaces] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -57,7 +58,7 @@ export default function AdminRoomsPage() {
     const res = await fetch("/api/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, maxParticipants, groupId, spaceId, kind }),
+      body: JSON.stringify({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview }),
     });
     const data = await res.json();
     setBusy(false);
@@ -71,11 +72,21 @@ export default function AdminRoomsPage() {
     setGroupId("");
     setSpaceId("");
     setKind("standard");
+    setPublicPreview(false);
     await loadRooms();
   }
 
   async function handleDelete(id) {
     await fetch(`/api/rooms/${id}`, { method: "DELETE" });
+    await loadRooms();
+  }
+
+  async function handleTogglePreview(id, value) {
+    await fetch(`/api/rooms/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicPreview: value }),
+    });
     await loadRooms();
   }
 
@@ -86,8 +97,7 @@ export default function AdminRoomsPage() {
   }, []);
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Manage rooms</h1>
 
@@ -167,6 +177,20 @@ export default function AdminRoomsPage() {
               <option value="broadcast">Broadcast (host speaks, members watch)</option>
             </select>
           </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Public preview</label>
+            <label className={styles.checkCard}>
+              <input
+                type="checkbox"
+                checked={publicPreview}
+                onChange={(e) => setPublicPreview(e.target.checked)}
+              />
+              <span className={styles.checkText}>
+                <strong>Show on the public explore page</strong>
+                <small>Reveals this room (name, description) to visitors.</small>
+              </span>
+            </label>
+          </div>
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? "Creating…" : "Create room"}
           </button>
@@ -185,14 +209,22 @@ export default function AdminRoomsPage() {
                     {room.status} · {room.maxParticipants} max · {room.slug}
                   </p>
                 </div>
-                <button className={styles.delete} onClick={() => handleDelete(room.id)}>
-                  Delete
-                </button>
+                <div className={styles.itemActions}>
+                  <button
+                    className={room.publicPreview ? styles.toggleOn : styles.toggle}
+                    onClick={() => handleTogglePreview(room.id, !room.publicPreview)}
+                  >
+                    {room.publicPreview ? "On explore" : "Off explore"}
+                  </button>
+                  <button className={styles.delete} onClick={() => handleDelete(room.id)}>
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

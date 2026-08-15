@@ -22,8 +22,7 @@ export default async function SearchPage({ searchParams }) {
   const results = q || hashtag ? await searchCommunity({ q, hashtag }, user.uid) : null;
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Search</h1>
         <p className={styles.subtitle}>
@@ -35,6 +34,6 @@ export default async function SearchPage({ searchParams }) {
           initialResults={results}
         />
       </div>
-    </main>
+</Nav>
   );
 }

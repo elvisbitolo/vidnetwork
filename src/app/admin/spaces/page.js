@@ -25,6 +25,7 @@ export default function AdminSpacesPage() {
   const [access, setAccess] = useState("public");
   const [requiredTier, setRequiredTier] = useState("");
   const [purchasePrice, setPurchasePrice] = useState("");
+  const [publicPreview, setPublicPreview] = useState(false);
   const [features, setFeatures] = useState(DEFAULT_FEATURES);
   const [spaces, setSpaces] = useState([]);
   const [role, setRole] = useState("member");
@@ -58,7 +59,7 @@ export default function AdminSpacesPage() {
     const res = await fetch("/api/spaces", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, access, requiredTier, features, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0 }),
+      body: JSON.stringify({ name, description, access, requiredTier, features, purchasePriceCents: purchasePrice ? Math.round(Number(purchasePrice) * 100) : 0, publicPreview }),
     });
     const data = await res.json();
     setBusy(false);
@@ -71,12 +72,22 @@ export default function AdminSpacesPage() {
     setAccess("public");
     setRequiredTier("");
     setPurchasePrice("");
+    setPublicPreview(false);
     setFeatures(DEFAULT_FEATURES);
     await loadSpaces();
   }
 
   async function handleDelete(id) {
     await fetch(`/api/spaces/${id}`, { method: "DELETE" });
+    await loadSpaces();
+  }
+
+  async function handleTogglePreview(id, value) {
+    await fetch(`/api/spaces/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicPreview: value }),
+    });
     await loadSpaces();
   }
 
@@ -93,8 +104,7 @@ export default function AdminSpacesPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <Nav role={role} />
+      <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Manage spaces</h1>
 
@@ -180,6 +190,20 @@ export default function AdminSpacesPage() {
               ))}
             </div>
           </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Public preview</label>
+            <label className={styles.checkCard}>
+              <input
+                type="checkbox"
+                checked={publicPreview}
+                onChange={(e) => setPublicPreview(e.target.checked)}
+              />
+              <span className={styles.checkText}>
+                <strong>Show on the public explore page</strong>
+                <small>Reveals this space (name, description) to visitors.</small>
+              </span>
+            </label>
+          </div>
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? "Creating…" : "Create space"}
           </button>
@@ -205,6 +229,12 @@ export default function AdminSpacesPage() {
                   </p>
                 </div>
                 <div className={styles.itemActions}>
+                  <button
+                    className={space.publicPreview ? styles.toggleOn : styles.toggle}
+                    onClick={() => handleTogglePreview(space.id, !space.publicPreview)}
+                  >
+                    {space.publicPreview ? "On explore" : "Off explore"}
+                  </button>
                   <button className={styles.delete} onClick={() => handleDelete(space.id)}>
                     Delete
                   </button>
@@ -214,6 +244,6 @@ export default function AdminSpacesPage() {
           </div>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

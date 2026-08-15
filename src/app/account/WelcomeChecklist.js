@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection,
   doc,
@@ -12,18 +12,21 @@ import {
 import { db } from "@/lib/firebase/client";
 import styles from "./account.module.css";
 
-const STEPS = [
+const DEFAULT_STEPS = [
   { key: "profile", label: "Complete your profile", href: "#profile", cta: "Edit profile" },
   { key: "room", label: "Join your first live room", href: "/rooms", cta: "Browse rooms" },
   { key: "post", label: "Make your first post", href: "/feed", cta: "Open the feed" },
   { key: "rsvp", label: "RSVP to an event", href: "/events", cta: "See events" },
 ];
 
-export default function WelcomeChecklist({ uid, initialProfile }) {
+export default function WelcomeChecklist({ uid, initialProfile, steps }) {
   const [profile, setProfile] = useState(initialProfile || {});
   const [hasRoomEvent, setHasRoomEvent] = useState(false);
   const [hasPost, setHasPost] = useState(false);
   const [hasRsvp, setHasRsvp] = useState(false);
+  const firedRef = useRef(false);
+
+  const STEPS = steps && steps.length > 0 ? steps : DEFAULT_STEPS;
 
   useEffect(() => {
     const unsubUser = onSnapshot(doc(db, "users", uid), (snap) => {
@@ -53,6 +56,13 @@ export default function WelcomeChecklist({ uid, initialProfile }) {
   const doneMap = { profile: profileDone, room: hasRoomEvent, post: hasPost, rsvp: hasRsvp };
   const doneCount = STEPS.filter((step) => doneMap[step.key]).length;
   const allDone = doneCount === STEPS.length;
+
+  useEffect(() => {
+    if (allDone && STEPS.length > 0 && !firedRef.current) {
+      firedRef.current = true;
+      fetch("/api/checklist/complete", { method: "POST" }).catch(() => {});
+    }
+  }, [allDone, STEPS.length]);
 
   return (
     <section className={styles.card}>

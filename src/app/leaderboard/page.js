@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { getGamification, getLeaderboard, BADGES } from "@/lib/server/gamification";
+import { getRecognitionLeaderboard } from "@/lib/server/recognition";
 import Nav from "@/components/Nav";
 import styles from "./leaderboard.module.css";
 
@@ -16,9 +18,10 @@ export default async function LeaderboardPage() {
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const name = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
-  const [mine, leaderboard] = await Promise.all([
+  const [mine, leaderboard, recognized] = await Promise.all([
     getGamification(user.uid, name),
     getLeaderboard(20),
+    getRecognitionLeaderboard(20),
   ]);
 
   const myRank = leaderboard.find((entry) => entry.userId === user.uid)?.rank || null;
@@ -26,8 +29,7 @@ export default async function LeaderboardPage() {
   const unearned = Object.entries(BADGES).filter(([code]) => !earnedCodes.includes(code));
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Leaderboard</h1>
         <p className={styles.subtitle}>
@@ -57,7 +59,8 @@ export default async function LeaderboardPage() {
           </div>
         </div>
 
-        <h2 className={styles.sectionTitle}>Top members</h2>
+        <h2 className={styles.sectionTitle}>Top 20 members</h2>
+        <p className={styles.subtitle}>Ranked by all-time points.</p>
         <div className={styles.rows}>
           {leaderboard.map((entry) => (
             <div
@@ -65,13 +68,38 @@ export default async function LeaderboardPage() {
               className={entry.userId === user.uid ? `${styles.row} ${styles.rowMine}` : styles.row}
             >
               <p className={styles.rank}>#{entry.rank}</p>
-              <p className={styles.name}>{entry.name}</p>
+              <Link className={styles.nameLink} href={`/members/${entry.userId}`}>
+                {entry.name}
+              </Link>
               <p className={styles.streak}>{entry.streak} 🔥</p>
               <p className={styles.badges}>{entry.badgeCount} badges</p>
               <p className={styles.points}>{entry.points} pts</p>
             </div>
           ))}
           {leaderboard.length === 0 && <p className={styles.empty}>No points yet — be the first!</p>}
+        </div>
+
+        <h2 className={styles.sectionTitle}>Most recognized</h2>
+        <p className={styles.subtitle}>Members who received the most peer recognitions.</p>
+        <div className={styles.rows}>
+          {recognized.map((entry) => (
+            <div
+              key={entry.userId}
+              className={entry.userId === user.uid ? `${styles.row} ${styles.rowMine}` : styles.row}
+            >
+              <p className={styles.rank}>#{entry.rank}</p>
+              <Link className={styles.nameLink} href={`/members/${entry.userId}`}>
+                {entry.name}
+              </Link>
+              <p className={styles.badges}>
+                {entry.count === 1 ? "1 recognition" : `${entry.count} recognitions`}
+              </p>
+              <p className={styles.points}>{entry.count} 🎉</p>
+            </div>
+          ))}
+          {recognized.length === 0 && (
+            <p className={styles.empty}>No recognitions yet — recognize a member on their profile!</p>
+          )}
         </div>
 
         <h2 className={styles.sectionTitle}>Badges</h2>
@@ -88,6 +116,6 @@ export default async function LeaderboardPage() {
           {unearned.length === 0 && <p className={styles.empty}>All badges earned!</p>}
         </div>
       </div>
-    </main>
+</Nav>
   );
 }

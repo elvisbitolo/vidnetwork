@@ -180,6 +180,7 @@ export default function EventsBoard({ events, uid, userName }) {
             <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
               Add to calendar
             </a>
+            <Link className={styles.calendar} href={`/events/${event.id}`}>Details</Link>
             {event.roomSlug && (
               <Link className={styles.join} href={`/rooms/${event.roomSlug}`}>Join the room</Link>
             )}

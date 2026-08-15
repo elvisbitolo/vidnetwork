@@ -17,6 +17,23 @@ export default async function MembersPage() {
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const snap = await adminDb().collection("users").orderBy("name", "asc").get();
+
+  const gamiSnap = await adminDb().collection("gamification").get();
+  const gami = new Map();
+  gamiSnap.docs.forEach((doc) => {
+    const data = doc.data();
+    gami.set(doc.id, {
+      points: data.points || 0,
+      lastVisitDate: data.lastVisitDate || "",
+    });
+  });
+
+  const todayKey = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString().slice(0, 10);
+  })();
+
   const members = snap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((m) => m.name)
@@ -27,18 +44,24 @@ export default async function MembersPage() {
       location: m.location || "",
       bio: m.bio || "",
       role: m.role || "member",
+      points: gami.get(m.id)?.points || 0,
+      lastVisitDate: gami.get(m.id)?.lastVisitDate || "",
+      createdAt: m.createdAt?.toMillis
+        ? m.createdAt.toMillis()
+        : m.createdAt
+          ? new Date(m.createdAt).getTime()
+          : 0,
     }));
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Members</h1>
         <p className={styles.subtitle}>
           {members.length} {members.length === 1 ? "member" : "members"} in the community
         </p>
-        <MembersDirectory members={members} role={userDoc?.role} />
+        <MembersDirectory members={members} role={userDoc?.role} todayKey={todayKey} />
       </div>
-    </main>
+</Nav>
   );
 }

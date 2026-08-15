@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getSettings } from "@/lib/server/settings";
 import Nav from "@/components/Nav";
 import LogoutButton from "./LogoutButton";
 import ManageSubscription from "./ManageSubscription";
@@ -19,6 +20,7 @@ export default async function AccountPage({ searchParams }) {
   const userDoc = await getUserDoc(user.uid);
   const sub = await getSubscription(user.uid);
   const active = isActiveSub(sub);
+  const settings = await getSettings();
   const { checkout } = await searchParams;
 
   const initialProfile = {
@@ -29,8 +31,7 @@ export default async function AccountPage({ searchParams }) {
   };
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <div className={styles.header}>
           <h1 className={styles.title}>Your account</h1>
@@ -41,7 +42,7 @@ export default async function AccountPage({ searchParams }) {
           <p className={styles.banner}>Welcome! Your membership is active.</p>
         )}
 
-        <WelcomeChecklist uid={user.uid} initialProfile={initialProfile} />
+        <WelcomeChecklist uid={user.uid} initialProfile={initialProfile} steps={settings.welcomeChecklist} />
 
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Membership</h2>
@@ -74,6 +75,6 @@ export default async function AccountPage({ searchParams }) {
           <EmailNotifications enabled={userDoc?.notifications} />
         </section>
       </div>
-    </main>
+</Nav>
   );
 }

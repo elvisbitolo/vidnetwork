@@ -7,6 +7,7 @@ import { listRoomsForGroup } from "@/lib/server/rooms";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import Feed from "@/app/feed/Feed";
+import GroupJoinButton from "../GroupJoinButton";
 import styles from "../groups.module.css";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +41,7 @@ export default async function GroupPage({ params }) {
   const activeGroupRooms = groupRooms.filter((room) => room.status === "active");
 
   return (
-    <main className={styles.page}>
-      <Nav role={userDoc?.role} />
+      <Nav role={userDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/groups" label="All groups" />
         <p className={styles.breadcrumb}>
@@ -59,15 +59,17 @@ export default async function GroupPage({ params }) {
               <span className={styles.memberNames}> — {memberNames.join(", ")}</span>
             )}
           </p>
-          {membership || userDoc?.role === "owner" ? (
+          {userDoc?.role === "owner" ? (
             <Link className={styles.groupChatLink} href={`/chat?group=${group.id}`}>
               Group chat
             </Link>
           ) : (
-            <p className={styles.notMember}>
-              You&apos;re not a member yet — join to post in this group.{" "}
-              <Link className={styles.link} href="/groups">Join from the groups page</Link>.
-            </p>
+            <GroupJoinButton groupId={group.id} initialJoined={!!membership} />
+          )}
+          {membership && userDoc?.role !== "owner" && (
+            <Link className={styles.groupChatLink} href={`/chat?group=${group.id}`}>
+              Group chat
+            </Link>
           )}
         </div>
 
@@ -98,6 +100,6 @@ export default async function GroupPage({ params }) {
           </>
         )}
       </div>
-    </main>
+</Nav>
   );
 }

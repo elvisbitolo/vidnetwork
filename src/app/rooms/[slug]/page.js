@@ -4,6 +4,7 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getRoomBySlug } from "@/lib/server/rooms";
 import { getUpcomingRoomStart } from "@/lib/server/events";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getScopedHostRights } from "@/lib/server/hosts";
 import Nav from "@/components/Nav";
 import RoomClient from "./RoomClient";
 import styles from "./room.module.css";
@@ -45,7 +46,7 @@ export default async function RoomPage({ params }) {
   }
 
   const opensAt = await getUpcomingRoomStart(slug);
-  const isHost = userDoc?.role === "owner" || userDoc?.role === "moderator";
+  const rights = await getScopedHostRights(user.uid, "room", room.id);
 
   return (
     <>
@@ -57,7 +58,9 @@ export default async function RoomPage({ params }) {
         kind={room.kind}
         role={userDoc?.role}
         opensAt={opensAt}
-        isHost={isHost}
+        isHost={rights.isHost}
+        isCoHost={rights.isCoHost}
+        canRecord={rights.canRecord}
       />
 </Nav>
     </>

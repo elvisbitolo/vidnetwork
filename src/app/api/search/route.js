@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { searchCommunity } from "@/lib/server/search";
 
@@ -8,8 +8,9 @@ export async function GET(req) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
+  const userDoc = await getUserDoc(user.uid);
   const sub = await getSubscription(user.uid);
-  if (!isActiveSub(sub)) {
+  if (!canModerate(userDoc) && !isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
 
@@ -19,7 +20,8 @@ export async function GET(req) {
       q: searchParams.get("q") || "",
       hashtag: searchParams.get("hashtag") || "",
     },
-    user.uid
+    user.uid,
+    userDoc?.role || "member"
   );
   return NextResponse.json(results);
 }

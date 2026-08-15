@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
-import { getCourse, getProgress } from "@/lib/server/courses";
+import { getCourse, getProgress, lessonBelongsToCourse } from "@/lib/server/courses";
 import { requireActiveMember, guardJson } from "@/lib/server/authorize";
 import { getUserDoc } from "@/lib/server/auth";
 import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
@@ -34,7 +34,10 @@ export async function POST(req, { params }) {
   }
 
   const lessonSnap = await adminDb().collection("lessons").doc(lessonId).get();
-  if (!lessonSnap.exists || lessonSnap.data().courseId !== courseId) {
+  if (
+    !lessonSnap.exists ||
+    !(await lessonBelongsToCourse(lessonSnap.data(), courseId))
+  ) {
     return NextResponse.json({ error: "Lesson not found in this course" }, { status: 404 });
   }
 

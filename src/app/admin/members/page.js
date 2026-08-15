@@ -10,6 +10,7 @@ import styles from "../rooms/admin.module.css";
 export default function AdminMembersPage() {
   const router = useRouter();
   const [members, setMembers] = useState([]);
+  const [query, setQuery] = useState("");
   const [role, setRole] = useState("member");
   const [error, setError] = useState("");
 
@@ -50,17 +51,38 @@ export default function AdminMembersPage() {
     await loadMembers();
   }
 
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? members.filter(
+        (m) =>
+          (m.name || "").toLowerCase().includes(q) ||
+          (m.email || "").toLowerCase().includes(q)
+      )
+    : members;
+
   return (
       <Nav role={role}>
       <div className={styles.container}>
         <h1 className={styles.title}>Members</h1>
+        <p className={styles.linkRow}>
+          <a className={styles.link} href="/admin/hosts">Assign scoped hosts →</a>
+        </p>
         {error && <p className={styles.error}>{error}</p>}
 
-        {members.length === 0 ? (
-          <p className={styles.empty}>No members yet.</p>
+        <input
+          className={styles.input}
+          type="search"
+          placeholder="Search members…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{ maxWidth: 360, marginBottom: 16 }}
+        />
+
+        {filtered.length === 0 ? (
+          <p className={styles.empty}>No members found.</p>
         ) : (
           <div className={styles.list}>
-            {members.map((member) => (
+            {filtered.map((member) => (
               <div key={member.id} className={styles.item}>
                 <div>
                   <p className={styles.itemName}>
@@ -72,10 +94,23 @@ export default function AdminMembersPage() {
                   <p className={styles.itemMeta}>
                     {member.email || ""}
                     {member.suspended ? " · suspended" : ""}
+                    {member.tier ? ` · ${member.tier}` : ""}
+                    {member.subStatus === "active" || member.subStatus === "trial"
+                      ? ` · subscribed (${member.subStatus})`
+                      : member.subStatus !== "none"
+                        ? ` · sub ${member.subStatus}`
+                        : ""}
                   </p>
                 </div>
                 {member.role !== "owner" && (
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <a
+                      className={styles.toggle}
+                      style={{ display: "inline-block", height: 36, padding: "8px 14px", fontSize: 13 }}
+                      href={`/members/${member.id}`}
+                    >
+                      Profile
+                    </a>
                     <select
                       className={styles.input}
                       style={{ width: 130, height: 36, padding: "0 8px" }}
@@ -85,13 +120,20 @@ export default function AdminMembersPage() {
                       <option value="member">Member</option>
                       <option value="moderator">Moderator</option>
                     </select>
-                    <button
-                      className={member.suspended ? styles.submit : styles.delete}
-                      style={{ height: 36, padding: "0 14px", fontSize: 13 }}
-                      onClick={() => updateMember(member.id, { suspended: !member.suspended })}
-                    >
-                      {member.suspended ? "Unsuspend" : "Suspend"}
-                    </button>
+                  <a
+                    className={styles.toggle}
+                    style={{ display: "inline-block", height: 36, padding: "8px 14px", fontSize: 13 }}
+                    href={`/admin/hosts?userId=${member.id}`}
+                  >
+                    Host
+                  </a>
+                  <button
+                    className={member.suspended ? styles.submit : styles.delete}
+                    style={{ height: 36, padding: "0 14px", fontSize: 13 }}
+                    onClick={() => updateMember(member.id, { suspended: !member.suspended })}
+                  >
+                    {member.suspended ? "Unsuspend" : "Suspend"}
+                  </button>
                   </div>
                 )}
               </div>

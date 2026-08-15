@@ -61,6 +61,16 @@ export default function DiscoveryPage() {
 
         {discovery && (
           <>
+            {discovery.featured.length === 0 &&
+              discovery.upcomingEvents.length === 0 &&
+              discovery.topPosts.length === 0 &&
+              discovery.topSpaces.length === 0 &&
+              discovery.topMembers.length === 0 && (
+                <p className={styles.empty}>
+                  Nothing to show yet. Post in the feed or check back soon.
+                </p>
+              )}
+
             {discovery.featured.length > 0 && (
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Featured</h2>

@@ -16,6 +16,12 @@ export default function AdminRoomsPage() {
   const [spaceId, setSpaceId] = useState("");
   const [kind, setKind] = useState("standard");
   const [publicPreview, setPublicPreview] = useState(false);
+  const [opensAt, setOpensAt] = useState("");
+  const [recordingAllowed, setRecordingAllowed] = useState(true);
+  const [replayVisibility, setReplayVisibility] = useState("members");
+  const [hostId, setHostId] = useState("");
+  const [coHostIds, setCoHostIds] = useState([]);
+  const [members, setMembers] = useState([]);
   const [groups, setGroups] = useState([]);
   const [spaces, setSpaces] = useState([]);
   const [rooms, setRooms] = useState([]);
@@ -47,6 +53,9 @@ export default function AdminRoomsPage() {
       loadRooms();
       loadGroups();
       loadSpaces();
+      fetch("/api/admin/members")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => data && setMembers(data.members));
     });
     return unsub;
   }, [router, loadRooms, loadGroups, loadSpaces]);
@@ -58,7 +67,18 @@ export default function AdminRoomsPage() {
     const res = await fetch("/api/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview }),
+      body: JSON.stringify({
+        name,
+        description,
+        maxParticipants,
+        groupId,
+        spaceId,
+        kind,
+        publicPreview,
+        opensAt: opensAt ? new Date(opensAt).toISOString() : null,
+        recordingAllowed,
+        replayVisibility,
+      }),
     });
     const data = await res.json();
     setBusy(false);
@@ -66,6 +86,35 @@ export default function AdminRoomsPage() {
       setError(data.error || "Failed to create room");
       return;
     }
+
+    const room = data.room;
+    const assignments = [];
+    if (hostId) {
+      assignments.push({
+        scopeType: "room",
+        scopeId: room.id,
+        userId: hostId,
+        role: "host",
+        canRecord: true,
+      });
+    }
+    for (const userId of coHostIds) {
+      assignments.push({
+        scopeType: "room",
+        scopeId: room.id,
+        userId,
+        role: "co-host",
+        canRecord: false,
+      });
+    }
+    for (const payload of assignments) {
+      await fetch("/api/admin/host-assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    }
+
     setName("");
     setDescription("");
     setMaxParticipants(20);
@@ -73,6 +122,11 @@ export default function AdminRoomsPage() {
     setSpaceId("");
     setKind("standard");
     setPublicPreview(false);
+    setOpensAt("");
+    setRecordingAllowed(true);
+    setReplayVisibility("members");
+    setHostId("");
+    setCoHostIds([]);
     await loadRooms();
   }
 
@@ -178,6 +232,86 @@ export default function AdminRoomsPage() {
             </select>
           </div>
           <div className={styles.field}>
+            <label className={styles.label} htmlFor="opensAt">Schedule (optional)</label>
+            <input
+              id="opensAt"
+              className={styles.input}
+              type="datetime-local"
+              value={opensAt}
+              onChange={(e) => setOpensAt(e.target.value)}
+            />
+            <small className={styles.help}>
+              Members can only join from this time onward. Leave blank to open now.
+            </small>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Recording</label>
+            <label className={styles.checkCard}>
+              <input
+                type="checkbox"
+                checked={recordingAllowed}
+                onChange={(e) => setRecordingAllowed(e.target.checked)}
+              />
+              <span className={styles.checkText}>
+                <strong>Allow recording in this room</strong>
+                <small>Hosts can start and stop recordings when enabled.</small>
+              </span>
+            </label>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="replay">Replay visibility</label>
+            <select
+              id="replay"
+              className={styles.input}
+              value={replayVisibility}
+              onChange={(e) => setReplayVisibility(e.target.value)}
+            >
+              <option value="members">Members only</option>
+              <option value="owner">Hosts only</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="host">Host</label>
+            <select
+              id="host"
+              className={styles.input}
+              value={hostId}
+              onChange={(e) => setHostId(e.target.value)}
+            >
+              <option value="">No host (you manage it)</option>
+              {members
+                .filter((m) => m.role !== "owner")
+                .map((m) => (
+                  <option key={m.id} value={m.id}>{m.name || m.email || "Member"}</option>
+                ))}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Co-hosts</label>
+            <div className={styles.checkList}>
+              {members
+                .filter((m) => m.role !== "owner")
+                .map((m) => (
+                  <label key={m.id} className={styles.checkCard}>
+                    <input
+                      type="checkbox"
+                      checked={coHostIds.includes(m.id)}
+                      onChange={(e) =>
+                        setCoHostIds((prev) =>
+                          e.target.checked
+                            ? [...prev, m.id]
+                            : prev.filter((id) => id !== m.id)
+                        )
+                      }
+                    />
+                    <span className={styles.checkText}>
+                      {m.name || m.email || "Member"}
+                    </span>
+                  </label>
+                ))}
+            </div>
+          </div>
+          <div className={styles.field}>
             <label className={styles.label}>Public preview</label>
             <label className={styles.checkCard}>
               <input
@@ -207,9 +341,20 @@ export default function AdminRoomsPage() {
                   <p className={styles.itemName}>{room.name}</p>
                   <p className={styles.itemMeta}>
                     {room.status} · {room.maxParticipants} max · {room.slug}
+                    {room.opensAt
+                      ? ` · opens ${new Date(room.opensAt.toMillis ? room.opensAt.toMillis() : room.opensAt).toLocaleString()}`
+                      : " · open now"}
+                    · recording {room.recordingAllowed === false ? "off" : "on"}
+                    · replay {room.replayVisibility === "owner" ? "hosts only" : "members"}
                   </p>
                 </div>
                 <div className={styles.itemActions}>
+                  <a
+                    className={styles.toggle}
+                    href={`/admin/hosts?scopeType=room&scopeId=${room.id}`}
+                  >
+                    Hosts
+                  </a>
                   <button
                     className={room.publicPreview ? styles.toggleOn : styles.toggle}
                     onClick={() => handleTogglePreview(room.id, !room.publicPreview)}

@@ -46,6 +46,15 @@ export async function getLesson(id) {
   return doc.exists ? { id: doc.id, ...doc.data() } : null;
 }
 
+export async function lessonBelongsToCourse(lesson, courseId) {
+  if (lesson?.courseId === courseId) return true;
+  if (!lesson?.courseId && lesson?.moduleId) {
+    const modSnap = await adminDb().collection("modules").doc(lesson.moduleId).get();
+    return modSnap.exists && modSnap.data().courseId === courseId;
+  }
+  return false;
+}
+
 export async function getProgress(courseId, uid) {
   const doc = await adminDb()
     .collection("progress")

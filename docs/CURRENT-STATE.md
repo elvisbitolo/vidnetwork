@@ -36,17 +36,27 @@
 - Content management (rooms, courses, events, groups, spaces), collections,
   member management, moderation queue (reports), analytics, automations,
   settings — all behind a server-gated `/admin` layout
+- **Scoped hosts**: per-content-area host/co-host assignments
+  (`hostAssignments`) with ancestor inheritance (room→space/group,
+  event→space/room, course→space, group→space); staff always full powers
+- **Announcements**: one-time broadcasts to the whole community or the
+  members of a specific space, group, or room (staff or the scope's host)
+- **Host tools** (`/host`): scoped hosts get their own dashboard to open
+  their rooms, create rooms in the spaces/groups they host, and announce
+  to their members
+- **Room creation (non-coder)**: schedule, type, audience, host/co-hosts,
+  recording on/off, replay visibility — no LiveKit concepts exposed
 
 ## 2. Verification status
 
 | Check | Result |
 |---|---|
 | `npm run lint` | 0 errors (4 pre-existing warnings) |
-| `npm test` | **129 tests pass** |
-| `npm run build` | Succeeds (49 static pages; admin pages dynamic) |
+| `npm test` | **147 tests pass** |
+| `npm run build` | Succeeds (static + dynamic pages) |
 | CI (GitHub Actions) | lint → test → build on every push/PR |
-| Firestore rules | Compiled & **deployed** |
-| Firestore indexes | 6 composite indexes **deployed** |
+| Firestore rules | Compiled & **deployed** (incl. deny-all `hostAssignments`, `announcements`) |
+| Firestore indexes | Composite indexes **deployed** (`hostAssignments` scopeType+scopeId, userId+scopeType) |
 | Storage rules | Reviewed, deny-all default in place |
 | Webhooks | Stripe + LiveKit signature-verified, idempotent |
 
@@ -69,7 +79,9 @@
 ## 4. Known gaps / open items (non-blocking)
 
 1. **Native mobile apps** — currently responsive web + PWA push only.
-2. **Scoped host/moderator assignment** — roles are global, not per-content-area.
+2. **Scoped host UI breadth** — scoped hosts can create rooms and announce to
+   their scopes, but full content editing (courses/events) for scoped hosts
+   still flows through staff.
 3. **Member discovery depth** — profile filters are basic.
 4. **Multi-community / multi-tenant** — single community by design.
 5. **Rate limiter is in-memory** — per-instance; fine on one Vercel lambda,
@@ -81,6 +93,7 @@
 
 | Date | Change |
 |---|---|
+| 2026-08-15 | PRD execution pass: private-data fixes (search/discovery), **scoped hosts**, **in-room host/co-host controls**, **announcements**, **host tools** (`/host`), non-coder room creation, event-reminder notifications, SEO (sitemap/robots/JSON-LD/canonical), admin quick actions + member search/sub state, dashboard leaderboard |
 | 2026-08-15 | Production-hardening pass (webhooks, indexes, serialization, email verification, validation, gating) + docs |
 | 2026-08-14 | Monetization: payment automations, promo codes, income dashboard, collections, discovery, welcome checklist |
 | 2026-08-13 | Audit + remediation; purchases & hardening; trust pages |

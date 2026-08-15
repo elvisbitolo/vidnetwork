@@ -81,8 +81,22 @@ const COMMUNITY_CHIPS = [
 const PARTICIPANTS = ["Host", "Speaker", "Speaker", "Speaker", "Speaker", "You"];
 
 export default function Home() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "VidNetwork",
+    url: "https://vidnetwork.vercel.app",
+    description:
+      "A paid membership community with live video rooms, courses, events, groups and real conversations.",
+    sameAs: [],
+  };
+
   return (
     <main className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <LandingNav />
 
       <section className={styles.hero}>
@@ -101,7 +115,7 @@ export default function Home() {
                 <Link className={styles.primary} href="/signup">
                   Join VidNetwork
                 </Link>
-                <Link className={styles.secondary} href="/rooms">
+                <Link className={styles.secondary} href="/explore">
                   Explore the community
                 </Link>
               </div>

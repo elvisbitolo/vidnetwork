@@ -6,6 +6,7 @@ import { listSpaces } from "@/lib/server/spaces";
 import { listConversations } from "@/lib/server/chat";
 import { listNotifications } from "@/lib/server/notifications";
 import { meetsTier } from "@/lib/server/plans";
+import { getLeaderboard } from "@/lib/server/gamification";
 
 function toMillis(value) {
   if (!value) return 0;
@@ -19,8 +20,8 @@ function isUpcoming(event, now = Date.now()) {
 
 export async function getUserMemberships(uid) {
   const [spaceSnap, groupSnap] = await Promise.all([
-    adminDb().collection("spaceMembers").where("userId", "==", uid).get(),
-    adminDb().collection("groupMembers").where("userId", "==", uid).get(),
+    adminDb().collection("spaceMembers").where("userId", "==", uid).limit(500).get(),
+    adminDb().collection("groupMembers").where("userId", "==", uid).limit(500).get(),
   ]);
   return {
     spaceIds: new Set(spaceSnap.docs.map((d) => d.data().spaceId)),
@@ -62,6 +63,7 @@ export async function getContinueLearning(uid, tier, limit = 3) {
   const progressSnap = await adminDb()
     .collection("progress")
     .where("userId", "==", uid)
+    .limit(50)
     .get();
   const rows = [];
   for (const doc of progressSnap.docs) {
@@ -159,7 +161,7 @@ export async function getRecentNotifications(uid, limit = 5) {
 export async function getDashboardData(uid, userDoc, tier) {
   const role = userDoc?.role || "member";
   const memberships = await getUserMemberships(uid);
-  const [activity, learning, spaces, rooms, events, messages, notifications] =
+  const [activity, learning, spaces, rooms, events, messages, notifications, leaderboard] =
     await Promise.all([
       getCommunityActivity(uid, role, memberships),
       getContinueLearning(uid, tier),
@@ -168,6 +170,7 @@ export async function getDashboardData(uid, userDoc, tier) {
       getUpcomingEvents(),
       getRecentMessages(uid),
       getRecentNotifications(uid),
+      getLeaderboard(3),
     ]);
-  return { activity, learning, spaces, rooms, events, messages, notifications };
+  return { activity, learning, spaces, rooms, events, messages, notifications, leaderboard };
 }

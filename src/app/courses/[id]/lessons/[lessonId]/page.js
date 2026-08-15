@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { getCourse, getLesson, getNextLessonId, getProgress, canAccessCourse } from "@/lib/server/courses";
+import { getCourse, getLesson, getNextLessonId, getProgress, canAccessCourse, lessonBelongsToCourse } from "@/lib/server/courses";
 import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
@@ -22,7 +22,7 @@ export default async function LessonPage({ params }) {
 
   const course = await getCourse(courseId);
   const lesson = await getLesson(lessonId);
-  if (!course || !lesson || lesson.courseId !== courseId) {
+  if (!course || !lesson || !(await lessonBelongsToCourse(lesson, courseId))) {
     return (
       <main className={styles.page}>
         <div className={styles.container}>

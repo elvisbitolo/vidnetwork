@@ -24,6 +24,11 @@ export async function listRoomsForGroup(groupId) {
     .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
 }
 
+export async function getRoom(id) {
+  const doc = await adminDb().collection("rooms").doc(id).get();
+  return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
 export async function getRoomBySlug(slug) {
   const snap = await adminDb().collection("rooms").where("slug", "==", slug).limit(1).get();
   if (snap.empty) return null;
@@ -31,7 +36,7 @@ export async function getRoomBySlug(slug) {
   return { id: doc.id, ...doc.data() };
 }
 
-export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview, createdBy }) {
+export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview, createdBy, opensAt, recordingAllowed, replayVisibility }) {
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const ref = adminDb().collection("rooms").doc();
   await ref.set({
@@ -44,6 +49,9 @@ export async function createRoom({ name, description, maxParticipants, groupId, 
     spaceId: spaceId || "",
     kind: kind === "broadcast" ? "broadcast" : "standard",
     publicPreview: !!publicPreview,
+    opensAt: opensAt || null,
+    recordingAllowed: recordingAllowed !== false,
+    replayVisibility: replayVisibility === "owner" ? "owner" : "members",
     createdBy,
     createdAt: new Date(),
   });

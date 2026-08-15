@@ -59,6 +59,16 @@ export default function AdminOverviewPage() {
         <p className={styles.linkRow}>
           <Link className={styles.link} href="/admin/analytics">View analytics →</Link>
         </p>
+        <div className={styles.quickActions}>
+          <Link className={styles.quickAction} href="/feed">Create post</Link>
+          <Link className={styles.quickAction} href="/admin/rooms">Create room</Link>
+          <Link className={styles.quickAction} href="/admin/events">Schedule event</Link>
+          <Link className={styles.quickAction} href="/admin/courses">Create course</Link>
+          <Link className={styles.quickAction} href="/admin/groups">Create group/space</Link>
+          <Link className={styles.quickAction} href="/admin/announcements">Send announcement</Link>
+          <Link className={styles.quickAction} href="/admin/members">Manage members</Link>
+          <Link className={styles.quickAction} href="/admin/analytics">View analytics</Link>
+        </div>
         {error && <p className={styles.error}>{error}</p>}
         {!data ? (
           <p className={styles.empty}>Loading…</p>

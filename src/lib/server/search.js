@@ -1,5 +1,6 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { getSpaceMembers } from "@/lib/server/spaces";
+import { canModerate } from "@/lib/server/auth";
 
 function toMillis(value) {
   if (!value) return 0;
@@ -21,9 +22,46 @@ function includes(field, q) {
   return typeof field === "string" && field.toLowerCase().includes(q);
 }
 
-export async function searchCommunity({ q = "", hashtag = "" }, uid = "") {
+async function getUserMemberships(uid) {
+  const [spaceSnap, groupSnap] = await Promise.all([
+    adminDb().collection("spaceMembers").where("userId", "==", uid).limit(500).get(),
+    adminDb().collection("groupMembers").where("userId", "==", uid).limit(500).get(),
+  ]);
+  return {
+    spaceIds: new Set(spaceSnap.docs.map((d) => d.data().spaceId)),
+    groupIds: new Set(groupSnap.docs.map((d) => d.data().groupId)),
+  };
+}
+
+async function getPurchasedKeys(uid) {
+  const snap = await adminDb().collection("purchases").where("uid", "==", uid).limit(500).get();
+  const keys = new Set();
+  snap.docs.forEach((doc) => {
+    const data = doc.data();
+    if (data.targetType && data.targetId) {
+      keys.add(`${data.targetType}_${data.targetId}`);
+    }
+  });
+  return keys;
+}
+
+export async function searchCommunity({ q = "", hashtag = "" }, uid = "", role = "") {
   const needle = q.trim().toLowerCase();
   const tag = hashtag.trim().toLowerCase().replace(/^#/, "");
+  const isStaff = canModerate({ role });
+
+  const [memberships, purchasedKeys] = await Promise.all([
+    isStaff ? null : getUserMemberships(uid),
+    isStaff ? null : getPurchasedKeys(uid),
+  ]);
+
+  const canReadPost = (post) => {
+    if (isStaff || post.authorId === uid) return true;
+    if (post.status === "deleted") return false;
+    if (post.spaceId && !memberships.spaceIds.has(post.spaceId)) return false;
+    if (post.groupId && !memberships.groupIds.has(post.groupId)) return false;
+    return true;
+  };
 
   let posts = [];
   if (tag) {
@@ -45,6 +83,7 @@ export async function searchCommunity({ q = "", hashtag = "" }, uid = "") {
     });
   }
   posts = posts
+    .filter(canReadPost)
     .sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt))
     .map((p) => ({
       id: p.id,
@@ -63,22 +102,52 @@ export async function searchCommunity({ q = "", hashtag = "" }, uid = "") {
 
   const [members, groups, spaces, courses, events, rooms] = await Promise.all([
     needle
-      ? filterCollection("users", (u) => includes(u.name, needle) || includes(u.email, needle))
+      ? filterCollection("users", (u) => includes(u.name, needle))
       : [],
     needle
       ? filterCollection("groups", (g) => g.status === "active" && includes(g.name, needle))
       : [],
     needle
-      ? filterCollection("spaces", (s) => s.status === "active" && includes(s.name, needle))
+      ? filterCollection(
+          "spaces",
+          (s) =>
+            s.status === "active" &&
+            includes(s.name, needle) &&
+            (s.publicPreview || isStaff || memberships.spaceIds.has(s.id))
+        )
       : [],
     needle
-      ? filterCollection("courses", (c) => c.status === "published" && includes(c.title, needle))
+      ? filterCollection(
+          "courses",
+          (c) =>
+            c.status === "published" &&
+            includes(c.title, needle) &&
+            (c.publicPreview || isStaff || purchasedKeys.has(`course_${c.id}`))
+        )
       : [],
     needle
-      ? filterCollection("events", (e) => includes(e.title, needle) || includes(e.description, needle))
+      ? filterCollection(
+          "events",
+          (e) =>
+            e.status !== "deleted" &&
+            (includes(e.title, needle) || includes(e.description, needle)) &&
+            (e.publicPreview ||
+              isStaff ||
+              !e.spaceId ||
+              memberships.spaceIds.has(e.spaceId))
+        )
       : [],
     needle
-      ? filterCollection("rooms", (r) => r.status === "active" && includes(r.name, needle))
+      ? filterCollection(
+          "rooms",
+          (r) =>
+            r.status === "active" &&
+            includes(r.name, needle) &&
+            (r.publicPreview ||
+              isStaff ||
+              (r.spaceId && memberships.spaceIds.has(r.spaceId)) ||
+              (r.groupId && memberships.groupIds.has(r.groupId)))
+        )
       : [],
   ]);
 

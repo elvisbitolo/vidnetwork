@@ -5,6 +5,11 @@ export async function listGroups() {
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+export async function getGroup(id) {
+  const doc = await adminDb().collection("groups").doc(id).get();
+  return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
 export async function getGroupBySlug(slug) {
   const snap = await adminDb().collection("groups").where("slug", "==", slug).limit(1).get();
   if (snap.empty) return null;

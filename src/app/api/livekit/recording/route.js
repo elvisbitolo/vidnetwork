@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { EgressClient, EncodedFileOutput, S3Upload } from "livekit-server-sdk";
 import { getRoomBySlug } from "@/lib/server/rooms";
-import { requireOwner, guardJson } from "@/lib/server/authorize";
+import { requireUser, guardJson } from "@/lib/server/authorize";
+import { getScopedHostRights } from "@/lib/server/hosts";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { logAudit } from "@/lib/server/audit";
 import { adminDb } from "@/lib/firebase/admin";
@@ -16,7 +17,7 @@ function getEgressConfig() {
 }
 
 export async function POST(req) {
-  const auth = await requireOwner();
+  const auth = await requireUser();
   const denied = guardJson(auth);
   if (denied) return denied;
 
@@ -35,6 +36,14 @@ export async function POST(req) {
   const room = await getRoomBySlug(slug);
   if (!room || room.status !== "active") {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
+  }
+
+  const rights = await getScopedHostRights(auth.user.uid, "room", room.id);
+  if (!rights.canRecord) {
+    return NextResponse.json({ error: "Recording access required" }, { status: 403 });
+  }
+  if (room.recordingAllowed === false) {
+    return NextResponse.json({ error: "Recording is turned off for this room" }, { status: 403 });
   }
 
   const { LiveKitURL } = await import("livekit-server-sdk");
@@ -84,7 +93,7 @@ export async function POST(req) {
       egressId: info.egressId,
       filepath,
       status: "active",
-      visibility: "members",
+      visibility: room.replayVisibility === "owner" ? "owner" : "members",
       retentionDays: 90,
       startedAt: new Date(),
       createdBy: auth.user.uid,

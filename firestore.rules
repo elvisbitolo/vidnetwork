@@ -253,6 +253,14 @@ service cloud.firestore {
       allow read, create, update, delete: if false;
     }
 
+    match /hostAssignments/{id} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /announcements/{id} {
+      allow read, create, update, delete: if false;
+    }
+
     match /auditLogs/{id} {
       allow read, create, update, delete: if false;
     }

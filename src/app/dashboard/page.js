@@ -219,6 +219,29 @@ export default async function DashboardPage() {
               </section>
             )}
 
+            {data.leaderboard.length > 0 && (
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h2 className={styles.cardTitle}>Recognition</h2>
+                  <Link className={styles.cardLink} href="/leaderboard">Leaderboard</Link>
+                </div>
+                <ul className={styles.list}>
+                  {data.leaderboard.map((entry) => (
+                    <li key={entry.userId}>
+                      <Link className={styles.item} href={`/members/${entry.userId}`}>
+                        <span className={styles.itemTitle}>
+                          #{entry.rank} {entry.name}
+                        </span>
+                        <span className={styles.itemMeta}>
+                          {entry.points} pts · {entry.badgeCount} badges
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <WelcomeChecklist
               uid={user.uid}
               initialProfile={initialProfile}

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /host/
+Disallow: /account
+Disallow: /dashboard
+Disallow: /notifications
+Disallow: /chat
+Disallow: /feed
+Disallow: /members
+Disallow: /recordings
+
+Sitemap: https://vidnetwork.vercel.app/sitemap.xml

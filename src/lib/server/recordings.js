@@ -50,6 +50,10 @@ export async function deleteS3Object(filepath) {
     region: cfg.region,
     credentials: { accessKeyId: cfg.key, secretAccessKey: cfg.secret },
   });
-  await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: filepath }));
-  return true;
+  try {
+    await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: filepath }));
+    return true;
+  } catch {
+    return false;
+  }
 }

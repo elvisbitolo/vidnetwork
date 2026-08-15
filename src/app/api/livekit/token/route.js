@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/authorize";
 import { meetsTier } from "@/lib/server/plans";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { getScopedHostRights } from "@/lib/server/hosts";
 
 export async function POST(req) {
   const auth = await requireActiveMember();
@@ -32,10 +33,12 @@ export async function POST(req) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  const isOwner = auth.userDoc?.role === "owner";
-  const isHost = isOwner || auth.userDoc?.role === "moderator";
+  const rights = await getScopedHostRights(auth.user.uid, "room", room.id);
+  const isHost = rights.isHost;
+  const isCoHost = rights.isCoHost;
 
-  const opensAt = await getUpcomingRoomStart(room.slug);
+  let opensAt = await getUpcomingRoomStart(room.slug);
+  if (!opensAt && room.opensAt) opensAt = room.opensAt.toMillis?.() || 0;
   if (opensAt && !isHost) {
     return NextResponse.json(
       { error: "This room opens at the scheduled time", opensAt },
@@ -43,12 +46,14 @@ export async function POST(req) {
     );
   }
 
+  const roomHost = isHost || isCoHost;
+
   if (room.spaceId) {
     const space = await getSpace(room.spaceId);
     if (!space || space.status !== "active") {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
-    if (!isOwner) {
+    if (!roomHost) {
       const membership = await isSpaceMember(room.spaceId, auth.user.uid);
       if (!membership) {
         return NextResponse.json({ error: "Join the space first" }, { status: 403 });
@@ -59,14 +64,14 @@ export async function POST(req) {
     }
   }
 
-  if (room.groupId && !isOwner) {
+  if (room.groupId && !roomHost) {
     const groupAuth = await requireGroupMember(room.groupId);
     const groupDenied = guardJson(groupAuth);
     if (groupDenied) return groupDenied;
   }
 
   let canPublish = true;
-  if (room.kind === "broadcast" && !isOwner) {
+  if (room.kind === "broadcast" && !roomHost) {
     canPublish = false;
   }
 

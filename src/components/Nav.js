@@ -6,22 +6,29 @@ import NotificationBell from "./NotificationBell";
 import LiveNowBanner from "./LiveNowBanner";
 import styles from "./Nav.module.css";
 
-const FEATURES = [
-  { href: "/dashboard", label: "Home" },
+const COMMUNITY = [
   { href: "/feed", label: "Feed" },
   { href: "/discovery", label: "Discovery" },
   { href: "/members", label: "Members" },
+  { href: "/groups", label: "Groups" },
+  { href: "/spaces", label: "Spaces" },
+  { href: "/search", label: "Search" },
+];
+
+const LIVE_EVENTS = [
+  { href: "/rooms", label: "Rooms" },
   { href: "/events", label: "Events" },
 ];
 
-const CONTENT = [
-  { href: "/rooms", label: "Rooms" },
-  { href: "/courses", label: "Courses" },
-  { href: "/spaces", label: "Spaces" },
-  { href: "/groups", label: "Groups" },
-  { href: "/chat", label: "Chat" },
-  { href: "/search", label: "Search" },
-  { href: "/leaderboard", label: "Leaderboard" },
+const LEARNING = [{ href: "/courses", label: "Courses" }];
+
+const COMMUNICATION = [{ href: "/chat", label: "Chat" }];
+
+const ENGAGEMENT = [{ href: "/leaderboard", label: "Leaderboard" }];
+
+const ACCOUNT = [
+  { href: "/account", label: "Account" },
+  { href: "/notifications", label: "Notifications" },
 ];
 
 function getManageLinks(role) {
@@ -35,6 +42,8 @@ function getManageLinks(role) {
       { href: "/admin/collections", label: "Collections" },
       { href: "/admin/questions", label: "Questions" },
       { href: "/admin/automations", label: "Automations" },
+      { href: "/admin/hosts", label: "Scoped hosts" },
+      { href: "/admin/announcements", label: "Announcements" },
       { href: "/admin/moderation", label: "Moderation" },
       { href: "/admin/settings", label: "Settings" },
     ];
@@ -42,6 +51,7 @@ function getManageLinks(role) {
   if (role === "moderator") {
     return [
       { href: "/recordings", label: "Recordings" },
+      { href: "/admin/hosts", label: "Scoped hosts" },
       { href: "/admin/moderation", label: "Moderation" },
     ];
   }
@@ -51,6 +61,9 @@ function getManageLinks(role) {
 export default function Nav({ role, children }) {
   const [open, setOpen] = useState(false);
   const [collections, setCollections] = useState([]);
+  const [hasHostTools, setHasHostTools] = useState(
+    () => role === "owner" || role === "moderator"
+  );
   const manageLinks = getManageLinks(role);
   const close = () => setOpen(false);
 
@@ -66,6 +79,16 @@ export default function Nav({ role, children }) {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (role === "owner" || role === "moderator") return;
+    fetch("/api/host/scopes")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setHasHostTools(data.scopes.length > 0);
+      })
+      .catch(() => {});
+  }, [role]);
 
   return (
     <>
@@ -100,8 +123,8 @@ export default function Nav({ role, children }) {
               VidNetwork
             </Link>
             <nav className={styles.sidebarNav}>
-              <p className={styles.groupLabel}>Global Features</p>
-              {FEATURES.map((link) => (
+              <p className={styles.groupLabel}>Community</p>
+              {COMMUNITY.map((link) => (
                 <Link
                   key={link.href}
                   className={styles.sidebarLink}
@@ -133,8 +156,44 @@ export default function Nav({ role, children }) {
                 </>
               )}
 
-              <p className={styles.groupLabel}>Content</p>
-              {CONTENT.map((link) => (
+              <p className={styles.groupLabel}>Live &amp; Events</p>
+              {LIVE_EVENTS.map((link) => (
+                <Link
+                  key={link.href}
+                  className={styles.sidebarLink}
+                  href={link.href}
+                  onClick={close}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              <p className={styles.groupLabel}>Learning</p>
+              {LEARNING.map((link) => (
+                <Link
+                  key={link.href}
+                  className={styles.sidebarLink}
+                  href={link.href}
+                  onClick={close}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              <p className={styles.groupLabel}>Communication</p>
+              {COMMUNICATION.map((link) => (
+                <Link
+                  key={link.href}
+                  className={styles.sidebarLink}
+                  href={link.href}
+                  onClick={close}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              <p className={styles.groupLabel}>Engagement</p>
+              {ENGAGEMENT.map((link) => (
                 <Link
                   key={link.href}
                   className={styles.sidebarLink}
@@ -160,6 +219,27 @@ export default function Nav({ role, children }) {
                   ))}
                 </>
               )}
+
+              {hasHostTools && manageLinks.length === 0 && (
+                <>
+                  <p className={styles.groupLabel}>Host</p>
+                  <Link className={styles.sidebarLink} href="/host" onClick={close}>
+                    Host tools
+                  </Link>
+                </>
+              )}
+
+              <p className={styles.groupLabel}>Account</p>
+              {ACCOUNT.map((link) => (
+                <Link
+                  key={link.href}
+                  className={styles.sidebarLink}
+                  href={link.href}
+                  onClick={close}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </nav>
             <div className={styles.sidebarFooter}>
               <Link className={styles.account} href="/account" onClick={close}>

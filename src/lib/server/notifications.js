@@ -26,14 +26,10 @@ export async function listNotifications(uid, limit = 50) {
   const snap = await adminDb()
     .collection("notifications")
     .where("userId", "==", uid)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
     .get();
-  return snap.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .sort(
-      (a, b) =>
-        (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
-    )
-    .slice(0, limit);
+  return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 export async function markNotificationRead(id, uid) {

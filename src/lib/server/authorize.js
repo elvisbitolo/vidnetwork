@@ -3,6 +3,7 @@ import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
 import { getSubscription, isActiveSub } from "@/lib/server/subscription";
 import { meetsTier } from "@/lib/server/plans";
 import { adminDb } from "@/lib/firebase/admin";
+import { getScopedHostRights } from "@/lib/server/hosts";
 
 function deny(status, error) {
   return { ok: false, status, error };
@@ -62,3 +63,26 @@ export const requireModerator = (options = {}) =>
 
 export const requireGroupMember = (groupId, options = {}) =>
   authorize({ groupId, active: false, ...options });
+
+async function scopeBase(options = {}) {
+  const base = await authorize({ active: false, ...options });
+  if (!base.ok) return base;
+  const { scopeType, scopeId } = options;
+  if (!scopeType || !scopeId) return deny(400, "Scope required");
+  const rights = await getScopedHostRights(base.user.uid, scopeType, scopeId);
+  return { ...base, rights };
+}
+
+export async function requireScopeHost(options = {}) {
+  const base = await scopeBase(options);
+  if (!base.ok) return base;
+  if (!base.rights.isHost) return deny(403, "Scoped host access required");
+  return base;
+}
+
+export async function requireScopeHostOrCoHost(options = {}) {
+  const base = await scopeBase(options);
+  if (!base.ok) return base;
+  if (!base.rights.isCoHost) return deny(403, "Host or co-host access required");
+  return base;
+}

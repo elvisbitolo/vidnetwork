@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { requireUser, guardJson } from "@/lib/server/authorize";
+import { canModerate } from "@/lib/server/auth";
 import { getLeaderboard } from "@/lib/server/gamification";
 import { rankTopPosts, toMillis } from "@/lib/server/analytics-core";
 import { listEvents } from "@/lib/server/events";
@@ -26,7 +27,7 @@ export async function GET() {
 
   const [postsSnap, commentsSnap, events, spaces, topMembers] = await Promise.all([
     adminDb().collection("posts").orderBy("createdAt", "desc").limit(60).get(),
-    adminDb().collectionGroup("comments").get(),
+    adminDb().collectionGroup("comments").limit(3000).get(),
     listEvents(),
     listSpaces(),
     getLeaderboard(6),
@@ -38,9 +39,33 @@ export async function GET() {
     commentCountByPost[postId] = (commentCountByPost[postId] || 0) + 1;
   });
 
+  const role = auth.userDoc?.role || "member";
+  const isStaff = canModerate(auth.userDoc);
+
+  const [spaceSnap, groupSnap] = await Promise.all([
+    adminDb().collection("spaceMembers").where("userId", "==", auth.user.uid).limit(500).get(),
+    adminDb().collection("groupMembers").where("userId", "==", auth.user.uid).limit(500).get(),
+  ]);
+  const memberships = {
+    spaceIds: new Set(spaceSnap.docs.map((d) => d.data().spaceId)),
+    groupIds: new Set(groupSnap.docs.map((d) => d.data().groupId)),
+  };
+
+  const canReadPost = (post) => {
+    if (isStaff || post.authorId === auth.user.uid) return true;
+    if (post.spaceId && !memberships.spaceIds.has(post.spaceId)) return false;
+    if (post.groupId && !memberships.groupIds.has(post.groupId)) return false;
+    return true;
+  };
+
+  const visibleSpaces = spaces.filter(
+    (space) => isStaff || space.publicPreview || space.access !== "invite-only"
+  );
+
   const posts = postsSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data(), commentCount: commentCountByPost[doc.id] || 0 }))
-    .filter((post) => post.status !== "deleted");
+    .filter((post) => post.status !== "deleted")
+    .filter(canReadPost);
 
   const featured = posts
     .filter((post) => post.pinned)
@@ -53,6 +78,13 @@ export async function GET() {
   const now = Date.now();
   const upcomingEvents = events
     .filter((event) => event.status !== "deleted")
+    .filter(
+      (event) =>
+        isStaff ||
+        !event.spaceId ||
+        event.publicPreview ||
+        memberships.spaceIds.has(event.spaceId)
+    )
     .map((event) => ({
       id: event.id,
       title: event.title,
@@ -66,7 +98,7 @@ export async function GET() {
     .slice(0, 6);
 
   const spaceMemberCounts = await Promise.all(
-    spaces.map(async (space) => {
+    visibleSpaces.map(async (space) => {
       const snap = await adminDb()
         .collection("spaceMembers")
         .where("spaceId", "==", space.id)

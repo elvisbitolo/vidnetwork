@@ -9,6 +9,7 @@ import {
   LiveKitRoom,
   VideoConference,
   RoomAudioRenderer,
+  useParticipants,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
@@ -18,7 +19,134 @@ function currentTime() {
   return Date.now();
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost }) {
+function HostControls({ roomId, isHost }) {
+  const participants = useParticipants();
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const remote = participants.filter((p) => !p.isLocal);
+
+  async function act(identity, action) {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch(
+        `/api/rooms/${roomId}/participants/${encodeURIComponent(identity)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Action failed");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function endRoom() {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/rooms/${roomId}/end`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not end the room");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <div className={styles.hostControls}>
+        <button
+          type="button"
+          className={styles.hostButton}
+          onClick={() => setPanelOpen((v) => !v)}
+          aria-expanded={panelOpen}
+        >
+          Participants ({remote.length})
+        </button>
+        {isHost && (
+          <button
+            type="button"
+            className={styles.hostButtonDanger}
+            onClick={endRoom}
+            disabled={busy}
+          >
+            {busy ? "…" : "End room"}
+          </button>
+        )}
+        {error && <p className={styles.hostError}>{error}</p>}
+      </div>
+      {panelOpen && (
+        <div className={styles.participantPanel}>
+          <p className={styles.participantPanelTitle}>Participants</p>
+          {remote.length === 0 ? (
+            <p className={styles.participantName}>No other participants yet.</p>
+          ) : (
+            remote.map((p) => {
+              const canPublish = p.permissions ? p.permissions.canPublish !== false : true;
+              return (
+                <div key={p.identity} className={styles.participantRow}>
+                  <div style={{ minWidth: 0 }}>
+                    <p className={styles.participantName}>
+                      {p.name || p.identity}
+                    </p>
+                    <p className={styles.participantTag}>
+                      {canPublish ? "speaker" : "viewer"}
+                    </p>
+                  </div>
+                  {isHost && (
+                    <div className={styles.participantActions}>
+                      {!canPublish ? (
+                        <button
+                          type="button"
+                          className={styles.participantBtn}
+                          onClick={() => act(p.identity, "speaker")}
+                          disabled={busy}
+                        >
+                          Speaker
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.participantBtn}
+                          onClick={() => act(p.identity, "viewer")}
+                          disabled={busy}
+                        >
+                          Viewer
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={`${styles.participantBtn} ${styles.participantBtnDanger}`}
+                        onClick={() => act(p.identity, "remove")}
+                        disabled={busy}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -38,6 +166,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
 
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
+  const canToggleRecording = isBroadcast && canRecord;
   const waiting = Boolean(opensAt) && !isHost && now < opensAt;
   const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
 
@@ -163,7 +292,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
               <button className={styles.join} onClick={handleJoin} disabled={busy}>
                 {busy ? "Joining…" : isBroadcast ? "Watch broadcast" : "Join room"}
               </button>
-              {isBroadcast && isOwner && (
+              {canRecord && (
                 <div className={styles.recordBox}>
                   {recordError && <p className={styles.error}>{recordError}</p>}
                   <button
@@ -203,6 +332,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
               Watching as a viewer — only the host can broadcast.
             </p>
           )}
+          {(isHost || isCoHost) && <HostControls roomId={roomId} isHost={isHost} />}
           <VideoConference />
           <RoomAudioRenderer />
         </LiveKitRoom>

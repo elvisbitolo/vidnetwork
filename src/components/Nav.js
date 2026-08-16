@@ -132,7 +132,7 @@ export default function Nav({ role, children }) {
             type="button"
             className={mobileOpen ? `${styles.burger} ${styles.burgerOpen}` : styles.burger}
             onClick={toggleSidebar}
-            aria-expanded={collapsed || mobileOpen}
+            aria-expanded={mobileOpen || !collapsed}
             aria-controls="sidebar-menu"
             aria-label="Toggle navigation"
           >
@@ -295,6 +295,10 @@ export default function Nav({ role, children }) {
             </nav>
           </div>
         </aside>
+
+        {mobileOpen && (
+          <div className={styles.backdrop} onClick={close} aria-hidden="true" />
+        )}
 
         <div className={styles.content}>
           <LiveNowBanner />

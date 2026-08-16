@@ -6,6 +6,7 @@ import { getUserDoc } from "@/lib/server/auth";
 import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { logError } from "@/lib/server/log";
 
 export async function POST(req, { params }) {
   const { id: courseId } = await params;
@@ -60,10 +61,14 @@ export async function POST(req, { params }) {
   if (newlyCompleted) {
     const userDoc = await getUserDoc(auth.user.uid);
     const name = userDoc?.name || auth.user.name || "Member";
-    await awardPoints(auth.user.uid, POINTS.LESSON, name);
+    await awardPoints(auth.user.uid, POINTS.LESSON, name).catch((err) => {
+      logError("gamification.lesson_failed", { uid: auth.user.uid, courseId, lessonId, error: err.message });
+    });
     const lessonsSnap = await adminDb().collection("lessons").where("courseId", "==", courseId).get();
     if (lessonsSnap.size > 0 && completedLessons.size >= lessonsSnap.size) {
-      await awardBadge(auth.user.uid, "course_complete", name);
+      await awardBadge(auth.user.uid, "course_complete", name).catch((err) => {
+        logError("gamification.badge_failed", { uid: auth.user.uid, courseId, error: err.message });
+      });
     }
   }
 

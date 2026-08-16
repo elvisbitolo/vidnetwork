@@ -11,7 +11,12 @@ export default function NotificationBell() {
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
+    let unsubSnap = null;
     const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (unsubSnap) {
+        unsubSnap();
+        unsubSnap = null;
+      }
       if (!user) {
         setUnread(0);
         return;
@@ -20,14 +25,16 @@ export default function NotificationBell() {
         collection(db, "notifications"),
         where("userId", "==", user.uid)
       );
-      const unsubSnap = onSnapshot(
+      unsubSnap = onSnapshot(
         q,
         (snap) => setUnread(snap.docs.filter((d) => !d.data().read).length),
         () => {}
       );
-      return unsubSnap;
     });
-    return unsubAuth;
+    return () => {
+      unsubAuth();
+      if (unsubSnap) unsubSnap();
+    };
   }, []);
 
   return (

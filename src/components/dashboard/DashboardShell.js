@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import StatCard from "./StatCard";
 import AudienceChart from "./AudienceChart";
 import {
@@ -209,9 +210,11 @@ export default function DashboardShell() {
 
         <div className={styles.grid}>
           <div className={styles.col}>
+          {isStaff && (
             <div className={styles.card}>
               <AudienceChart />
             </div>
+          )}
 
             {activity?.ok ? (
               <RecentActivity data={activityValue} />
@@ -261,14 +264,14 @@ export default function DashboardShell() {
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
                   <h2 className={styles.cardTitle}>Recognition</h2>
-                  <a className={styles.cardLink} href="/leaderboard">
+                  <Link className={styles.cardLink} href="/leaderboard">
                     Leaderboard
-                  </a>
+                  </Link>
                 </div>
                 <ul className={styles.list}>
                   {leaderboard.value.map((entry) => (
                     <li key={entry.userId}>
-                      <a className={styles.item} href={`/members/${entry.userId}`}>
+                      <Link className={styles.item} href={`/members/${entry.userId}`}>
                         <span className={styles.itemSplit}>
                           <span className={styles.itemTitle}>
                             #{entry.rank} {entry.name}
@@ -277,7 +280,7 @@ export default function DashboardShell() {
                             {entry.points} pts · {entry.badgeCount} badges
                           </span>
                         </span>
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

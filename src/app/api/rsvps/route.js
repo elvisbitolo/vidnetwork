@@ -108,7 +108,9 @@ export async function POST(req) {
   const eventSnap = await eventRef.get();
   const event = eventSnap.data();
 
-  await awardPoints(user.uid, POINTS.RSVP, memberName);
+  await awardPoints(user.uid, POINTS.RSVP, memberName).catch((err) => {
+    logError("gamification.rsvp_failed", { uid: user.uid, eventId, error: err.message });
+  });
 
   runAutomations("event_rsvp", {
     rsvpName: memberName,

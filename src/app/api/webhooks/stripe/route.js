@@ -143,6 +143,18 @@ export async function POST(req) {
             sessionId: session.id,
             promoCode: session.metadata?.promoCode || "",
           });
+          if (session.payment_intent) {
+            await adminDb()
+              .collection("stripePayments")
+              .doc(typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id)
+              .set({
+                uid,
+                targetType,
+                targetId,
+                sessionId: session.id,
+                createdAt: new Date(),
+              });
+          }
           if (session.metadata?.promoCode) {
             await recordPromoUse(session.metadata.promoCode).catch((err) => {
               logError("promo.record_use_failed", { code: session.metadata.promoCode, error: err.message });
@@ -204,17 +216,32 @@ export async function POST(req) {
             : charge.payment_intent?.id;
         if (paymentIntentId) {
           try {
-            const intent = await getStripe().paymentIntents.retrieve(paymentIntentId);
-            const meta = intent?.metadata || {};
-            const { uid, targetType, targetId } = meta;
-            if (uid && PURCHASE_TYPES.includes(targetType) && targetId) {
-              await adminDb().collection("purchases").doc(`${uid}_${targetType}_${targetId}`).delete();
+            const mapSnap = await adminDb().collection("stripePayments").doc(paymentIntentId).get();
+            const mapped = mapSnap.exists ? mapSnap.data() : null;
+            if (mapped?.uid && mapped?.targetType && mapped?.targetId) {
+              await adminDb()
+                .collection("purchases")
+                .doc(`${mapped.uid}_${mapped.targetType}_${mapped.targetId}`)
+                .delete();
               logError("stripe.purchase_refunded_access_revoked", {
-                uid,
-                targetType,
-                targetId,
+                uid: mapped.uid,
+                targetType: mapped.targetType,
+                targetId: mapped.targetId,
                 paymentIntentId,
               });
+            } else {
+              const intent = await getStripe().paymentIntents.retrieve(paymentIntentId);
+              const meta = intent?.metadata || {};
+              const { uid, targetType, targetId } = meta;
+              if (uid && PURCHASE_TYPES.includes(targetType) && targetId) {
+                await adminDb().collection("purchases").doc(`${uid}_${targetType}_${targetId}`).delete();
+                logError("stripe.purchase_refunded_access_revoked", {
+                  uid,
+                  targetType,
+                  targetId,
+                  paymentIntentId,
+                });
+              }
             }
           } catch (err) {
             logError("stripe.refund_revoke_failed", { paymentIntentId, error: err.message });

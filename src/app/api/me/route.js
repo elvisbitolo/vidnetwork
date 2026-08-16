@@ -3,6 +3,7 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { normalizeProfile } from "@/lib/server/profile";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { getGamification } from "@/lib/server/gamification";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -10,6 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
   const userDoc = await getUserDoc(user.uid);
+  const gamification = await getGamification(user.uid, userDoc?.name || "Member");
   return NextResponse.json({
     uid: user.uid,
     name: userDoc?.name || user.name || user.displayName || "",
@@ -20,7 +22,8 @@ export async function GET() {
     bio: userDoc?.bio || "",
     photoURL: userDoc?.photoURL || "",
     notifications: userDoc?.notifications || "on",
-    points: Number(userDoc?.points) || 0,
+    points: Number(gamification.points) || 0,
+    streak: Number(gamification.streak) || 0,
     createdAt: userDoc?.createdAt
       ? (userDoc.createdAt.toMillis ? userDoc.createdAt.toMillis() : new Date(userDoc.createdAt).getTime())
       : null,

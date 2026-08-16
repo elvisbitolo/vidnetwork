@@ -213,7 +213,7 @@ export function NotificationsPanel({ data }) {
               <Link className={styles.item} href={n.href}>
                 <span className={styles.itemSplit}>
                   <span className={styles.itemBody}>{n.text}</span>
-                  {!n.read && <span className={styles.dotLive} />}
+                  {!n.read && <span className={`${styles.dot} ${styles.dotLive}`} />}
                 </span>
                 <span className={styles.itemMeta}>{timeAgo(n.createdAt)}</span>
               </Link>

@@ -55,7 +55,7 @@ export async function getExploreData(limit = 6) {
 
   const spaces = spacesSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter((space) => space.publicPreview && space.status === "active" && space.access !== "invite-only")
+    .filter((space) => space.publicPreview && space.status === "active" && space.access !== "invite")
     .slice(0, limit)
     .map((space) => ({
       id: space.id,

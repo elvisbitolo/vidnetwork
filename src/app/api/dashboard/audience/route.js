@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
 import { getAudienceSeries } from "@/lib/server/dashboard-command";
 
 function clampDays(value) {
@@ -12,6 +12,10 @@ export async function GET(req) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  const userDoc = await getUserDoc(user.uid);
+  if (!canModerate(userDoc)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

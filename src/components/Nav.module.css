@@ -75,7 +75,7 @@
 
 .sidebar {
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   bottom: 0;
   z-index: 60;
@@ -87,6 +87,16 @@
   transform: translateX(-100%);
   transition: transform 0.2s ease, width 0.2s ease;
   overflow: hidden;
+}
+
+.backdrop {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 58;
+  background: rgba(23, 23, 28, 0.35);
 }
 
 .sidebarOpen {
@@ -237,6 +247,10 @@
 }
 
 @media (min-width: 901px) {
+  .backdrop {
+    display: none;
+  }
+
   .sidebar {
     position: relative;
     top: auto;
@@ -245,6 +259,46 @@
     transform: none;
     box-shadow: none;
   }
+}
+
+.bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: #34344a;
+  text-decoration: none;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.bell:hover {
+  background: #f1f1f5;
+}
+
+.bellIcon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.bellBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profileWrap {

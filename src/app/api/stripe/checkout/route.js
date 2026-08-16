@@ -30,7 +30,13 @@ export async function POST(req) {
   const limitedIp = rateLimitGuard(`checkout-ip:${ip}`, { limit: 30 });
   if (limitedIp) return limitedIp;
 
-  const { plan, tier = "standard", promoCode } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { plan, tier = "standard", promoCode } = body || {};
   const planKey = ALLOWED_PLANS[plan];
   if (!planKey) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -97,10 +103,13 @@ export async function POST(req) {
       return NextResponse.json({ switched: true, tier, unchanged: true });
     }
 
+    const coupon = promo ? await getOrCreateStripeCoupon(promo) : null;
+
     await stripe.subscriptions.update(activeSub.id, {
       items: [{ id: activeSub.items.data[0].id, price: priceId }],
       metadata: { tier },
       proration_behavior: "create_prorations",
+      ...(coupon ? { coupon: coupon.id } : {}),
     });
 
     const customer = await stripe.customers.retrieve(customerId);

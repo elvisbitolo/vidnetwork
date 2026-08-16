@@ -43,16 +43,39 @@ export async function getCommunityActivity(uid, role, memberships, limit = 5) {
     .limit(20)
     .get();
   const posts = [];
+  const spaceIds = new Set();
+  const groupIds = new Set();
+  const visible = [];
   for (const doc of snap.docs) {
     const post = { id: doc.id, ...doc.data() };
     if (!canReadPostServer(post, uid, role, memberships)) continue;
+    visible.push(post);
+    if (post.spaceId) spaceIds.add(post.spaceId);
+    if (post.groupId) groupIds.add(post.groupId);
+  }
+  const [spaceSnaps, groupSnaps] = await Promise.all([
+    spaceIds.size
+      ? Promise.all([...spaceIds].map((id) => adminDb().collection("spaces").doc(id).get()))
+      : Promise.resolve([]),
+    groupIds.size
+      ? Promise.all([...groupIds].map((id) => adminDb().collection("groups").doc(id).get()))
+      : Promise.resolve([]),
+  ]);
+  const spaceSlugs = new Map(spaceSnaps.filter((s) => s.exists).map((s) => [s.id, s.data().slug || ""]));
+  const groupSlugs = new Map(groupSnaps.filter((g) => g.exists).map((g) => [g.id, g.data().slug || ""]));
+  for (const post of visible) {
     posts.push({
       id: post.id,
       text: post.text || "",
       authorName: post.authorName || "Member",
       kind: post.kind || "post",
       createdAt: toMillis(post.createdAt),
-      href: post.spaceId ? `/spaces/${post.spaceId}` : post.groupId ? `/groups/${post.groupId}` : "/feed",
+      href:
+        post.spaceId && spaceSlugs.get(post.spaceId)
+          ? `/spaces/${spaceSlugs.get(post.spaceId)}`
+          : post.groupId && groupSlugs.get(post.groupId)
+            ? `/groups/${groupSlugs.get(post.groupId)}`
+            : "/feed",
     });
     if (posts.length >= limit) break;
   }
@@ -97,7 +120,7 @@ export async function getRecommendedSpaces(uid, tier, memberships, limit = 3) {
     .filter(
       (space) =>
         !memberships.spaceIds.has(space.id) &&
-        space.access !== "invite-only" &&
+        space.access !== "invite" &&
         meetsTier(tier, space.requiredTier)
     )
     .slice(0, limit)

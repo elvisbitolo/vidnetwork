@@ -62,7 +62,7 @@ export async function POST(req, { params }) {
           subject: `New comment on your post`,
           text: `${authorName} commented: "${text.trim()}"\n\nView it in the community feed.`,
         }).catch((err) => {
-          logError("email.comment_notify_failed", { postId: id, error: err.message });
+          logError("email.comment_notify_failed", { postId, error: err.message });
         });
       }
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/lib/client-auth";
@@ -23,6 +23,7 @@ function roleLabel(role) {
 
 export default function ProfileMenu() {
   const router = useRouter();
+  const menuRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState(null);
 
@@ -48,8 +49,24 @@ export default function ProfileMenu() {
   const name = profile?.name || "Account";
   const isStaff = profile?.role === "owner" || profile?.role === "moderator";
 
+  useEffect(() => {
+    if (!open) return;
+    function onDown(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <div className={styles.profileWrap}>
+    <div className={styles.profileWrap} ref={menuRef}>
       <button
         type="button"
         className={styles.profileBtn}

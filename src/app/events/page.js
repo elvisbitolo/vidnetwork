@@ -29,6 +29,8 @@ export default async function EventsPage() {
     endTime: event.endTime ? new Date(event.endTime.toMillis ? event.endTime.toMillis() : event.endTime).toISOString() : null,
     roomSlug: event.roomSlug || "",
     capacity: Number(event.capacity) || 0,
+    purchasePriceCents: Number(event.purchasePriceCents) || 0,
+    occurrenceIndex: Number(event.occurrenceIndex) || 0,
   }));
 
   return (

@@ -59,7 +59,7 @@ export async function GET() {
   };
 
   const visibleSpaces = spaces.filter(
-    (space) => isStaff || space.publicPreview || space.access !== "invite-only"
+    (space) => isStaff || space.publicPreview || space.access !== "invite"
   );
 
   const posts = postsSnap.docs

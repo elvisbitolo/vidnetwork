@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import styles from "./dashboard.module.css";
 
 export function Card({ title, linkLabel, linkHref, children }) {
@@ -9,9 +10,9 @@ export function Card({ title, linkLabel, linkHref, children }) {
         <div className={styles.cardHeader}>
           {title && <h2 className={styles.cardTitle}>{title}</h2>}
           {linkLabel && linkHref && (
-            <a className={styles.cardLink} href={linkHref}>
+            <Link className={styles.cardLink} href={linkHref}>
               {linkLabel}
-            </a>
+            </Link>
           )}
         </div>
       )}

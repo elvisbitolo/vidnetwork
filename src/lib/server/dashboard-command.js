@@ -7,7 +7,7 @@ import { getCourse } from "@/lib/server/courses";
 import { getSpace } from "@/lib/server/spaces";
 import { listConversations } from "@/lib/server/chat";
 import { listNotifications } from "@/lib/server/notifications";
-import { getLeaderboard } from "@/lib/server/gamification";
+import { getLeaderboard, getGamification } from "@/lib/server/gamification";
 import { getStripe } from "@/lib/server/stripe";
 import { getUserMemberships } from "@/lib/server/dashboard";
 import { listLiveParticipants } from "@/lib/server/livekit";
@@ -225,16 +225,41 @@ export async function getDashboardActivity(uid, role, memberships, limit = 8) {
   ]);
 
   const items = [];
+  const visiblePosts = [];
+  const spaceIds = new Set();
+  const groupIds = new Set();
 
   for (const doc of postsSnap.docs) {
     const post = { id: doc.id, ...doc.data() };
     if (!canReadPostServer(post, uid, role, memberships)) continue;
+    visiblePosts.push(post);
+    if (post.spaceId) spaceIds.add(post.spaceId);
+    if (post.groupId) groupIds.add(post.groupId);
+  }
+
+  const [spaceSnaps, groupSnaps] = await Promise.all([
+    spaceIds.size
+      ? Promise.all([...spaceIds].map((id) => adminDb().collection("spaces").doc(id).get()))
+      : Promise.resolve([]),
+    groupIds.size
+      ? Promise.all([...groupIds].map((id) => adminDb().collection("groups").doc(id).get()))
+      : Promise.resolve([]),
+  ]);
+  const spaceSlugs = new Map(spaceSnaps.filter((s) => s.exists).map((s) => [s.id, s.data().slug || ""]));
+  const groupSlugs = new Map(groupSnaps.filter((g) => g.exists).map((g) => [g.id, g.data().slug || ""]));
+
+  for (const post of visiblePosts) {
     items.push({
       id: `post-${post.id}`,
       kind: "post",
       actor: post.authorName || "Member",
       text: (post.text || "").slice(0, 140),
-      href: post.spaceId ? `/spaces/${post.spaceId}` : post.groupId ? `/groups/${post.groupId}` : "/feed",
+      href:
+        post.spaceId && spaceSlugs.get(post.spaceId)
+          ? `/spaces/${spaceSlugs.get(post.spaceId)}`
+          : post.groupId && groupSlugs.get(post.groupId)
+            ? `/groups/${groupSlugs.get(post.groupId)}`
+            : "/feed",
       createdAt: toMillis(post.createdAt),
     });
   }
@@ -410,7 +435,7 @@ export async function getDashboardOnboarding(uid) {
   const user = serializeUser(userDoc);
   const steps = settings.welcomeChecklist || [];
 
-  const profileDone = !!(user.bio || user.headline || user.location || user.photoURL);
+  const profileDone = !!(user.bio || user.headline || user.location);
   const doneMap = { profile: profileDone, post: !hasPost.empty, rsvp: !hasRsvp.empty, room: !hasRoomEvent.empty };
 
   const doneCount = steps.filter((step) => doneMap[step.key]).length;
@@ -435,6 +460,7 @@ export async function getDashboardCommandData(uid, userDoc) {
   const role = userDoc?.role || "member";
   const memberships = await getUserMemberships(uid);
   const isStaff = canModerate(userDoc);
+  const gamification = await getGamification(uid, userDoc?.name || "Member");
 
   const user = {
     uid,
@@ -442,7 +468,8 @@ export async function getDashboardCommandData(uid, userDoc) {
     email: userDoc?.email || "",
     role,
     photoURL: userDoc?.photoURL || "",
-    points: Number(userDoc?.points) || 0,
+    points: Number(gamification.points) || 0,
+    streak: Number(gamification.streak) || 0,
   };
 
   const [stats, activity, upcomingRooms, messages, content, notifications, needsAttention, onboarding, leaderboard] =

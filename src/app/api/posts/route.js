@@ -127,10 +127,20 @@ export async function POST(req) {
   });
 
   const postCount = (await adminDb().collection("posts").where("authorId", "==", user.uid).get()).size;
-  await awardPoints(user.uid, POINTS.POST, authorName);
-  await awardBadge(user.uid, "first_post", authorName);
-  if (postCount >= 10) await awardBadge(user.uid, "ten_posts", authorName);
-  if (postCount >= 50) await awardBadge(user.uid, "fifty_posts", authorName);
+  await awardPoints(user.uid, POINTS.POST, authorName).catch((err) => {
+    logError("gamification.post_failed", { uid: user.uid, postId: ref.id, error: err.message });
+  });
+  await awardBadge(user.uid, "first_post", authorName).catch((err) => {
+    logError("gamification.badge_failed", { uid: user.uid, postId: ref.id, error: err.message });
+  });
+  if (postCount >= 10)
+    await awardBadge(user.uid, "ten_posts", authorName).catch((err) => {
+      logError("gamification.badge_failed", { uid: user.uid, postId: ref.id, error: err.message });
+    });
+  if (postCount >= 50)
+    await awardBadge(user.uid, "fifty_posts", authorName).catch((err) => {
+      logError("gamification.badge_failed", { uid: user.uid, postId: ref.id, error: err.message });
+    });
 
   if (spaceId) {
     const membersSnap = await adminDb()

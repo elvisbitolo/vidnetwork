@@ -14,6 +14,16 @@ export function normalizeProfile(body) {
   if ("headline" in body) patch.headline = clean(body.headline, 120);
   if ("location" in body) patch.location = clean(body.location, 80);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
+  if ("photoURL" in body) {
+    const photoURL = typeof body.photoURL === "string" ? body.photoURL.trim().slice(0, 300000) : "";
+    if (photoURL === "") {
+      patch.photoURL = "";
+    } else if (/^(https?:\/\/|data:image\/)/.test(photoURL)) {
+      patch.photoURL = photoURL;
+    } else {
+      errors.photoURL = "Profile photo must be a valid URL or image";
+    }
+  }
   if ("notifications" in body) {
     if (body.notifications === "on" || body.notifications === "off") {
       patch.notifications = body.notifications;

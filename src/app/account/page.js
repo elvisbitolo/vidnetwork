@@ -28,6 +28,7 @@ export default async function AccountPage({ searchParams }) {
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
     bio: userDoc?.bio || "",
+    photoURL: userDoc?.photoURL || "",
   };
 
   return (

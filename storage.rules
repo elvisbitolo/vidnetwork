@@ -58,6 +58,15 @@ service firebase.storage {
       allow delete: if isOwner();
     }
 
+    match /avatars/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+        && fileName.split('.')[0] == request.auth.uid
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+      allow delete: if isSignedIn() && fileName.split('.')[0] == request.auth.uid;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

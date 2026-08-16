@@ -34,6 +34,7 @@ export async function POST(req) {
       await userRef.set({
         name: memberName,
         email: decoded.email || "",
+        photoURL: decoded.picture || "",
         role: "member",
         createdAt: new Date(),
       });

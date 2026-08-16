@@ -18,6 +18,7 @@ export async function GET() {
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
     bio: userDoc?.bio || "",
+    photoURL: userDoc?.photoURL || "",
     notifications: userDoc?.notifications || "on",
     points: Number(userDoc?.points) || 0,
     createdAt: userDoc?.createdAt

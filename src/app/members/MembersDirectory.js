@@ -24,14 +24,45 @@ function colorStrip(colors) {
   );
   if (list.length === 0) return "";
   if (list.length === 1) return list[0];
-  return `linear-gradient(90deg, ${list.join(", ")})`;
+  const segments = list.map((c, i) => `${c} ${(i / list.length) * 100}% ${((i + 1) / list.length) * 100}%`);
+  return `conic-gradient(${segments.join(", ")})`;
 }
+
+function initialsOf(member) {
+  return (member.name || "?").slice(0, 1).toUpperCase();
+}
+
+const TOOLTIP_W = 280;
+const TOOLTIP_H = 200;
 
 export default function MembersDirectory({ members, role, todayKey }) {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
+  const [hover, setHover] = useState(null);
+
+  function showDetails(member, e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHover({ member, rect });
+  }
+
+  function hideDetails() {
+    setHover(null);
+  }
+
+  const tooltipPos = (() => {
+    if (!hover) return null;
+    const vw = typeof window !== "undefined" ? window.innerWidth : 800;
+    const vh = typeof window !== "undefined" ? window.innerHeight : 600;
+    const cx = hover.rect.left + hover.rect.width / 2;
+    const left = Math.max(8, Math.min(cx - TOOLTIP_W / 2, vw - TOOLTIP_W - 8));
+    let top = hover.rect.bottom + 12;
+    if (top + TOOLTIP_H > vh) {
+      top = Math.max(8, hover.rect.top - TOOLTIP_H - 12);
+    }
+    return { left, top };
+  })();
 
   const countries = useMemo(() => distinct(members.map((m) => m.country)), [members]);
 
@@ -128,43 +159,68 @@ export default function MembersDirectory({ members, role, todayKey }) {
         </p>
       ) : (
         <div className={styles.grid}>
-          {filtered.map((member) => (
-            <Link key={member.id} href={`/members/${member.id}`} className={styles.card}>
-              {colorStrip(member.favoriteColors) && (
-                <div
-                  className={styles.colorStrip}
-                  style={{ background: colorStrip(member.favoriteColors) }}
+          {filtered.map((member) => {
+            const ring = colorStrip(member.favoriteColors);
+            return (
+              <Link
+                key={member.id}
+                href={`/members/${member.id}`}
+                className={styles.avatarCell}
+                onMouseEnter={(e) => showDetails(member, e)}
+                onMouseLeave={hideDetails}
+                onFocus={(e) => showDetails(member, e)}
+                onBlur={hideDetails}
+                aria-label={`View ${member.name}`}
+              >
+                <span
+                  className={ring ? `${styles.ring} ${styles.ringActive}` : styles.ring}
+                  style={ring ? { background: ring } : undefined}
+                >
+                  <span className={styles.circle}>
+                    {member.photoURL ? (
+                      <img
+                        className={styles.circleImage}
+                        src={member.photoURL}
+                        alt={member.name}
+                      />
+                    ) : (
+                      initialsOf(member)
+                    )}
+                    {member.role === "owner" && <span className={styles.hostDot}>Owner</span>}
+                    {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
+                  </span>
+                </span>
+                <span className={styles.cellName}>{member.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {hover && tooltipPos && (
+        <div className={styles.tooltip} style={{ left: tooltipPos.left, top: tooltipPos.top }}>
+          <p className={styles.tooltipName}>{hover.member.name}</p>
+          {hover.member.headline && <p className={styles.tooltipHeadline}>{hover.member.headline}</p>}
+          {hover.member.bio && <p className={styles.tooltipBio}>{hover.member.bio}</p>}
+          {hover.member.location && (
+            <p className={styles.tooltipLocation}>📍 {hover.member.location}</p>
+          )}
+          {(hover.member.state || hover.member.country) && (
+            <p className={styles.tooltipLocation}>
+              {[hover.member.state, hover.member.country].filter(Boolean).join(", ")}
+            </p>
+          )}
+          {hover.member.favoriteColors?.length > 0 && (
+            <span className={styles.tooltipDots}>
+              {hover.member.favoriteColors.map((color, i) => (
+                <span
+                  key={i}
+                  className={styles.tooltipDot}
+                  style={{ backgroundColor: color }}
                 />
-              )}
-              <div className={styles.cardInner}>
-              <div className={styles.avatar}>
-                {(member.name || "?").slice(0, 1).toUpperCase()}
-              </div>
-              <div className={styles.cardBody}>
-                <p className={styles.name}>
-                  {member.name}
-                  {member.role === "owner" && <span className={styles.ownerBadge}>Owner</span>}
-                  {member.role === "moderator" && <span className={styles.moderatorBadge}>Mod</span>}
-                </p>
-                {member.headline && <p className={styles.headline}>{member.headline}</p>}
-                {member.bio && <p className={styles.bio}>{member.bio}</p>}
-                {member.location && <p className={styles.location}>{member.location}</p>}
-                {(member.state || member.country) && (
-                  <p className={styles.location}>
-                    {[member.state, member.country].filter(Boolean).join(", ")}
-                  </p>
-                )}
-                {(tab === "top" || tab === "online") && (
-                  <p className={styles.meta}>
-                    {tab === "top" && `${member.points || 0} points`}
-                    {tab === "top" && tab === "online" && " · "}
-                    {tab === "online" && member.lastVisitDate === todayKey && "Online today"}
-                  </p>
-                )}
-              </div>
-              </div>
-            </Link>
-          ))}
+              ))}
+            </span>
+          )}
         </div>
       )}
     </>

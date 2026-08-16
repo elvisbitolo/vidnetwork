@@ -1,4 +1,7 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { regionKeyFor, regionChatId } from "@/lib/server/region";
+
+export { regionKeyFor, regionChatId } from "@/lib/server/region";
 
 export async function getOrCreateDm(uid, otherId) {
   if (!otherId) return null;
@@ -139,6 +142,49 @@ export async function syncSpaceChatParticipants(spaceId, participantIds) {
   const next = [...new Set(participantIds)];
   if (JSON.stringify(data.participantIds) !== JSON.stringify(next)) {
     await doc.ref.update({ participantIds: next, updatedAt: new Date() });
+  }
+}
+
+export async function getOrCreateRegionChat(uid, country, state) {
+  const regionKey = regionKeyFor(country, state);
+  if (!regionKey) return null;
+  const id = regionChatId(regionKey);
+  const ref = adminDb().collection("conversations").doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) {
+    await ref.set({
+      type: "region",
+      regionKey,
+      name: regionKey,
+      participantIds: [uid],
+      createdBy: uid,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastMessage: "",
+      lastMessageAt: null,
+    });
+  } else {
+    const data = doc.data();
+    if (!data.participantIds?.includes(uid)) {
+      await ref.update({
+        participantIds: [...(data.participantIds || []), uid],
+        updatedAt: new Date(),
+      });
+    }
+  }
+  return { id, type: "region", name: regionKey };
+}
+
+export async function leaveRegionChat(uid, country, state) {
+  const regionKey = regionKeyFor(country, state);
+  if (!regionKey) return;
+  const ref = adminDb().collection("conversations").doc(regionChatId(regionKey));
+  const doc = await ref.get();
+  if (!doc.exists) return;
+  const data = doc.data();
+  const next = (data.participantIds || []).filter((p) => p !== uid);
+  if (next.length !== (data.participantIds || []).length) {
+    await ref.update({ participantIds: next, updatedAt: new Date() });
   }
 }
 

@@ -69,6 +69,11 @@ export async function POST(req) {
       }).catch((err) => {
         logError("automation.new_member_failed", { uid: decoded.uid, error: err.message });
       });
+    } else {
+      const existing = snap.data();
+      if (decoded.picture && !existing.photoURL) {
+        await userRef.update({ photoURL: decoded.picture }).catch(() => {});
+      }
     }
 
     const sessionCookie = await adminAuth().createSessionCookie(idToken, {

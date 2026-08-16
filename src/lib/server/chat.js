@@ -277,23 +277,41 @@ export async function listMessages(conversationId, limitCount = 200) {
     .reverse();
 }
 
-export async function addMessage(conversationId, sender, text) {
+export async function addMessage(conversationId, sender, text, attachment = null) {
   const convRef = adminDb().collection("conversations").doc(conversationId);
   const convDoc = await convRef.get();
   if (!convDoc.exists) return null;
   const conv = convDoc.data();
   if (!conv.participantIds.includes(sender.uid)) return null;
 
-  const ref = await convRef.collection("messages").add({
+  const message = {
     conversationId,
     senderId: sender.uid,
     senderName: sender.name,
     text,
     createdAt: new Date(),
     readBy: {},
-  });
+  };
+  if (attachment) {
+    message.attachment = {
+      name: String(attachment.name || "").slice(0, 120),
+      mime: String(attachment.mime || "").slice(0, 100),
+      kind: attachment.kind === "image" ? "image" : "file",
+      dataUrl: attachment.dataUrl,
+    };
+    message.hasAttachment = true;
+  }
+  const ref = await convRef.collection("messages").add(message);
+
+  const preview =
+    text ||
+    (attachment?.kind === "image"
+      ? "📷 Photo"
+      : attachment?.name
+        ? `📎 ${attachment.name}`
+        : "");
   await convRef.update({
-    lastMessage: text,
+    lastMessage: preview,
     lastMessageAt: new Date(),
     updatedAt: new Date(),
   });

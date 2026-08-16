@@ -39,20 +39,47 @@ export async function POST(req, { params }) {
   const limited = rateLimitGuard(`message:${user.uid}`, { limit: 30 });
   if (limited) return limited;
 
-  const { text } = await req.json();
-  if (!text || typeof text !== "string" || !text.trim()) {
-    return NextResponse.json({ error: "Message required" }, { status: 400 });
-  }
-  if (text.trim().length > 2000) {
+  const MAX_ATTACHMENT_LENGTH = 700_000;
+  const body = await req.json();
+  const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const attachment = body?.attachment || null;
+
+  if (text.length > 2000) {
     return NextResponse.json({ error: "Message too long" }, { status: 400 });
+  }
+
+  if (attachment) {
+    if (
+      typeof attachment !== "object" ||
+      typeof attachment.dataUrl !== "string" ||
+      !attachment.dataUrl
+    ) {
+      return NextResponse.json({ error: "Invalid attachment" }, { status: 400 });
+    }
+    if (attachment.dataUrl.length > MAX_ATTACHMENT_LENGTH) {
+      return NextResponse.json(
+        { error: "Attachment too large (max ~500 KB). Compress the file and try again." },
+        { status: 400 }
+      );
+    }
+    if (!text && !attachment.dataUrl) {
+      return NextResponse.json({ error: "Message required" }, { status: 400 });
+    }
+  } else if (!text) {
+    return NextResponse.json({ error: "Message required" }, { status: 400 });
   }
 
   const userDoc = await getUserDoc(user.uid);
   const senderName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
-  const messageId = await addMessage(conversationId, {
-    uid: user.uid,
-    name: senderName,
-  }, text.trim());
+  const messageId = await addMessage(
+    conversationId,
+    {
+      uid: user.uid,
+      name: senderName,
+    },
+    text,
+    attachment
+  );
 
   if (!messageId) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
@@ -66,11 +93,12 @@ export async function POST(req, { params }) {
       if (otherSnap.exists) {
         const other = otherSnap.data();
         if (other.email && other.notifications !== "off") {
+          const snippet = text || (attachment?.kind === "image" ? "📷 [Photo]" : `📎 [${attachment?.name || "File"}]`);
           await sendEmail({
             to: other.email,
             subject: `New message from ${senderName}`,
             text:
-              `${senderName} sent you a message:\n\n"${text.trim()}"\n\n` +
+              `${senderName} sent you a message:\n\n"${snippet}"\n\n` +
               `Reply in the community chat: ${process.env.NEXT_PUBLIC_APP_URL || ""}/chat/${conversationId}`,
           }).catch((err) => {
             logError("email.dm_notify_failed", { conversationId, error: err.message });

@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #fafafc;
+  background: #1a1a1a;
   color: #17171c;
 }
 
@@ -327,7 +327,7 @@
   border-radius: 999px;
   font-size: 11px;
   color: #9b9bab;
-  background: #fafafc;
+  background: #1a1a1a;
 }
 
 .controls {

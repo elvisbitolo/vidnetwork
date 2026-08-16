@@ -13,10 +13,35 @@ import {
   onSnapshot,
   deleteDoc,
 } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, db, storage } from "@/lib/firebase/client";
+import { auth, db } from "@/lib/firebase/client";
 import ReportModal from "./ReportModal";
 import styles from "./feed.module.css";
+
+function resizeImage(file, maxSize = 1600) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxSize || height > maxSize) {
+          const scale = Math.min(maxSize / width, maxSize / height, 1);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.onerror = () => reject(new Error("Couldn't read that image"));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error("Couldn't read that file"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function timeAgo(ts) {
   if (!ts) return "";
@@ -368,13 +393,15 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
     }
     setUploading(true);
     try {
-      const ref = storageRef(storage, `posts/${uid}/${Date.now()}-${file.name}`);
-      await uploadBytes(ref, file, { customMetadata: { uid, role } });
-      const url = await getDownloadURL(ref);
-      setImageUrl(url);
+      const dataUrl = await resizeImage(file);
+      if (dataUrl.length > 700_000) {
+        alert("That image is too large to attach yet — try a smaller one.");
+        return;
+      }
+      setImageUrl(dataUrl);
     } catch (err) {
       console.error(err);
-      alert("Upload failed. Check storage rules are deployed.");
+      alert("Couldn't process that image. Try a different one.");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

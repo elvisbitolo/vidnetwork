@@ -144,3 +144,17 @@ test("isValidImageUrl: rejects junk, other schemes and over-long urls", () => {
   assert.equal(isValidImageUrl(123), false);
   assert.equal(isValidImageUrl("https://example.com/" + "a".repeat(2500)), false);
 });
+
+test("isValidImageUrl: accepts data:image URLs within size limit", () => {
+  assert.equal(isValidImageUrl("data:image/jpeg;base64,/9j/4AAQ"), true);
+  assert.equal(isValidImageUrl("data:image/png;base64,iVBOR"), true);
+  assert.equal(
+    isValidImageUrl("data:image/jpeg;base64," + "a".repeat(699_000)),
+    true
+  );
+  assert.equal(
+    isValidImageUrl("data:image/jpeg;base64," + "a".repeat(700_000)),
+    false
+  );
+  assert.equal(isValidImageUrl("data:video/mp4;base64,AAAA"), false);
+});

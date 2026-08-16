@@ -1,6 +1,7 @@
 export const POST_TEXT_MAX = 5000;
 export const COMMENT_TEXT_MAX = 2000;
 export const IMAGE_URL_MAX = 2048;
+export const IMAGE_DATA_URL_MAX = 700_000;
 
 export function validatePostText(text) {
   if (typeof text !== "string" || !text.trim()) {
@@ -24,7 +25,11 @@ export function validateCommentText(text) {
 
 export function isValidImageUrl(value) {
   if (value == null || value === "") return true;
-  if (typeof value !== "string" || value.length > IMAGE_URL_MAX) return false;
+  if (typeof value !== "string") return false;
+  if (value.startsWith("data:image/")) {
+    return value.length <= IMAGE_DATA_URL_MAX;
+  }
+  if (value.length > IMAGE_URL_MAX) return false;
   let parsed;
   try {
     parsed = new URL(value);

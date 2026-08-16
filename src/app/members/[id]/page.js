@@ -59,12 +59,23 @@ export default async function MemberProfilePage({ params }) {
 
   const isSelf = viewer.uid === id;
 
+  const bannerGradient = ((colors) => {
+    const list = (Array.isArray(colors) ? colors : []).filter((c) =>
+      /^#[0-9a-fA-F]{6}$/.test(c)
+    );
+    if (list.length === 0) return "";
+    if (list.length === 1) return list[0];
+    return `linear-gradient(135deg, ${list.join(", ")})`;
+  })(member.favoriteColors);
+
   return (
       <Nav role={viewerDoc?.role}>
       <div className={styles.container}>
         <BackButton fallback="/members" label="All members" />
 
-        <div className={styles.header}>
+        <div className={styles.profileCard}>
+          {bannerGradient && <div className={styles.banner} style={{ background: bannerGradient }} />}
+          <div className={styles.header}>
           <div className={styles.avatar}>
             {(member.name || "?").slice(0, 1).toUpperCase()}
           </div>
@@ -135,6 +146,7 @@ export default async function MemberProfilePage({ params }) {
                 Message
               </Link>
             )}
+          </div>
           </div>
         </div>
 

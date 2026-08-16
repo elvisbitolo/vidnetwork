@@ -45,6 +45,7 @@ export default async function MembersPage() {
       country: m.country || "",
       state: m.state || "",
       bio: m.bio || "",
+      favoriteColors: Array.isArray(m.favoriteColors) ? m.favoriteColors : [],
       role: m.role || "member",
       points: gami.get(m.id)?.points || 0,
       lastVisitDate: gami.get(m.id)?.lastVisitDate || "",

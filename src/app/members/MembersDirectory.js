@@ -18,6 +18,15 @@ function distinct(values) {
   );
 }
 
+function colorStrip(colors) {
+  const list = (Array.isArray(colors) ? colors : []).filter((c) =>
+    /^#[0-9a-fA-F]{6}$/.test(c)
+  );
+  if (list.length === 0) return "";
+  if (list.length === 1) return list[0];
+  return `linear-gradient(90deg, ${list.join(", ")})`;
+}
+
 export default function MembersDirectory({ members, role, todayKey }) {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
@@ -121,6 +130,13 @@ export default function MembersDirectory({ members, role, todayKey }) {
         <div className={styles.grid}>
           {filtered.map((member) => (
             <Link key={member.id} href={`/members/${member.id}`} className={styles.card}>
+              {colorStrip(member.favoriteColors) && (
+                <div
+                  className={styles.colorStrip}
+                  style={{ background: colorStrip(member.favoriteColors) }}
+                />
+              )}
+              <div className={styles.cardInner}>
               <div className={styles.avatar}>
                 {(member.name || "?").slice(0, 1).toUpperCase()}
               </div>
@@ -145,6 +161,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
                     {tab === "online" && member.lastVisitDate === todayKey && "Online today"}
                   </p>
                 )}
+              </div>
               </div>
             </Link>
           ))}

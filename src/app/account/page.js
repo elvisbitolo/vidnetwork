@@ -30,6 +30,11 @@ export default async function AccountPage({ searchParams }) {
     country: userDoc?.country || "",
     state: userDoc?.state || "",
     bio: userDoc?.bio || "",
+    favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
+    goToYarn: userDoc?.goToYarn || "",
+    favoriteHookSize: userDoc?.favoriteHookSize || "",
+    proudestProject: userDoc?.proudestProject || "",
+    bestGiftProject: userDoc?.bestGiftProject || "",
     photoURL: userDoc?.photoURL || "",
   };
 

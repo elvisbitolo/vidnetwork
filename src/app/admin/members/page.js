@@ -51,6 +51,23 @@ export default function AdminMembersPage() {
     await loadMembers();
   }
 
+  async function deleteMember(member) {
+    setError("");
+    const ok = window.confirm(
+      `Delete ${member.name || "this member"} permanently?\n\nThis removes their account, posts, and all data. This can't be undone.`
+    );
+    if (!ok) return;
+    const res = await fetch(`/api/admin/members/${member.id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Delete failed");
+      return;
+    }
+    await loadMembers();
+  }
+
   const q = query.trim().toLowerCase();
   const filtered = q
     ? members.filter(
@@ -133,6 +150,13 @@ export default function AdminMembersPage() {
                     onClick={() => updateMember(member.id, { suspended: !member.suspended })}
                   >
                     {member.suspended ? "Unsuspend" : "Suspend"}
+                  </button>
+                  <button
+                    className={styles.delete}
+                    style={{ height: 36, padding: "0 14px", fontSize: 13 }}
+                    onClick={() => deleteMember(member)}
+                  >
+                    Delete
                   </button>
                   </div>
                 )}

@@ -289,6 +289,50 @@
   margin-bottom: 6px;
 }
 
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin: 20px 0 14px;
+  padding-top: 16px;
+  border-top: 1px solid #e6e6ef;
+}
+
+.colorRow {
+  display: flex;
+  gap: 12px;
+}
+
+.colorSwatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.colorSwatch input {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.colorSwatch span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6b7b;
+}
+
+.fieldHint {
+  font-size: 12px;
+  color: #9b9bab;
+  margin: 6px 0 0;
+}
+
 .input,
 .textarea {
   width: 100%;

@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase/admin";
+import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { requireModerator, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+
+async function deleteQuery(query) {
+  const snap = await query.get();
+  if (snap.empty) return;
+  const docs = snap.docs;
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = adminDb().batch();
+    for (const doc of docs.slice(i, i + 400)) {
+      batch.delete(doc.ref);
+    }
+    await batch.commit();
+  }
+}
 
 export async function PATCH(req, { params }) {
   const { id } = await params;
@@ -44,6 +57,64 @@ export async function PATCH(req, { params }) {
     action: role !== undefined ? "member.role_changed" : "member.suspended",
     targetId: id,
     metadata: { role, suspended, prevRole: snap.data().role },
+  });
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req, { params }) {
+  const { id } = await params;
+  const auth = await requireModerator();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
+  if (id === auth.user.uid) {
+    return NextResponse.json({ error: "You can't delete your own account here" }, { status: 400 });
+  }
+
+  const userSnap = await adminDb().collection("users").doc(id).get();
+  if (!userSnap.exists) {
+    return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+  const userData = userSnap.data();
+  if (userData.role === "owner" && auth.userDoc.role !== "owner") {
+    return NextResponse.json({ error: "Only the owner can delete the owner" }, { status: 403 });
+  }
+
+  try {
+    await adminAuth().deleteUser(id);
+  } catch (err) {
+    if (err.code !== "auth/user-not-found") {
+      return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+    }
+  }
+
+  await deleteQuery(adminDb().collection("posts").where("authorId", "==", id));
+  await deleteQuery(adminDb().collection("notifications").where("userId", "==", id));
+  await deleteQuery(adminDb().collection("groupMembers").where("userId", "==", id));
+  await deleteQuery(adminDb().collection("spaceMembers").where("userId", "==", id));
+
+  const subs = await adminDb().collection("conversations")
+    .where("participantIds", "array-contains", id)
+    .get();
+  for (const conv of subs.docs) {
+    const next = (conv.data().participantIds || []).filter((p) => p !== id);
+    await conv.ref.update({ participantIds: next, updatedAt: new Date() });
+  }
+
+  const deletes = [id, "subscriptions", "gamification"].map((path) =>
+    path === id
+      ? adminDb().collection("users").doc(id)
+      : adminDb().collection(path).doc(id)
+  );
+  await Promise.all(deletes.map((ref) => ref.delete().catch(() => {})));
+
+  await logAudit({
+    actorId: auth.user.uid,
+    actorName: auth.userDoc?.name || auth.user.email || "",
+    action: "member.deleted",
+    targetId: id,
+    metadata: { name: userData.name, email: userData.email },
   });
 
   return NextResponse.json({ ok: true });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { addMessage, getConversation } from "@/lib/server/chat";
+import { createNotification } from "@/lib/server/notifications";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
@@ -92,17 +93,29 @@ export async function POST(req, { params }) {
       const otherSnap = await adminDb().collection("users").doc(otherId).get();
       if (otherSnap.exists) {
         const other = otherSnap.data();
-        if (other.email && other.notifications !== "off") {
-          const snippet = text || (attachment?.kind === "image" ? "📷 [Photo]" : `📎 [${attachment?.name || "File"}]`);
-          await sendEmail({
-            to: other.email,
-            subject: `New message from ${senderName}`,
-            text:
-              `${senderName} sent you a message:\n\n"${snippet}"\n\n` +
-              `Reply in the community chat: ${process.env.NEXT_PUBLIC_APP_URL || ""}/chat/${conversationId}`,
+        if (other.notifications !== "off") {
+          const snippet = text || (attachment?.kind === "image" ? "📷 Photo" : `📎 ${attachment?.name || "File"}`);
+          await createNotification({
+            userId: otherId,
+            type: "dm",
+            actorId: user.uid,
+            actorName: senderName,
+            href: `/chat/${conversationId}`,
+            text: snippet,
           }).catch((err) => {
-            logError("email.dm_notify_failed", { conversationId, error: err.message });
+            logError("notification.dm_failed", { conversationId, error: err.message });
           });
+          if (other.email) {
+            await sendEmail({
+              to: other.email,
+              subject: `New message from ${senderName}`,
+              text:
+                `${senderName} sent you a message:\n\n"${snippet}"\n\n` +
+                `Reply in the community chat: ${process.env.NEXT_PUBLIC_APP_URL || ""}/chat/${conversationId}`,
+            }).catch((err) => {
+              logError("email.dm_notify_failed", { conversationId, error: err.message });
+            });
+          }
         }
       }
     }

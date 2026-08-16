@@ -7,7 +7,7 @@ function normalize(value) {
   return (value || "").trim();
 }
 
-const LIMITS = { name: 60, headline: 120, location: 80, country: 60, state: 60, bio: 600 };
+const LIMITS = { name: 60, headline: 120, location: 80, country: 60, state: 60, bio: 600, yarn: 80, hook: 40, project: 140 };
 
 function initials(name) {
   return (name || "?")
@@ -51,6 +51,15 @@ export default function ProfileEditor({ initial }) {
   const [country, setCountry] = useState(initial.country || "");
   const [state, setState] = useState(initial.state || "");
   const [bio, setBio] = useState(initial.bio || "");
+  const [favoriteColors, setFavoriteColors] = useState(
+    Array.isArray(initial.favoriteColors) && initial.favoriteColors.length
+      ? initial.favoriteColors
+      : ["#8b5cf6", "#ec4899", "#10b981"]
+  );
+  const [goToYarn, setGoToYarn] = useState(initial.goToYarn || "");
+  const [favoriteHookSize, setFavoriteHookSize] = useState(initial.favoriteHookSize || "");
+  const [proudestProject, setProudestProject] = useState(initial.proudestProject || "");
+  const [bestGiftProject, setBestGiftProject] = useState(initial.bestGiftProject || "");
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
@@ -149,6 +158,22 @@ export default function ProfileEditor({ initial }) {
       setError(`About you must be ${LIMITS.bio} characters or fewer.`);
       return;
     }
+    if (normalize(goToYarn).length > LIMITS.yarn) {
+      setError(`Go-to yarn must be ${LIMITS.yarn} characters or fewer.`);
+      return;
+    }
+    if (normalize(favoriteHookSize).length > LIMITS.hook) {
+      setError(`Favorite hook size must be ${LIMITS.hook} characters or fewer.`);
+      return;
+    }
+    if (normalize(proudestProject).length > LIMITS.project) {
+      setError(`Proudest project must be ${LIMITS.project} characters or fewer.`);
+      return;
+    }
+    if (normalize(bestGiftProject).length > LIMITS.project) {
+      setError(`Best gifting project must be ${LIMITS.project} characters or fewer.`);
+      return;
+    }
 
     const patch = {};
     if (cleanName !== normalize(initial.name)) patch.name = cleanName;
@@ -162,6 +187,19 @@ export default function ProfileEditor({ initial }) {
     if (cleanState !== normalize(initial.state)) patch.state = cleanState;
     const cleanBio = normalize(bio);
     if (cleanBio !== normalize(initial.bio)) patch.bio = cleanBio;
+
+    const cleanColors = favoriteColors.slice(0, 3);
+    if (JSON.stringify(cleanColors) !== JSON.stringify(initial.favoriteColors || [])) {
+      patch.favoriteColors = cleanColors;
+    }
+    const cleanYarn = normalize(goToYarn);
+    if (cleanYarn !== normalize(initial.goToYarn)) patch.goToYarn = cleanYarn;
+    const cleanHook = normalize(favoriteHookSize);
+    if (cleanHook !== normalize(initial.favoriteHookSize)) patch.favoriteHookSize = cleanHook;
+    const cleanProud = normalize(proudestProject);
+    if (cleanProud !== normalize(initial.proudestProject)) patch.proudestProject = cleanProud;
+    const cleanGift = normalize(bestGiftProject);
+    if (cleanGift !== normalize(initial.bestGiftProject)) patch.bestGiftProject = cleanGift;
 
     if (Object.keys(patch).length === 0) {
       setNotice("No changes to save.");
@@ -185,6 +223,10 @@ export default function ProfileEditor({ initial }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  function setColor(index, value) {
+    setFavoriteColors((prev) => prev.map((c, i) => (i === index ? value : c)));
   }
 
   return (
@@ -309,6 +351,79 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setBio(e.target.value)}
         />
       </div>
+
+      <h3 className={styles.sectionTitle}>Your yarn story</h3>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel}>Favorite 3 colors</label>
+        <div className={styles.colorRow}>
+          {favoriteColors.map((color, i) => (
+            <label key={i} className={styles.colorSwatch}>
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(i, e.target.value)}
+                aria-label={`Favorite color ${i + 1}`}
+              />
+              <span>{i + 1}</span>
+            </label>
+          ))}
+        </div>
+        <p className={styles.fieldHint}>Tap a swatch to pick your favorite yarn colors.</p>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-yarn">Go-to yarn choice</label>
+        <input
+          id="profile-yarn"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.yarn}
+          placeholder="e.g. Cascade 220, merino worsted…"
+          value={goToYarn}
+          onChange={(e) => setGoToYarn(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-hook">Favorite hook size</label>
+        <input
+          id="profile-hook"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.hook}
+          placeholder="e.g. 5.0mm (H)"
+          value={favoriteHookSize}
+          onChange={(e) => setFavoriteHookSize(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-proud">Project you&apos;re most proud of</label>
+        <input
+          id="profile-proud"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.project}
+          placeholder="e.g. A fair-isle sweater I made for my mum"
+          value={proudestProject}
+          onChange={(e) => setProudestProject(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-gift">Best project for gifting</label>
+        <input
+          id="profile-gift"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.project}
+          placeholder="e.g. Baby blankets — always a hit"
+          value={bestGiftProject}
+          onChange={(e) => setBestGiftProject(e.target.value)}
+        />
+      </div>
+
       <button className={styles.manage} type="submit" disabled={busy}>
         {busy ? "Saving…" : "Save profile"}
       </button>

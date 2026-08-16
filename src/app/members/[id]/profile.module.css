@@ -96,6 +96,52 @@
   background: #4338ca;
 }
 
+.yarnProfile {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #e6e6ef;
+  border-radius: 12px;
+  background: #faf9ff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.yarnRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.yarnLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9b9bab;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.yarnValue {
+  font-size: 14px;
+  color: #17171c;
+}
+
+.colorDots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.colorDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px #e6e6ef;
+}
+
 .sectionTitle {
   font-size: 18px;
   font-weight: 700;

@@ -81,6 +81,52 @@ export default async function MemberProfilePage({ params }) {
               </p>
             )}
             {member.bio && <p className={styles.bio}>{member.bio}</p>}
+            {(member.favoriteColors?.length > 0 ||
+              member.goToYarn ||
+              member.favoriteHookSize ||
+              member.proudestProject ||
+              member.bestGiftProject) && (
+              <div className={styles.yarnProfile}>
+                {member.favoriteColors?.length > 0 && (
+                  <div className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Favorite colors</span>
+                    <span className={styles.colorDots}>
+                      {member.favoriteColors.map((color, i) => (
+                        <span
+                          key={i}
+                          className={styles.colorDot}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {member.goToYarn && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Go-to yarn</span>
+                    <span className={styles.yarnValue}>{member.goToYarn}</span>
+                  </p>
+                )}
+                {member.favoriteHookSize && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Favorite hook</span>
+                    <span className={styles.yarnValue}>{member.favoriteHookSize}</span>
+                  </p>
+                )}
+                {member.proudestProject && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Proudest project</span>
+                    <span className={styles.yarnValue}>{member.proudestProject}</span>
+                  </p>
+                )}
+                {member.bestGiftProject && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Best for gifting</span>
+                    <span className={styles.yarnValue}>{member.bestGiftProject}</span>
+                  </p>
+                )}
+              </div>
+            )}
             {recognitionCount > 0 && (
               <p className={styles.recognitionCount}>{recognitionCountLabel(recognitionCount)}</p>
             )}

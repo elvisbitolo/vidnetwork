@@ -16,6 +16,16 @@ export function normalizeProfile(body) {
   if ("country" in body) patch.country = clean(body.country, 60);
   if ("state" in body) patch.state = clean(body.state, 60);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
+  if ("favoriteColors" in body) {
+    const raw = Array.isArray(body.favoriteColors) ? body.favoriteColors.slice(0, 3) : [];
+    patch.favoriteColors = raw
+      .map((c) => (typeof c === "string" ? c.trim() : ""))
+      .filter((c) => /^#[0-9a-fA-F]{6}$/.test(c));
+  }
+  if ("goToYarn" in body) patch.goToYarn = clean(body.goToYarn, 80);
+  if ("favoriteHookSize" in body) patch.favoriteHookSize = clean(body.favoriteHookSize, 40);
+  if ("proudestProject" in body) patch.proudestProject = clean(body.proudestProject, 140);
+  if ("bestGiftProject" in body) patch.bestGiftProject = clean(body.bestGiftProject, 140);
   if ("photoURL" in body) {
     const photoURL = typeof body.photoURL === "string" ? body.photoURL.trim().slice(0, 300000) : "";
     if (photoURL === "") {

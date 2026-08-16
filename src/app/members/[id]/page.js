@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import { getRecognitionCount, listRecognitions } from "@/lib/server/recognition";
 import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognition-core";
@@ -24,7 +24,7 @@ export default async function MemberProfilePage({ params }) {
   if (!viewer) redirect("/login");
 
   const viewerDoc = await getUserDoc(viewer.uid);
-  const sub = await getSubscription(viewer.uid);
+  const sub = await getAccessSub(viewer.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const userRef = adminDb().collection("users").doc(id);

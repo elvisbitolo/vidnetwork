@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { searchCommunity } from "@/lib/server/search";
 
 export async function GET(req) {
@@ -9,7 +9,7 @@ export async function GET(req) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!canModerate(userDoc) && !isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }

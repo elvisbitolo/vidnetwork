@@ -23,10 +23,11 @@ export async function authorize(options = {}) {
 
   let sub = null;
   const needsSub = active !== false || tier;
-  if (needsSub) {
+  const staff = canModerate(userDoc);
+  if (needsSub && !staff) {
     sub = await getSubscription(user.uid);
     if (!isActiveSub(sub)) return deny(403, "Active membership required");
-    if (tier && userDoc?.role !== "owner" && !meetsTier(sub.tier || "standard", tier)) {
+    if (tier && !meetsTier(sub.tier || "standard", tier)) {
       return deny(403, "Premium membership required");
     }
   }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { logError } from "@/lib/server/log";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
 import { awardPoints, POINTS } from "@/lib/server/gamification";
@@ -16,7 +16,7 @@ export async function POST(req) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }

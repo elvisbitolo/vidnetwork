@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getEvent } from "@/lib/server/events";
 
 function escapeIcs(text) {
@@ -23,7 +23,7 @@ export async function GET(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }

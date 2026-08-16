@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import {
   getSpaceBySlug,
@@ -30,7 +30,7 @@ export default async function SpacePage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const space = await getSpaceBySlug(slug);

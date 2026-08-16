@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { listRooms } from "@/lib/server/rooms";
 import { adminDb } from "@/lib/firebase/admin";
 import Nav from "@/components/Nav";
@@ -14,7 +14,7 @@ export default async function RoomsPage() {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const rooms = await listRooms();

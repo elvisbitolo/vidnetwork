@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getStripe } from "@/lib/server/stripe";
 import { appOrigin } from "@/lib/server/origin";
 import { getCourse } from "@/lib/server/courses";
@@ -34,7 +34,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }

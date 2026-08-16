@@ -1,5 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getSpace, isSpaceMember } from "@/lib/server/spaces";
 import { postAccessCheck, nextLikeState } from "@/lib/server/posts-core";
 
@@ -14,7 +14,7 @@ export async function canAccessPost(postId, uid, userDoc) {
     return { ok: true, post };
   }
 
-  const sub = await getSubscription(uid);
+  const sub = await getAccessSub(uid);
   if (!isActiveSub(sub)) {
     return { ok: false, status: 403, error: "Active membership required" };
   }

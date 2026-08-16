@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { meetsTier } from "@/lib/server/plans";
 import {
   getSpace,
@@ -20,7 +20,7 @@ export async function POST(req, { params }) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }

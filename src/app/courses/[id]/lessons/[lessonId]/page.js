@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getCourse, getLesson, getNextLessonId, getProgress, canAccessCourse, lessonBelongsToCourse } from "@/lib/server/courses";
 import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
@@ -17,7 +17,7 @@ export default async function LessonPage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const course = await getCourse(courseId);

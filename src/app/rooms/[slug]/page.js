@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getRoomBySlug } from "@/lib/server/rooms";
 import { getUpcomingRoomStart } from "@/lib/server/events";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getScopedHostRights } from "@/lib/server/hosts";
 import Nav from "@/components/Nav";
 import RoomClient from "./RoomClient";
@@ -30,7 +30,7 @@ export default async function RoomPage({ params }) {
     );
   }
 
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) {
     return (
       <main className={styles.page}>

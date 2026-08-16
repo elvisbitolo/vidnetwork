@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getConversation, listMessages } from "@/lib/server/chat";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
@@ -15,7 +15,7 @@ export default async function ConversationPage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const conversation = await getConversation(id, user.uid);

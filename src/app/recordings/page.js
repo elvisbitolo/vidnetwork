@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import { canAccessRecording } from "@/lib/server/recordings";
 import Nav from "@/components/Nav";
@@ -15,7 +15,7 @@ export default async function RecordingsPage() {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const snap = await adminDb().collection("recordings").orderBy("startedAt", "desc").get();

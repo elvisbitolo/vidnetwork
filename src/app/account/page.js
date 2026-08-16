@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getSettings } from "@/lib/server/settings";
 import Nav from "@/components/Nav";
 import LogoutButton from "./LogoutButton";
@@ -18,7 +18,7 @@ export default async function AccountPage({ searchParams }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getSubscription(user.uid);
+  const sub = await getAccessSub(user.uid);
   const active = isActiveSub(sub);
   const settings = await getSettings();
   const { checkout } = await searchParams;

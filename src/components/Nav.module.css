@@ -80,8 +80,8 @@
   bottom: 0;
   z-index: 60;
   width: 250px;
-  background: #ffffff;
-  border-right: 1px solid #e6e6ef;
+  background: linear-gradient(180deg, #6d28d9 0%, #4f46e5 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -119,7 +119,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #9b9bab;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .collection {
@@ -132,7 +132,7 @@
   padding: 4px 14px 2px;
   font-size: 12px;
   font-weight: 800;
-  color: #17171c;
+  color: #ffffff;
 }
 
 .sidebarLinkNested {
@@ -143,14 +143,14 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  color: #6b6b7b;
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebarLinkNested:hover {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .sidebarLink {
@@ -161,14 +161,14 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #34344a;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebarLink:hover {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .sidebarCollapsed {

@@ -27,11 +27,6 @@ const COMMUNITY = [
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
-const ACCOUNT = [
-  { href: "/account", label: "Account" },
-  { href: "/notifications", label: "Notifications" },
-];
-
 function getAnalyticsLinks(role) {
   if (role === "owner") {
     return [
@@ -62,14 +57,12 @@ function getAutomationLinks(role) {
 function getAdministrationLinks(role) {
   if (role === "owner") {
     return [
-      { href: "/admin", label: "Overview" },
       { href: "/admin/rooms", label: "Manage rooms" },
       { href: "/admin/courses", label: "Manage courses" },
       { href: "/admin/collections", label: "Collections" },
       { href: "/admin/questions", label: "Questions" },
       { href: "/admin/hosts", label: "Scoped hosts" },
       { href: "/admin/moderation", label: "Moderation" },
-      { href: "/admin/settings", label: "Settings" },
     ];
   }
   if (role === "moderator") {
@@ -299,18 +292,6 @@ export default function Nav({ role, children }) {
                   ))}
                 </>
               )}
-
-              <p className={styles.groupLabel}>Account</p>
-              {ACCOUNT.map((link) => (
-                <Link
-                  key={link.href}
-                  className={styles.sidebarLink}
-                  href={link.href}
-                  onClick={close}
-                >
-                  {link.label}
-                </Link>
-              ))}
             </nav>
           </div>
         </aside>

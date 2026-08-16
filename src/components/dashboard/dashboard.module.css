@@ -1,10 +1,10 @@
 .pageWrap {
   width: 100%;
-  min-height: 100%;
+  min-height: calc(100vh - 60px);
   background:
-    radial-gradient(1100px 420px at 85% -10%, rgba(167, 139, 250, 0.28), rgba(167, 139, 250, 0) 60%),
-    radial-gradient(900px 380px at -10% 0%, rgba(109, 93, 246, 0.16), rgba(109, 93, 246, 0) 55%),
-    linear-gradient(180deg, #f3efff 0%, #f7f5fc 220px, #fafafc 100%);
+    radial-gradient(1100px 420px at 85% -10%, rgba(167, 139, 250, 0.35), rgba(167, 139, 250, 0) 60%),
+    radial-gradient(900px 380px at -10% 0%, rgba(109, 93, 246, 0.22), rgba(109, 93, 246, 0) 55%),
+    linear-gradient(180deg, #f0eaff 0%, #f3eeff 300px, #f8f4ff 100%);
 }
 
 .page {

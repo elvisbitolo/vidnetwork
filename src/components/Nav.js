@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import NotificationBell from "./NotificationBell";
+import ProfileMenu from "./ProfileMenu";
 import LiveNowBanner from "./LiveNowBanner";
 import styles from "./Nav.module.css";
 
@@ -81,7 +82,10 @@ function getAdministrationLinks(role) {
 }
 
 export default function Nav({ role, children }) {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem("sidebarCollapsed") === "1"
+  );
   const [collections, setCollections] = useState([]);
   const [hasHostTools, setHasHostTools] = useState(
     () => role === "owner" || role === "moderator"
@@ -90,7 +94,19 @@ export default function Nav({ role, children }) {
   const monetizationLinks = getMonetizationLinks(role);
   const automationLinks = getAutomationLinks(role);
   const administrationLinks = getAdministrationLinks(role);
-  const close = () => setOpen(false);
+  const close = () => setMobileOpen(false);
+
+  useEffect(() => {
+    window.localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
+  }, [collapsed]);
+
+  function toggleSidebar() {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches) {
+      setMobileOpen((v) => !v);
+    } else {
+      setCollapsed((v) => !v);
+    }
+  }
 
   useEffect(() => {
     fetch("/api/collections")
@@ -118,35 +134,41 @@ export default function Nav({ role, children }) {
   return (
     <>
       <header className={styles.topbar}>
-        <Link className={styles.brand} href="/dashboard" onClick={close}>
-          VidNetwork
-        </Link>
-        <div className={styles.topbarRight}>
-          <NotificationBell />
+        <div className={styles.topbarLeft}>
           <button
             type="button"
-            className={open ? `${styles.burger} ${styles.burgerOpen}` : styles.burger}
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
+            className={mobileOpen ? `${styles.burger} ${styles.burgerOpen}` : styles.burger}
+            onClick={toggleSidebar}
+            aria-expanded={collapsed || mobileOpen}
             aria-controls="sidebar-menu"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label="Toggle navigation"
           >
             <span className={styles.burgerLine} />
             <span className={styles.burgerLine} />
             <span className={styles.burgerLine} />
           </button>
+          <Link className={styles.brand} href="/dashboard" onClick={close}>
+            VidNetwork
+          </Link>
+        </div>
+        <div className={styles.topbarRight}>
+          <NotificationBell />
+          <ProfileMenu />
         </div>
       </header>
 
       <div className={styles.shell}>
         <aside
           id="sidebar-menu"
-          className={open ? `${styles.sidebar} ${styles.sidebarOpen}` : styles.sidebar}
+          className={
+            mobileOpen
+              ? `${styles.sidebar} ${styles.sidebarOpen}`
+              : collapsed
+                ? `${styles.sidebar} ${styles.sidebarCollapsed}`
+                : styles.sidebar
+          }
         >
           <div className={styles.sidebarInner}>
-            <Link className={styles.sidebarBrand} href="/dashboard" onClick={close}>
-              VidNetwork
-            </Link>
             <nav className={styles.sidebarNav}>
               <p className={styles.groupLabel}>Overview</p>
               {OVERVIEW.map((link) => (
@@ -290,12 +312,6 @@ export default function Nav({ role, children }) {
                 </Link>
               ))}
             </nav>
-            <div className={styles.sidebarFooter}>
-              <Link className={styles.account} href="/account" onClick={close}>
-                Account
-              </Link>
-              <NotificationBell />
-            </div>
           </div>
         </aside>
 

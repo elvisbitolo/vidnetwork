@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import NotificationBell from "@/components/NotificationBell";
-import { logout } from "@/lib/client-auth";
 import StatCard from "./StatCard";
 import AudienceChart from "./AudienceChart";
 import {
@@ -28,15 +26,6 @@ function formatMoney(cents) {
   })}`;
 }
 
-function initials(name) {
-  return (name || "?")
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
 function StatSkeleton() {
   return (
     <div className={styles.kpi} aria-hidden="true">
@@ -52,7 +41,6 @@ export default function DashboardShell() {
   const [loading, setLoading] = useState(true);
   const [fatal, setFatal] = useState(false);
   const [refresh, setRefresh] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -91,30 +79,26 @@ export default function DashboardShell() {
     if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
   }
 
-  async function handleLogout() {
-    await logout();
-    router.push("/login");
-    router.refresh();
-  }
-
   if (loading) {
     return (
-      <div className={styles.page}>
-        <div className={styles.skeletonLine} style={{ width: 220 }} />
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20 }}>
-          <StatSkeleton />
-          <StatSkeleton />
-          <StatSkeleton />
-          <StatSkeleton />
-        </div>
-        <div className={styles.grid} style={{ marginTop: 20 }}>
-          <div className={styles.col}>
-            <CardSkeleton lines={5} />
-            <CardSkeleton lines={3} />
+      <div className={styles.pageWrap}>
+        <div className={styles.page}>
+          <div className={styles.skeletonLine} style={{ width: 220 }} />
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20 }}>
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
           </div>
-          <div className={styles.col}>
-            <CardSkeleton lines={4} />
-            <CardSkeleton lines={3} />
+          <div className={styles.grid} style={{ marginTop: 20 }}>
+            <div className={styles.col}>
+              <CardSkeleton lines={5} />
+              <CardSkeleton lines={3} />
+            </div>
+            <div className={styles.col}>
+              <CardSkeleton lines={4} />
+              <CardSkeleton lines={3} />
+            </div>
           </div>
         </div>
       </div>
@@ -123,11 +107,13 @@ export default function DashboardShell() {
 
   if (fatal || !data) {
     return (
-      <div className={styles.page}>
-        <SectionError
-          message="The dashboard couldn't load. Check your connection and try again."
-          onRetry={handleRetry}
-        />
+      <div className={styles.pageWrap}>
+        <div className={styles.page}>
+          <SectionError
+            message="The dashboard couldn't load. Check your connection and try again."
+            onRetry={handleRetry}
+          />
+        </div>
       </div>
     );
   }
@@ -187,151 +173,117 @@ export default function DashboardShell() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.heading}>
-          <h1>Dashboard</h1>
-          <p>
-            {user.name} · {isStaff ? "Admin & creator" : "Member"}
-          </p>
+    <div className={styles.pageWrap}>
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div className={styles.heading}>
+            <h1>Dashboard</h1>
+            <p>
+              {user.name} · {isStaff ? "Admin & creator" : "Member"}
+            </p>
+          </div>
+          <div className={styles.headerRight}>
+            <form className={styles.search} onSubmit={handleSearch}>
+              <span className={styles.searchIcon}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.5" y2="16.5" />
+                </svg>
+              </span>
+              <input
+                className={styles.searchInput}
+                type="search"
+                placeholder="Search the community…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search"
+              />
+            </form>
+          </div>
         </div>
-        <div className={styles.headerRight}>
-          <form className={styles.search} onSubmit={handleSearch}>
-            <span className={styles.searchIcon}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.5" y2="16.5" />
-              </svg>
-            </span>
-            <input
-              className={styles.searchInput}
-              type="search"
-              placeholder="Search the community…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search"
-            />
-          </form>
-          <NotificationBell />
-          <div style={{ position: "relative" }}>
-            <button
-              type="button"
-              className={styles.avatarButton}
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-            >
-              {user.photoURL ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className={styles.avatar} src={user.photoURL} alt="" />
-              ) : (
-                <span className={styles.avatar}>{initials(user.name)}</span>
-              )}
-              <span className={styles.avatarName}>{user.name}</span>
-            </button>
-            {menuOpen && (
-              <div className={styles.avatarMenu} role="menu">
-                <a href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>
-                  Account
-                </a>
-                <a href="/notifications" role="menuitem" onClick={() => setMenuOpen(false)}>
-                  Notifications
-                </a>
-                {isStaff && (
-                  <a href="/admin" role="menuitem" onClick={() => setMenuOpen(false)}>
-                    Admin
+
+        <WelcomeBanner name={user.name} />
+        <QuickActions isStaff={isStaff} />
+
+        <div className={styles.kpiGrid}>{kpis}</div>
+
+        <div className={styles.grid}>
+          <div className={styles.col}>
+            <div className={styles.card}>
+              <AudienceChart />
+            </div>
+
+            {activity?.ok ? (
+              <RecentActivity data={activityValue} />
+            ) : (
+              <SectionError message="Activity couldn't load." onRetry={handleRetry} />
+            )}
+
+            {upcomingRooms?.ok ? (
+              <UpcomingRooms data={roomsValue} />
+            ) : (
+              <SectionError message="Rooms couldn't load." onRetry={handleRetry} />
+            )}
+          </div>
+
+          <div className={styles.col}>
+            {onboarding?.ok ? (
+              <OnboardingProgress data={onboardingValue} />
+            ) : (
+              <SectionError message="Onboarding couldn't load." onRetry={handleRetry} />
+            )}
+
+            {needsAttention?.ok ? (
+              <NeedsAttention data={attentionValue} />
+            ) : (
+              <SectionError message="Couldn't load your queue." onRetry={handleRetry} />
+            )}
+
+            {notifications?.ok ? (
+              <NotificationsPanel data={notificationsValue} />
+            ) : (
+              <SectionError message="Notifications couldn't load." onRetry={handleRetry} />
+            )}
+
+            {messages?.ok ? (
+              <RecentMessages data={messagesValue} />
+            ) : (
+              <SectionError message="Messages couldn't load." onRetry={handleRetry} />
+            )}
+
+            {content?.ok ? (
+              <ContentPerformance data={contentValue} />
+            ) : (
+              <SectionError message="Content couldn't load." onRetry={handleRetry} />
+            )}
+
+            {leaderboard?.ok && leaderboard.value.length > 0 && (
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <h2 className={styles.cardTitle}>Recognition</h2>
+                  <a className={styles.cardLink} href="/leaderboard">
+                    Leaderboard
                   </a>
-                )}
-                <button type="button" role="menuitem" onClick={handleLogout}>
-                  Sign out
-                </button>
+                </div>
+                <ul className={styles.list}>
+                  {leaderboard.value.map((entry) => (
+                    <li key={entry.userId}>
+                      <a className={styles.item} href={`/members/${entry.userId}`}>
+                        <span className={styles.itemSplit}>
+                          <span className={styles.itemTitle}>
+                            #{entry.rank} {entry.name}
+                          </span>
+                          <span className={styles.itemMeta}>
+                            {entry.points} pts · {entry.badgeCount} badges
+                          </span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      <WelcomeBanner name={user.name} />
-      <QuickActions isStaff={isStaff} />
-
-      <div className={styles.kpiGrid}>{kpis}</div>
-
-      <div className={styles.grid}>
-        <div className={styles.col}>
-          <div className={styles.card}>
-            <AudienceChart />
-          </div>
-
-          {activity?.ok ? (
-            <RecentActivity data={activityValue} />
-          ) : (
-            <SectionError message="Activity couldn't load." onRetry={handleRetry} />
-          )}
-
-          {upcomingRooms?.ok ? (
-            <UpcomingRooms data={roomsValue} />
-          ) : (
-            <SectionError message="Rooms couldn't load." onRetry={handleRetry} />
-          )}
-        </div>
-
-        <div className={styles.col}>
-          {onboarding?.ok ? (
-            <OnboardingProgress data={onboardingValue} />
-          ) : (
-            <SectionError message="Onboarding couldn't load." onRetry={handleRetry} />
-          )}
-
-          {needsAttention?.ok ? (
-            <NeedsAttention data={attentionValue} />
-          ) : (
-            <SectionError message="Couldn't load your queue." onRetry={handleRetry} />
-          )}
-
-          {notifications?.ok ? (
-            <NotificationsPanel data={notificationsValue} />
-          ) : (
-            <SectionError message="Notifications couldn't load." onRetry={handleRetry} />
-          )}
-
-          {messages?.ok ? (
-            <RecentMessages data={messagesValue} />
-          ) : (
-            <SectionError message="Messages couldn't load." onRetry={handleRetry} />
-          )}
-
-          {content?.ok ? (
-            <ContentPerformance data={contentValue} />
-          ) : (
-            <SectionError message="Content couldn't load." onRetry={handleRetry} />
-          )}
-
-          {leaderboard?.ok && leaderboard.value.length > 0 && (
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>Recognition</h2>
-                <a className={styles.cardLink} href="/leaderboard">
-                  Leaderboard
-                </a>
-              </div>
-              <ul className={styles.list}>
-                {leaderboard.value.map((entry) => (
-                  <li key={entry.userId}>
-                    <a className={styles.item} href={`/members/${entry.userId}`}>
-                      <span className={styles.itemSplit}>
-                        <span className={styles.itemTitle}>
-                          #{entry.rank} {entry.name}
-                        </span>
-                        <span className={styles.itemMeta}>
-                          {entry.points} pts · {entry.badgeCount} badges
-                        </span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </div>

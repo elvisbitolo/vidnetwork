@@ -13,6 +13,8 @@ export function normalizeProfile(body) {
   }
   if ("headline" in body) patch.headline = clean(body.headline, 120);
   if ("location" in body) patch.location = clean(body.location, 80);
+  if ("country" in body) patch.country = clean(body.country, 60);
+  if ("state" in body) patch.state = clean(body.state, 60);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
   if ("photoURL" in body) {
     const photoURL = typeof body.photoURL === "string" ? body.photoURL.trim().slice(0, 300000) : "";

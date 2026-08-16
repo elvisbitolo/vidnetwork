@@ -27,6 +27,8 @@ export default async function AccountPage({ searchParams }) {
     name: userDoc?.name || user.name || "",
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
+    country: userDoc?.country || "",
+    state: userDoc?.state || "",
     bio: userDoc?.bio || "",
     photoURL: userDoc?.photoURL || "",
   };

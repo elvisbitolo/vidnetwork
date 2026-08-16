@@ -7,7 +7,7 @@ function normalize(value) {
   return (value || "").trim();
 }
 
-const LIMITS = { name: 60, headline: 120, location: 80, bio: 600 };
+const LIMITS = { name: 60, headline: 120, location: 80, country: 60, state: 60, bio: 600 };
 
 function initials(name) {
   return (name || "?")
@@ -48,6 +48,8 @@ export default function ProfileEditor({ initial }) {
   const [name, setName] = useState(initial.name || "");
   const [headline, setHeadline] = useState(initial.headline || "");
   const [location, setLocation] = useState(initial.location || "");
+  const [country, setCountry] = useState(initial.country || "");
+  const [state, setState] = useState(initial.state || "");
   const [bio, setBio] = useState(initial.bio || "");
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
   const [saved, setSaved] = useState(false);
@@ -135,6 +137,14 @@ export default function ProfileEditor({ initial }) {
       setError(`Location must be ${LIMITS.location} characters or fewer.`);
       return;
     }
+    if (normalize(country).length > LIMITS.country) {
+      setError(`Country must be ${LIMITS.country} characters or fewer.`);
+      return;
+    }
+    if (normalize(state).length > LIMITS.state) {
+      setError(`State must be ${LIMITS.state} characters or fewer.`);
+      return;
+    }
     if (normalize(bio).length > LIMITS.bio) {
       setError(`About you must be ${LIMITS.bio} characters or fewer.`);
       return;
@@ -146,6 +156,10 @@ export default function ProfileEditor({ initial }) {
     if (cleanHeadline !== normalize(initial.headline)) patch.headline = cleanHeadline;
     const cleanLocation = normalize(location);
     if (cleanLocation !== normalize(initial.location)) patch.location = cleanLocation;
+    const cleanCountry = normalize(country);
+    if (cleanCountry !== normalize(initial.country)) patch.country = cleanCountry;
+    const cleanState = normalize(state);
+    if (cleanState !== normalize(initial.state)) patch.state = cleanState;
     const cleanBio = normalize(bio);
     if (cleanBio !== normalize(initial.bio)) patch.bio = cleanBio;
 
@@ -246,16 +260,42 @@ export default function ProfileEditor({ initial }) {
         />
       </div>
       <div className={styles.field}>
-        <label className={styles.fieldLabel} htmlFor="profile-location">Location</label>
+        <label className={styles.fieldLabel} htmlFor="profile-location">City / area</label>
         <input
           id="profile-location"
           className={styles.input}
           type="text"
           maxLength={LIMITS.location}
-          placeholder="e.g. Austin, TX"
+          placeholder="e.g. Austin"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
         />
+      </div>
+      <div className={styles.fieldRow}>
+        <div className={styles.field}>
+          <label className={styles.fieldLabel} htmlFor="profile-state">State / region</label>
+          <input
+            id="profile-state"
+            className={styles.input}
+            type="text"
+            maxLength={LIMITS.state}
+            placeholder="e.g. Texas"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+          />
+        </div>
+        <div className={styles.field}>
+          <label className={styles.fieldLabel} htmlFor="profile-country">Country</label>
+          <input
+            id="profile-country"
+            className={styles.input}
+            type="text"
+            maxLength={LIMITS.country}
+            placeholder="e.g. United States"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+          />
+        </div>
       </div>
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-bio">About you</label>

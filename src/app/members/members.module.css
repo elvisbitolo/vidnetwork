@@ -61,6 +61,34 @@
   gap: 8px;
 }
 
+.locationFilters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.locationSelect {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #17171c;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.locationSelect:focus {
+  border-color: #4f46e5;
+}
+
+.locationSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .filterBtn {
   height: 36px;
   padding: 0 16px;

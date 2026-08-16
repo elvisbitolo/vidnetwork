@@ -265,6 +265,22 @@
   margin-bottom: 16px;
 }
 
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fieldRow .field {
+  margin-bottom: 0;
+}
+
+@media (max-width: 560px) {
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fieldLabel {
   display: block;
   font-size: 13px;

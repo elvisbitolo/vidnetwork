@@ -42,6 +42,8 @@ export default async function MembersPage() {
       name: m.name,
       headline: m.headline || "",
       location: m.location || "",
+      country: m.country || "",
+      state: m.state || "",
       bio: m.bio || "",
       role: m.role || "member",
       points: gami.get(m.id)?.points || 0,

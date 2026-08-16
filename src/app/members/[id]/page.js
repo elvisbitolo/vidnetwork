@@ -75,6 +75,11 @@ export default async function MemberProfilePage({ params }) {
             </h1>
             {member.headline && <p className={styles.headline}>{member.headline}</p>}
             {member.location && <p className={styles.location}>{member.location}</p>}
+            {(member.state || member.country) && (
+              <p className={styles.location}>
+                {[member.state, member.country].filter(Boolean).join(", ")}
+              </p>
+            )}
             {member.bio && <p className={styles.bio}>{member.bio}</p>}
             {recognitionCount > 0 && (
               <p className={styles.recognitionCount}>{recognitionCountLabel(recognitionCount)}</p>

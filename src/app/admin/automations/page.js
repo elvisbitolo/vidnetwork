@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
@@ -22,26 +22,63 @@ const ACTIONS = {
   add_member_to_space: "Add member to a space",
 };
 
+const PLACEHOLDERS = {
+  new_member: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+  ],
+  new_post: [
+    { token: "authorName", label: "Author's name" },
+    { token: "postText", label: "Post text" },
+  ],
+  event_rsvp: [
+    { token: "rsvpName", label: "Member's name" },
+    { token: "eventTitle", label: "Event title" },
+  ],
+  purchase: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+    { token: "itemName", label: "What they bought" },
+    { token: "targetType", label: "Item type" },
+    { token: "spaceId", label: "Space ID" },
+  ],
+  checklist_complete: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+  ],
+};
+
 export default function AdminAutomationsPage() {
   const router = useRouter();
   const [role, setRole] = useState("member");
   const [automations, setAutomations] = useState([]);
+  const [spaces, setSpaces] = useState([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState("new_member");
   const [action, setAction] = useState("send_email");
-  const [to, setTo] = useState("owner");
+  const [toMode, setToMode] = useState("owner");
+  const [customEmail, setCustomEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [message, setMessage] = useState("");
   const [points, setPoints] = useState(5);
   const [spaceId, setSpaceId] = useState("");
 
+  const subjectRef = useRef(null);
+  const bodyRef = useRef(null);
+  const messageRef = useRef(null);
+
   const loadAutomations = useCallback(async () => {
     const res = await fetch("/api/admin/automations");
     if (res.ok) setAutomations((await res.json()).automations);
+  }, []);
+
+  const loadSpaces = useCallback(async () => {
+    const res = await fetch("/api/spaces?admin=1");
+    if (res.ok) setSpaces((await res.json()).spaces);
   }, []);
 
   useEffect(() => {
@@ -51,9 +88,10 @@ export default function AdminAutomationsPage() {
         return;
       }
       loadAutomations();
+      loadSpaces();
     });
     return unsub;
-  }, [router, loadAutomations]);
+  }, [router, loadAutomations, loadSpaces]);
 
   useEffect(() => {
     fetch("/api/me")
@@ -61,11 +99,52 @@ export default function AdminAutomationsPage() {
       .then((data) => data && setRole(data.role));
   }, []);
 
+  function insertPlaceholder(field, token) {
+    const el =
+      field === "subject"
+        ? subjectRef.current
+        : field === "body"
+        ? bodyRef.current
+        : messageRef.current;
+    if (!el) return;
+    const placeholder = `{{${token}}}`;
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const setter = field === "subject" ? setSubject : field === "body" ? setBody : setMessage;
+    setter(el.value.slice(0, start) + placeholder + el.value.slice(end));
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + placeholder.length;
+      el.setSelectionRange(pos, pos);
+    });
+  }
+
+  function renderChips(field) {
+    const items = PLACEHOLDERS[trigger] || [];
+    if (items.length === 0) return null;
+    return (
+      <div className={styles.checkRow}>
+        <span className={styles.subtitle} style={{ margin: 0 }}>Insert: </span>
+        {items.map((item) => (
+          <button
+            key={item.token}
+            type="button"
+            className={styles.toggle}
+            onClick={() => insertPlaceholder(field, item.token)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   async function handleCreate(e) {
     e.preventDefault();
     setError("");
     setBusy(true);
     try {
+      const to = toMode === "owner" ? "owner" : customEmail.trim();
       const config =
         action === "send_email"
           ? { to, subject, body }
@@ -86,6 +165,7 @@ export default function AdminAutomationsPage() {
       setBody("");
       setMessage("");
       setSpaceId("");
+      setCustomEmail("");
       await loadAutomations();
     } catch (err) {
       setError(err.message);
@@ -176,38 +256,55 @@ export default function AdminAutomationsPage() {
             <>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="a-to">Send to</label>
-                <input
+                <select
                   id="a-to"
-                  className={styles.input}
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  placeholder="owner (or an email address)"
-                />
+                  className={styles.select}
+                  value={toMode}
+                  onChange={(e) => setToMode(e.target.value)}
+                >
+                  <option value="owner">The community owner</option>
+                  <option value="custom">A specific email address</option>
+                </select>
               </div>
+              {toMode === "custom" && (
+                <div className={styles.field}>
+                  <label className={styles.label} htmlFor="a-custom-email">Email address</label>
+                  <input
+                    id="a-custom-email"
+                    className={styles.input}
+                    type="email"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    placeholder="someone@example.com"
+                    required
+                  />
+                </div>
+              )}
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="a-subject">Subject</label>
                 <input
                   id="a-subject"
+                  ref={subjectRef}
                   className={styles.input}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g. {{memberName}} just joined"
+                  placeholder="e.g. Welcome aboard!"
                 />
+                {renderChips("subject")}
               </div>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="a-body">Email body</label>
                 <textarea
                   id="a-body"
+                  ref={bodyRef}
                   className={styles.textarea}
-                  rows={3}
+                  rows={4}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
-                  placeholder="Hi team — {{memberName}} just joined the community."
+                  placeholder="Hi, thanks for joining the community."
                 />
+                {renderChips("body")}
               </div>
-              <p className={styles.subtitle}>
-                Placeholders: {"{{memberName}}, {{memberEmail}}, {{authorName}}, {{postText}}, {{rsvpName}}, {{eventTitle}}, {{itemName}}, {{targetType}}, {{spaceId}}"}
-              </p>
             </>
           )}
 
@@ -216,11 +313,13 @@ export default function AdminAutomationsPage() {
               <label className={styles.label} htmlFor="a-message">Notification message</label>
               <input
                 id="a-message"
+                ref={messageRef}
                 className={styles.input}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="e.g. {{memberName}} just joined"
+                placeholder="e.g. Welcome aboard!"
               />
+              {renderChips("message")}
             </div>
           )}
 
@@ -240,19 +339,26 @@ export default function AdminAutomationsPage() {
 
           {action === "add_member_to_space" && (
             <div className={styles.field}>
-              <label className={styles.label} htmlFor="a-space">
-                Space ID to add the member to
-              </label>
-              <input
+              <label className={styles.label} htmlFor="a-space">Space to add the member to</label>
+              <select
                 id="a-space"
-                className={styles.input}
+                className={styles.select}
                 value={spaceId}
                 onChange={(e) => setSpaceId(e.target.value)}
-                placeholder="The Firestore id of the space"
-              />
+              >
+                <option value="">
+                  {trigger === "purchase"
+                    ? "The space they just bought (recommended)"
+                    : "Choose a space…"}
+                </option>
+                {spaces.map((space) => (
+                  <option key={space.id} value={space.id}>{space.name}</option>
+                ))}
+              </select>
               <p className={styles.subtitle}>
-                Use the {`{{spaceId}}`} placeholder or a purchase trigger to add buyers to the
-                space they paid for.
+                {trigger === "purchase"
+                  ? "With the “A member buys access” trigger, leaving this empty adds buyers to the space they paid for."
+                  : "The member is added to this space as a member."}
               </p>
             </div>
           )}

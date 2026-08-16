@@ -97,10 +97,10 @@ async function handleCheckout(req, auth) {
 
   const activeSubs = await stripe.subscriptions.list({
     customer: customerId,
-    status: ACTIVE_STATUSES.join(","),
-    limit: 1,
+    status: "all",
+    limit: 10,
   });
-  const activeSub = activeSubs.data[0];
+  const activeSub = activeSubs.data.find((sub) => ACTIVE_STATUSES.includes(sub.status));
 
   if (activeSub) {
     const currentPriceId = activeSub.items.data[0]?.price?.id;

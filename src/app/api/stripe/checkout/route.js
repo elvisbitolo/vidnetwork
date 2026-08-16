@@ -30,6 +30,17 @@ export async function POST(req) {
   const limitedIp = rateLimitGuard(`checkout-ip:${ip}`, { limit: 30 });
   if (limitedIp) return limitedIp;
 
+  try {
+    return await handleCheckout(req, auth);
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Checkout failed: ${err?.message || "Unexpected error"}` },
+      { status: 500 }
+    );
+  }
+}
+
+async function handleCheckout(req, auth) {
   let body;
   try {
     body = await req.json();
@@ -159,7 +170,7 @@ export async function POST(req) {
       metadata: { tier, promoCode: promo ? promo.code : "" },
     },
     payment_method_collection: isFirstSubscription ? "if_required" : "always",
-    payment_method_types: ["card", "paypal"],
+    payment_method_types: isFirstSubscription ? ["card"] : ["card", "paypal"],
     success_url: `${origin}/account?checkout=success`,
     cancel_url: `${origin}/pricing`,
   });

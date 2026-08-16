@@ -65,8 +65,16 @@ export default function PricingPage() {
         router.push("/login");
         return;
       }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Checkout failed");
+      const raw = await res.text();
+      let data = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = {};
+        }
+      }
+      if (!res.ok) throw new Error(data.error || "Checkout failed, please try again");
       if (data.url) {
         window.location.assign(data.url);
         return;

@@ -11,7 +11,7 @@ import styles from "../admin/rooms/admin.module.css";
 function scopeHref(scope) {
   if (scope.scopeType === "room") return `/rooms/${scope.slug}`;
   if (scope.scopeType === "event") return `/events`;
-  if (scope.scopeType === "course") return `/courses`;
+  if (scope.scopeType === "course") return `/host/courses/${scope.scopeId}`;
   if (scope.scopeType === "group") return `/groups/${scope.slug}`;
   if (scope.scopeType === "space") return `/spaces/${scope.slug}`;
   return "#";
@@ -124,6 +124,27 @@ export default function HostPage() {
                       href={`/host/rooms?scopeType=${scope.scopeType}&scopeId=${scope.scopeId}`}
                     >
                       Create room
+                    </Link>
+                  )}
+                  {scope.scopeType === "space" && (
+                    <>
+                      <Link
+                        className={styles.toggle}
+                        href={`/host/courses?spaceId=${scope.scopeId}`}
+                      >
+                        Manage courses
+                      </Link>
+                      <Link
+                        className={styles.toggle}
+                        href={`/host/events?spaceId=${scope.scopeId}`}
+                      >
+                        Schedule events
+                      </Link>
+                    </>
+                  )}
+                  {scope.scopeType === "event" && (
+                    <Link className={styles.toggle} href={`/host/events`}>
+                      Manage event
                     </Link>
                   )}
                 </div>

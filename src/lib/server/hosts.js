@@ -112,6 +112,17 @@ export async function getUserHostRights(uid) {
   return rightsFromAssignments(assignments);
 }
 
+export async function userHasHostRights(uid) {
+  if (!uid) return false;
+  const assignments = await listHostAssignments({ userId: uid });
+  return assignments.length > 0;
+}
+
+export async function canManageScope(uid, scopeType, scopeId) {
+  const rights = await getScopedHostRights(uid, scopeType, scopeId);
+  return rights.isStaff || rights.isHost;
+}
+
 export async function getScopedHostRights(uid, scopeType, scopeId) {
   if (!uid || !scopeType || !scopeId) {
     return { isStaff: false, isHost: false, isCoHost: false, canRecord: false, roles: [] };

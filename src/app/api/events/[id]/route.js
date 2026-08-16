@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { getCurrentUser } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { getEvent } from "@/lib/server/events";
+import { canManageScope } from "@/lib/server/hosts";
 import { logAudit } from "@/lib/server/audit";
 
 export async function PATCH(req, { params }) {
@@ -9,13 +11,12 @@ export async function PATCH(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  const doc = await adminDb().collection("events").doc(id).get();
-  if (!doc.exists) {
+  const event = await getEvent(id);
+  if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+  if (!(await canManageScope(user.uid, "event", id))) {
+    return NextResponse.json({ error: "Event host access required" }, { status: 403 });
   }
   const { publicPreview } = await req.json();
   if (typeof publicPreview !== "boolean") {
@@ -24,7 +25,7 @@ export async function PATCH(req, { params }) {
   await adminDb().collection("events").doc(id).update({ publicPreview, updatedAt: new Date() });
   await logAudit({
     actorId: user.uid,
-    actorName: userDoc?.name || user.email || "",
+    actorName: user.displayName || user.email || "",
     action: "event.updated",
     targetId: id,
     metadata: { publicPreview },
@@ -38,9 +39,12 @@ export async function DELETE(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const event = await getEvent(id);
+  if (!event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+  if (!(await canManageScope(user.uid, "event", id))) {
+    return NextResponse.json({ error: "Event host access required" }, { status: 403 });
   }
   await adminDb().collection("events").doc(id).delete();
   return NextResponse.json({ ok: true });

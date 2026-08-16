@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse } from "@/lib/server/courses";
+import { canManageScope } from "@/lib/server/hosts";
 
 export async function GET(req, { params }) {
   const { id } = await params;
@@ -13,9 +14,12 @@ export async function GET(req, { params }) {
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (course.status !== "published" && userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Course not published" }, { status: 404 });
+  if (course.status !== "published") {
+    const userDoc = await getUserDoc(user.uid);
+    const manager = await canManageScope(user.uid, "course", id);
+    if (!manager && userDoc?.role !== "owner") {
+      return NextResponse.json({ error: "Course not published" }, { status: 404 });
+    }
   }
   return NextResponse.json({ course });
 }
@@ -26,13 +30,12 @@ export async function PATCH(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
   const course = await getCourse(id);
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+  if (!(await canManageScope(user.uid, "course", id))) {
+    return NextResponse.json({ error: "Course host access required" }, { status: 403 });
   }
 
   const { title, description, status, requiredTier, purchasePriceCents, publicPreview } = await req.json();
@@ -73,9 +76,12 @@ export async function DELETE(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const course = await getCourse(id);
+  if (!course) {
+    return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+  if (!(await canManageScope(user.uid, "course", id))) {
+    return NextResponse.json({ error: "Course host access required" }, { status: 403 });
   }
 
   const modulesSnap = await adminDb().collection("modules").where("courseId", "==", id).get();

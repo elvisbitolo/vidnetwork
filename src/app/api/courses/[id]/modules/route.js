@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { getCurrentUser } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse, getModules } from "@/lib/server/courses";
+import { canManageScope } from "@/lib/server/hosts";
 
 export async function GET(req, { params }) {
   const { id: courseId } = await params;
@@ -9,9 +10,8 @@ export async function GET(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await canManageScope(user.uid, "course", courseId))) {
+    return NextResponse.json({ error: "Course host access required" }, { status: 403 });
   }
   const modules = await getModules(courseId);
   const lessons = {};
@@ -33,13 +33,12 @@ export async function POST(req, { params }) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
-  const userDoc = await getUserDoc(user.uid);
-  if (userDoc?.role !== "owner") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
   const course = await getCourse(courseId);
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+  if (!(await canManageScope(user.uid, "course", courseId))) {
+    return NextResponse.json({ error: "Course host access required" }, { status: 403 });
   }
 
   const { title } = await req.json();

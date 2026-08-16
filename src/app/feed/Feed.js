@@ -441,6 +441,7 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
         setPollOptions(EMPTY_POLL);
       } catch (err) {
         console.error(err);
+        alert(err.message || "Post failed. Try again.");
       } finally {
         setBusy(false);
       }

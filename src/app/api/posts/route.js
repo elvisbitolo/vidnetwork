@@ -39,11 +39,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "Polls need 2-5 options" }, { status: 400 });
     }
   } else {
-    const check = validatePostText(cleanText);
-    if (!check.ok) {
-      return NextResponse.json({ error: check.error }, { status: 400 });
+    if (!cleanText && !imageUrl) {
+      return NextResponse.json({ error: "Post text required" }, { status: 400 });
     }
-    cleanText = check.text;
+    if (cleanText) {
+      const check = validatePostText(cleanText);
+      if (!check.ok) {
+        return NextResponse.json({ error: check.error }, { status: 400 });
+      }
+      cleanText = check.text;
+    }
   }
 
   if (cleanText.length > POST_TEXT_MAX) {

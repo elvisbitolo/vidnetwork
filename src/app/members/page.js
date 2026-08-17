@@ -4,6 +4,7 @@ import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import Nav from "@/components/Nav";
 import MembersDirectory from "./MembersDirectory";
+import SimilarMembers from "./SimilarMembers";
 import styles from "./members.module.css";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function MembersPage() {
           {members.length} {members.length === 1 ? "member" : "members"} in the community
         </p>
         <MembersDirectory members={members} role={userDoc?.role} todayKey={todayKey} />
+        <SimilarMembers />
       </div>
 </Nav>
   );

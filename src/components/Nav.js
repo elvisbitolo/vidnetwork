@@ -11,14 +11,17 @@ const OVERVIEW = [{ href: "/dashboard", label: "Dashboard" }];
 
 const CONTENT = [
   { href: "/courses", label: "Courses" },
+  { href: "/articles", label: "Articles" },
   { href: "/rooms", label: "Live Rooms" },
   { href: "/events", label: "Events" },
   { href: "/recordings", label: "Recordings" },
   { href: "/gallery", label: "Gallery" },
+  { href: "/challenges", label: "Challenges" },
 ];
 
 const COMMUNITY = [
   { href: "/feed", label: "Feed" },
+  { href: "/topics", label: "Topics" },
   { href: "/discovery", label: "Discovery" },
   { href: "/members", label: "Members" },
   { href: "/groups", label: "Groups" },

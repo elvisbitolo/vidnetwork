@@ -14,6 +14,7 @@ const CONTENT = [
   { href: "/rooms", label: "Live Rooms" },
   { href: "/events", label: "Events" },
   { href: "/recordings", label: "Recordings" },
+  { href: "/gallery", label: "Gallery" },
 ];
 
 const COMMUNITY = [

@@ -8,6 +8,7 @@ import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognit
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import RecognitionForm from "./RecognitionForm";
+import StickerDisplay from "./StickerDisplay";
 import styles from "./profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -28,12 +29,19 @@ export default async function MemberProfilePage({ params }) {
   if (!isActiveSub(sub)) redirect("/pricing");
 
   const userRef = adminDb().collection("users").doc(id);
-  const [memberDoc, postsSnap, recognitionCount, recognitions] = await Promise.all([
+  const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap] = await Promise.all([
     userRef.get(),
     adminDb().collection("posts").where("authorId", "==", id).get(),
     getRecognitionCount(id),
     listRecognitions(id, 10),
+    adminDb().collection("stickers").where("toUid", "==", id).get(),
   ]);
+
+  const stickerSummary = {};
+  stickersSnap.docs.forEach((doc) => {
+    const d = doc.data();
+    stickerSummary[d.type] = (stickerSummary[d.type] || 0) + 1;
+  });
 
   if (!memberDoc.exists) {
     return (
@@ -151,6 +159,13 @@ export default async function MemberProfilePage({ params }) {
         </div>
 
         {!isSelf && <RecognitionForm toUid={id} values={RECOGNITION_VALUES} />}
+
+        <StickerDisplay
+          toUid={id}
+          toName={member.name}
+          isSelf={isSelf}
+          initialSummary={stickerSummary}
+        />
 
         {recognitions.length > 0 && (
           <>

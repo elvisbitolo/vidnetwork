@@ -1,8 +1,18 @@
 export const TIERS = ["standard", "premium"];
 
+export const TIER_INFO = {
+  standard: {
+    name: "Community",
+    videoChat: { canJoin: true, canHost: false, monthlyHours: 8 },
+  },
+  premium: {
+    name: "Creator",
+    videoChat: { canJoin: true, canHost: true, monthlyHours: Infinity },
+  },
+};
+
 export function tierLabel(tier) {
-  const labels = { standard: "Standard", premium: "Premium" };
-  return labels[tier] || "Standard";
+  return TIER_INFO[tier]?.name || "Community";
 }
 
 export function tierRank(tier) {
@@ -12,6 +22,10 @@ export function tierRank(tier) {
 export function meetsTier(userTier, requiredTier) {
   if (!requiredTier || requiredTier === "standard") return true;
   return tierRank(userTier) >= tierRank(requiredTier);
+}
+
+export function videoChatRights(tier) {
+  return TIER_INFO[tier]?.videoChat || TIER_INFO.standard.videoChat;
 }
 
 export function priceIdFor(tier, plan) {

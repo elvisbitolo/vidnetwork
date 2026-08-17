@@ -32,6 +32,14 @@ function initialsOf(member) {
   return (member.name || "?").slice(0, 1).toUpperCase();
 }
 
+function circleSize(points) {
+  const base = 64;
+  const maxBonus = 40;
+  const step = 20;
+  const bonus = Math.min(Math.floor((points || 0) / step) * 4, maxBonus);
+  return base + bonus;
+}
+
 const TOOLTIP_W = 280;
 const TOOLTIP_H = 200;
 
@@ -174,9 +182,12 @@ export default function MembersDirectory({ members, role, todayKey }) {
               >
                 <span
                   className={ring ? `${styles.ring} ${styles.ringActive}` : styles.ring}
-                  style={ring ? { background: ring } : undefined}
+                  style={ring ? { background: ring, padding: 3 } : undefined}
                 >
-                  <span className={styles.circle}>
+                  <span
+                    className={styles.circle}
+                    style={{ width: circleSize(member.points), height: circleSize(member.points), fontSize: circleSize(member.points) * 0.35 }}
+                  >
                     {member.photoURL ? (
                       <img
                         className={styles.circleImage}
@@ -220,6 +231,9 @@ export default function MembersDirectory({ members, role, todayKey }) {
                 />
               ))}
             </span>
+          )}
+          {hover.member.points > 0 && (
+            <p className={styles.tooltipPoints}>{hover.member.points} interaction points</p>
           )}
         </div>
       )}

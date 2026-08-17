@@ -1,0 +1,185 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 28px;
+  justify-items: center;
+  padding: 8px 0;
+}
+
+.cell {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  animation: floatBob 4s ease-in-out infinite;
+  transition: transform 0.2s ease;
+}
+
+.cell:hover {
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.circle {
+  display: block;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(167, 139, 250, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cell:hover .circle {
+  border-color: rgba(167, 139, 250, 0.8);
+  box-shadow: 0 6px 28px rgba(109, 93, 246, 0.35);
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.cell:nth-child(3n+1) { animation-duration: 4.2s; }
+.cell:nth-child(3n+2) { animation-duration: 3.8s; }
+.cell:nth-child(3n+3) { animation-duration: 4.5s; }
+.cell:nth-child(4n) .circle { width: 140px; height: 140px; }
+.cell:nth-child(5n) .circle { width: 100px; height: 100px; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal {
+  position: relative;
+  background: #1f1f1f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalImage {
+  width: 100%;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  max-height: 400px;
+}
+
+.modalImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.modalText {
+  padding: 16px 20px 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #e5e5e5;
+  margin: 0;
+}
+
+.modalMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 0;
+}
+
+.modalAuthor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #a78bfa;
+  text-decoration: none;
+}
+
+.modalAuthor:hover {
+  text-decoration: underline;
+}
+
+.modalDate {
+  font-size: 12px;
+  color: #9b9bab;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+
+.actionBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 18px;
+  }
+  .circle {
+    width: 90px;
+    height: 90px;
+  }
+  .cell:nth-child(4n) .circle { width: 100px; height: 100px; }
+  .cell:nth-child(5n) .circle { width: 75px; height: 75px; }
+}

@@ -10,24 +10,26 @@ import styles from "./pricing.module.css";
 const TIERS = [
   {
     id: "standard",
-    name: "Standard",
+    name: "Community",
     price: { monthly: "$20", yearly: "$200" },
     note: "Billed per month or per year",
     features: [
-      "Access to all live video rooms",
+      "Join live video chat rooms (8 hrs/month)",
       "Video lessons and course library",
       "Events, calendar & reminders",
-      "Broadcast live streams",
       "Real-time chat with members",
+      "Post photos & projects to the gallery",
+      "Send congratulatory stickers",
     ],
   },
   {
     id: "premium",
-    name: "Premium",
+    name: "Creator",
     price: { monthly: "$40", yearly: "$400" },
-    note: "Everything in Standard, plus premium content",
+    note: "Everything in Community, plus hosting powers",
     features: [
-      "Everything in Standard",
+      "Everything in Community",
+      "Host your own video chat rooms (unlimited hours)",
       "Premium courses & exclusive lessons",
       "Private premium group rooms",
       "Early access to new content",
@@ -80,10 +82,11 @@ export default function PricingPage() {
         return;
       }
       if (data.switched) {
+        const tierName = tier === "standard" ? "Community" : "Creator";
         setNotice(
           data.unchanged
-            ? `You're already on ${tier === "standard" ? "Standard" : "Premium"} (${billing}).`
-            : `Your membership has been updated to ${tier === "standard" ? "Standard" : "Premium"} (${billing}).`
+            ? `You're already on ${tierName} (${billing}).`
+            : `Your membership has been updated to ${tierName} (${billing}).`
         );
         return;
       }

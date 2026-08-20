@@ -25,19 +25,24 @@ export async function GET() {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const [postsSnap, commentsSnap, events, spaces, topMembers] = await Promise.all([
+  const [postsSnap, events, spaces, topMembers] = await Promise.all([
     adminDb().collection("posts").orderBy("createdAt", "desc").limit(60).get(),
-    adminDb().collectionGroup("comments").limit(3000).get(),
     listEvents(),
     listSpaces(),
     getLeaderboard(6),
   ]);
 
   const commentCountByPost = {};
-  commentsSnap.docs.forEach((doc) => {
-    const postId = doc.ref.path.split("/")[1];
-    commentCountByPost[postId] = (commentCountByPost[postId] || 0) + 1;
-  });
+  const postIds = postsSnap.docs.map((d) => d.id);
+  if (postIds.length > 0) {
+    const commentsSnap = await adminDb().collectionGroup("comments").limit(500).get();
+    commentsSnap.docs.forEach((doc) => {
+      const postId = doc.ref.path.split("/")[1];
+      if (postIds.includes(postId)) {
+        commentCountByPost[postId] = (commentCountByPost[postId] || 0) + 1;
+      }
+    });
+  }
 
   const role = auth.userDoc?.role || "member";
   const isStaff = canModerate(auth.userDoc);
@@ -102,6 +107,7 @@ export async function GET() {
       const snap = await adminDb()
         .collection("spaceMembers")
         .where("spaceId", "==", space.id)
+        .limit(1)
         .get();
       return {
         id: space.id,

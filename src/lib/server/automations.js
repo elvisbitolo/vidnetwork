@@ -117,10 +117,12 @@ async function executeAction(automation, context) {
 }
 
 export async function runAutomations(trigger, context = {}) {
-  const snap = await adminDb().collection("automations").get();
-  const automations = snap.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .filter((automation) => automation.active === true && automation.trigger === trigger);
+  const snap = await adminDb()
+    .collection("automations")
+    .where("active", "==", true)
+    .where("trigger", "==", trigger)
+    .get();
+  const automations = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   for (const automation of automations) {
     try {
       await executeAction(automation, context);

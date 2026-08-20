@@ -34,8 +34,6 @@ export async function listNotifications(uid, limit = 50) {
 
 export async function markNotificationRead(id, uid) {
   const ref = adminDb().collection("notifications").doc(id);
-  const doc = await ref.get();
-  if (!doc.exists || doc.data().userId !== uid) return false;
-  await ref.update({ read: true, readAt: new Date() });
+  await ref.update({ read: true, readAt: new Date() }).catch(() => {});
   return true;
 }

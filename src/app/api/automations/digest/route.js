@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
 
 function escapeHtml(str) {
@@ -12,8 +15,8 @@ function escapeHtml(str) {
 }
 
 export async function POST(req) {
-  const secret = req.headers.get("x-cron-secret");
-  if (secret !== process.env.CRON_SECRET) {
+  const auth = req.headers.get("authorization");
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -37,8 +40,8 @@ export async function POST(req) {
 
   const eventsSnap = await adminDb()
     .collection("events")
-    .where("date", ">=", new Date())
-    .orderBy("date", "asc")
+    .where("startTime", ">=", new Date())
+    .orderBy("startTime", "asc")
     .limit(10)
     .get();
 

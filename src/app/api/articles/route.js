@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
-import { getUserDoc } from "@/lib/server/auth";
 import { extractHashtags } from "@/lib/server/hashtags";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -41,6 +41,9 @@ export async function POST(req) {
   const auth = await requireUser();
   const denied = guardJson(auth);
   if (denied) return denied;
+
+  const limited = rateLimitGuard(`article:${auth.user.uid}`, { limit: 10 });
+  if (limited) return limited;
 
   const { title, content, excerpt, coverImage } = await req.json();
 

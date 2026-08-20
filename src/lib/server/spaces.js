@@ -20,7 +20,7 @@ export {
 };
 
 export async function listSpaces() {
-  const snap = await adminDb().collection("spaces").orderBy("createdAt", "desc").get();
+  const snap = await adminDb().collection("spaces").orderBy("createdAt", "desc").limit(200).get();
   return snap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((space) => space.status === "active");
@@ -55,16 +55,19 @@ export async function isSpaceMember(spaceId, uid) {
 
 export async function addSpaceMember(spaceId, uid, name, role = "member") {
   const ref = adminDb().collection("spaceMembers").doc(`${spaceId}_${uid}`);
-  const snap = await ref.get();
-  if (snap.exists) return false;
-  await ref.set({
-    spaceId,
-    userId: uid,
-    name,
-    role,
-    joinedAt: new Date(),
-  });
-  return true;
+  try {
+    await ref.set({
+      spaceId,
+      userId: uid,
+      name,
+      role,
+      joinedAt: new Date(),
+    }, { merge: false });
+    return true;
+  } catch (err) {
+    if (err.code === 6 || err.message?.includes("ALREADY_EXISTS")) return false;
+    throw err;
+  }
 }
 
 export async function removeSpaceMember(spaceId, uid) {

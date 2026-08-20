@@ -36,16 +36,20 @@ async function ensureDoc(uid, name) {
   const ref = docRef(uid);
   const snap = await ref.get();
   if (!snap.exists) {
-    await ref.set({
-      points: 0,
-      streak: 0,
-      bestStreak: 0,
-      badges: {},
-      lastVisitDate: "",
-      name: name || "Member",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    try {
+      await ref.set({
+        points: 0,
+        streak: 0,
+        bestStreak: 0,
+        badges: {},
+        lastVisitDate: "",
+        name: name || "Member",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }, { merge: false });
+    } catch (err) {
+      if (err.code !== 6 && !err.message?.includes("ALREADY_EXISTS")) throw err;
+    }
   }
   return ref;
 }

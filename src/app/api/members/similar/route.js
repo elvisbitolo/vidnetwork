@@ -62,7 +62,7 @@ export async function GET(req) {
   }
   const myData = me.data();
 
-  const snap = await adminDb().collection("users").get();
+  const snap = await adminDb().collection("users").limit(500).get();
   const candidates = snap.docs
     .filter((doc) => doc.id !== auth.user.uid)
     .map((doc) => ({ id: doc.id, ...doc.data() }));

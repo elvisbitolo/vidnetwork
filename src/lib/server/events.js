@@ -4,7 +4,7 @@ import { addInterval, expandEvent, expandEvents } from "@/lib/server/events-core
 export { expandEvent, expandEvents, addInterval };
 
 export async function listEvents() {
-  const snap = await adminDb().collection("events").orderBy("startTime", "asc").get();
+  const snap = await adminDb().collection("events").orderBy("startTime", "asc").limit(200).get();
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 

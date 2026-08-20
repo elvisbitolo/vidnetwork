@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { requireModerator, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { deletePostWithComments, deleteDocs } from "@/lib/server/delete";
 
 async function deleteQuery(query) {
   const snap = await query.get();
@@ -89,10 +90,15 @@ export async function DELETE(req, { params }) {
     }
   }
 
-  await deleteQuery(adminDb().collection("posts").where("authorId", "==", id));
+  const postsSnap = await adminDb().collection("posts").where("authorId", "==", id).get();
+  for (const doc of postsSnap.docs) {
+    await deletePostWithComments(doc.ref).catch(() => {});
+  }
   await deleteQuery(adminDb().collection("notifications").where("userId", "==", id));
   await deleteQuery(adminDb().collection("groupMembers").where("userId", "==", id));
   await deleteQuery(adminDb().collection("spaceMembers").where("userId", "==", id));
+  await deleteQuery(adminDb().collection("stickers").where("senderId", "==", id));
+  await deleteQuery(adminDb().collection("stickers").where("recipientId", "==", id));
 
   const subs = await adminDb().collection("conversations")
     .where("participantIds", "array-contains", id)

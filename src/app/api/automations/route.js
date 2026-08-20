@@ -3,9 +3,25 @@ import { adminDb } from "@/lib/firebase/admin";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
 
-const BATCH_SIZE = 50;
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 const INACTIVE_DAYS = 7;
 const WELCOME_SENT_KEY = "welcomeSent";
+const PAGE_SIZE = 500;
+
+async function* paginateUsers() {
+  let lastDoc = null;
+  while (true) {
+    let query = adminDb().collection("users").orderBy("__name__").limit(PAGE_SIZE);
+    if (lastDoc) query = query.startAfter(lastDoc);
+    const snap = await query.get();
+    if (snap.empty) break;
+    yield* snap.docs;
+    lastDoc = snap.docs[snap.docs.length - 1];
+    if (snap.docs.length < PAGE_SIZE) break;
+  }
+}
 
 function daysSince(date) {
   if (!date) return Infinity;
@@ -13,9 +29,9 @@ function daysSince(date) {
   return Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-async function sendWelcomeMessages(usersSnap) {
+async function sendWelcomeMessages() {
   let sent = 0;
-  for (const doc of usersSnap.docs) {
+  for await (const doc of paginateUsers()) {
     const data = doc.data();
     if (data[WELCOME_SENT_KEY]) continue;
 
@@ -46,9 +62,9 @@ async function sendWelcomeMessages(usersSnap) {
   return sent;
 }
 
-async function sendInactivityNudges(usersSnap) {
+async function sendInactivityNudges() {
   let sent = 0;
-  for (const doc of usersSnap.docs) {
+  for await (const doc of paginateUsers()) {
     const data = doc.data();
     const lastVisit = data.lastVisitDate;
     const createdAt = data.createdAt;
@@ -79,14 +95,14 @@ async function sendInactivityNudges(usersSnap) {
   return sent;
 }
 
-async function awardAutoBadges(usersSnap) {
+async function awardAutoBadges() {
   let awarded = 0;
-  for (const doc of usersSnap.docs) {
+  for await (const doc of paginateUsers()) {
     const gamiSnap = await adminDb().collection("gamification").doc(doc.id).get();
     const gami = gamiSnap.exists ? gamiSnap.data() : {};
     const points = gami.points || 0;
-    const existing = gami.badges || [];
-    const newBadges = [...existing];
+    const existing = gami.badges || {};
+    let changed = false;
 
     const milestones = [
       { at: 10, badge: "first-steps", label: "First Steps" },
@@ -96,8 +112,9 @@ async function awardAutoBadges(usersSnap) {
     ];
 
     for (const m of milestones) {
-      if (points >= m.at && !existing.includes(m.badge)) {
-        newBadges.push(m.badge);
+      if (points >= m.at && !existing[m.badge]) {
+        existing[m.badge] = { name: m.label, earnedAt: new Date() };
+        changed = true;
         await createNotification({
           userId: doc.id,
           type: "system",
@@ -109,9 +126,9 @@ async function awardAutoBadges(usersSnap) {
       }
     }
 
-    if (newBadges.length > existing.length) {
+    if (changed) {
       await adminDb().collection("gamification").doc(doc.id).set(
-        { badges: newBadges },
+        { badges: existing },
         { merge: true }
       );
       awarded++;
@@ -121,19 +138,16 @@ async function awardAutoBadges(usersSnap) {
 }
 
 export async function POST(req) {
-  const secret = req.headers.get("x-cron-secret");
-  if (secret !== process.env.CRON_SECRET) {
+  const auth = req.headers.get("authorization");
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const results = {};
 
-  const usersSnap = await adminDb().collection("users").limit(BATCH_SIZE).get();
-  results.totalUsers = usersSnap.size;
-
-  results.welcomeSent = await sendWelcomeMessages(usersSnap);
-  results.nudgesSent = await sendInactivityNudges(usersSnap);
-  results.badgesAwarded = await awardAutoBadges(usersSnap);
+  results.welcomeSent = await sendWelcomeMessages();
+  results.nudgesSent = await sendInactivityNudges();
+  results.badgesAwarded = await awardAutoBadges();
 
   return NextResponse.json({ ok: true, ...results, timestamp: new Date().toISOString() });
 }

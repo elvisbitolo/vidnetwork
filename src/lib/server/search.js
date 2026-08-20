@@ -160,13 +160,20 @@ export async function searchCommunity({ q = "", hashtag = "" }, uid = "", role =
     })),
     groups: groups.map((g) => ({ id: g.id, name: g.name, slug: g.slug, description: g.description || "" })),
     spaces: await Promise.all(
-      spaces.map(async (s) => ({
-        id: s.id,
-        name: s.name,
-        slug: s.slug,
-        description: s.description || "",
-        memberCount: (await getSpaceMembers(s.id)).length,
-      }))
+      spaces.map(async (s) => {
+        const memberSnap = await adminDb()
+          .collection("spaceMembers")
+          .where("spaceId", "==", s.id)
+          .limit(1)
+          .get();
+        return {
+          id: s.id,
+          name: s.name,
+          slug: s.slug,
+          description: s.description || "",
+          memberCount: memberSnap.size,
+        };
+      })
     ),
     courses: courses.map((c) => ({ id: c.id, title: c.title, description: c.description || "" })),
     events: events

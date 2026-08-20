@@ -87,6 +87,8 @@ export default function Nav({ role, children }) {
   const [hasHostTools, setHasHostTools] = useState(
     () => role === "owner" || role === "moderator"
   );
+  const [onboardingDone, setOnboardingDone] = useState(true);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const analyticsLinks = getAnalyticsLinks(role);
   const monetizationLinks = getMonetizationLinks(role);
   const automationLinks = getAutomationLinks(role);
@@ -117,6 +119,16 @@ export default function Nav({ role, children }) {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (role === "owner" || role === "moderator") return;
+    fetch("/api/onboarding")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !data.completed) setOnboardingDone(false);
+      })
+      .catch(() => {});
+  }, [role]);
 
   useEffect(() => {
     if (role === "owner" || role === "moderator") return;
@@ -306,6 +318,55 @@ export default function Nav({ role, children }) {
 
         <div className={styles.content}>
           <LiveNowBanner />
+          {!onboardingDone && !bannerDismissed && (
+            <div style={{
+              margin: "0 20px 16px",
+              padding: "14px 20px",
+              background: "linear-gradient(135deg, rgba(109,93,246,0.15), rgba(167,139,250,0.1))",
+              border: "1px solid rgba(167,139,250,0.25)",
+              borderRadius: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}>
+              <p style={{ fontSize: 14, color: "#f5f5f5", margin: 0 }}>
+                <strong>Complete your profile</strong> — tell us about your craft so we can personalize your experience.
+              </p>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "rgba(255,255,255,0.08)",
+                    color: "#9b9bab",
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Later
+                </button>
+                <a
+                  href="/onboarding"
+                  style={{
+                    padding: "6px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "#a78bfa",
+                    color: "#ffffff",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textDecoration: "none",
+                  }}
+                >
+                  Set up
+                </a>
+              </div>
+            </div>
+          )}
           {children}
         </div>
       </div>

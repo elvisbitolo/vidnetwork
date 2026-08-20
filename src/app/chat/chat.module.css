@@ -204,8 +204,8 @@
   border: 1px solid #d8d8e3;
   border-radius: 10px;
   font-size: 14px;
-  color: #17171c;
-  background: #1a1a1a;
+  color: #f5f5f5;
+  background: #2a2a2a;
   outline: none;
   transition: border-color 0.15s ease;
 }
@@ -304,8 +304,8 @@
   border-radius: 10px;
   font-size: 14px;
   line-height: 1.4;
-  color: #17171c;
-  background: #1a1a1a;
+  color: #f5f5f5;
+  background: #2a2a2a;
   outline: none;
   font-family: inherit;
   resize: none;

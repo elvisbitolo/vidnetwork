@@ -201,7 +201,6 @@ export default function MembersDirectory({ members, role, todayKey }) {
                     {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
                   </span>
                 </span>
-                <span className={styles.cellName}>{member.name}</span>
               </Link>
             );
           })}

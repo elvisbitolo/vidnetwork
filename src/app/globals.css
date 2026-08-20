@@ -37,6 +37,11 @@ select {
   font-family: inherit;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: #9b9bab;
+}
+
 a {
   color: inherit;
   text-decoration: none;

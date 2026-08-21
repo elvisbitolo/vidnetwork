@@ -353,6 +353,7 @@
     "typeMessage": "Tapez un message…",
     "host": "Animateur",
     "speaker": "Intervenant",
-    "you": "Vous"
+    "you": "Vous",
+    "mostPopular": "Le plus populaire"
   }
 }

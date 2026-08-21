@@ -13,10 +13,10 @@ const TIERS = [
     priceKey: "community",
     noteKey: "communityNote",
     benefitsKeys: [
-      "pricing.communityFeatures.joinLive",
-      "pricing.communityFeatures.videoLessons",
-      "pricing.communityFeatures.events",
-      "pricing.communityFeatures.chat",
+      "communityFeatures.joinLive",
+      "communityFeatures.videoLessons",
+      "communityFeatures.events",
+      "communityFeatures.chat",
     ],
   },
   {
@@ -25,11 +25,11 @@ const TIERS = [
     priceKey: "creator",
     noteKey: "creatorNote",
     benefitsKeys: [
-      "pricing.creatorFeatures.everythingInCommunity",
-      "pricing.creatorFeatures.premiumCourses",
-      "pricing.creatorFeatures.privateRooms",
-      "pricing.creatorFeatures.earlyAccess",
-      "pricing.creatorFeatures.prioritySupport",
+      "creatorFeatures.everythingInCommunity",
+      "creatorFeatures.premiumCourses",
+      "creatorFeatures.privateRooms",
+      "creatorFeatures.earlyAccess",
+      "creatorFeatures.prioritySupport",
     ],
     featured: true,
   },
@@ -65,7 +65,7 @@ export default function LandingPricing() {
             key={tier.id}
             className={tier.featured ? `${styles.card} ${styles.cardFeatured}` : styles.card}
           >
-            {tier.featured && <span className={styles.rec}>Most popular</span>}
+            {tier.featured && <span className={styles.rec}>{t("mostPopular")}</span>}
             <h3 className={styles.name}>{tp(tier.nameKey)}</h3>
             <p className={styles.price}>
               {tier.id === "standard" ? "$20" : "$40"}

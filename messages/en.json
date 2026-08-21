@@ -352,6 +352,7 @@
     "typeMessage": "Type a message…",
     "host": "Host",
     "speaker": "Speaker",
-    "you": "You"
+    "you": "You",
+    "mostPopular": "Most popular"
   }
 }

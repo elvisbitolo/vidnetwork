@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
 
 const AUTH_COOKIE = "community-auth";
-const handleI18nRouting = createMiddleware(routing);
 
 const AUTH_ROUTES = [
   "/rooms",
@@ -26,9 +23,6 @@ const AUTH_ROUTES = [
 ];
 
 export function proxy(request) {
-  const i18nResponse = handleI18nRouting(request);
-  if (i18nResponse) return i18nResponse;
-
   const { pathname } = request.nextUrl;
   const hasSession = request.cookies.get(AUTH_COOKIE)?.value;
 
@@ -46,5 +40,23 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  matcher: [
+    "/rooms/:path*",
+    "/courses/:path*",
+    "/groups/:path*",
+    "/notifications/:path*",
+    "/account/:path*",
+    "/admin/:path*",
+    "/members/:path*",
+    "/feed/:path*",
+    "/events/:path*",
+    "/chat/:path*",
+    "/host/:path*",
+    "/leaderboard/:path*",
+    "/challenges/:path*",
+    "/recordings/:path*",
+    "/spaces/:path*",
+    "/discovery/:path*",
+    "/dashboard/:path*",
+  ],
 };

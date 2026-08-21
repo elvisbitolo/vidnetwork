@@ -352,6 +352,7 @@
     "typeMessage": "Nachricht eingeben…",
     "host": "Moderator",
     "speaker": "Referent",
-    "you": "Sie"
+    "you": "Sie",
+    "mostPopular": "Am beliebtesten"
   }
 }

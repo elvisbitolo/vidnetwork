@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import PushSetup from "@/components/PushSetup";
@@ -50,15 +51,17 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("NEXT_LOCALE")?.value || "en";
   const messages = {
     en: (await import("../../messages/en.json")).default,
     fr: (await import("../../messages/fr.json")).default,
     de: (await import("../../messages/de.json")).default,
   };
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <Providers messages={messages}>
+        <Providers messages={messages} locale={locale}>
           <PushSetup />
           {children}
         </Providers>

@@ -9,11 +9,14 @@ function readLocale() {
   return match ? match[1] : "en";
 }
 
-export default function Providers({ messages, children }) {
-  const [locale, setLocale] = useState("en");
+export default function Providers({ messages, locale: serverLocale, children }) {
+  const [locale, setLocale] = useState(serverLocale || "en");
 
   useEffect(() => {
-    setLocale(readLocale());
+    const clientLocale = readLocale();
+    if (clientLocale !== locale) {
+      setLocale(clientLocale);
+    }
   }, []);
 
   return (

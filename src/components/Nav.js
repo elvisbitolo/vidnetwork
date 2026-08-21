@@ -8,27 +8,29 @@ import LiveNowBanner from "./LiveNowBanner";
 import ChatbotGuide from "./ChatbotGuide";
 import styles from "./Nav.module.css";
 
-const OVERVIEW = [{ href: "/dashboard", label: "Dashboard" }];
+const OVERVIEW = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/feed", label: "Feed" },
+];
 
-const CONTENT = [
-  { href: "/courses", label: "Courses" },
-  { href: "/articles", label: "Articles" },
-  { href: "/rooms", label: "Live Rooms" },
+const CONNECT = [
+  { href: "/rooms", label: "Rooms" },
   { href: "/events", label: "Events" },
-  { href: "/recordings", label: "Recordings" },
-  { href: "/gallery", label: "Gallery" },
   { href: "/challenges", label: "Challenges" },
 ];
 
+const LEARN = [
+  { href: "/courses", label: "Courses" },
+  { href: "/articles", label: "Articles" },
+  { href: "/recordings", label: "Recordings" },
+];
+
 const COMMUNITY = [
-  { href: "/feed", label: "Feed" },
-  { href: "/topics", label: "Topics" },
-  { href: "/discovery", label: "Discovery" },
   { href: "/members", label: "Members" },
   { href: "/groups", label: "Groups" },
   { href: "/spaces", label: "Spaces" },
-  { href: "/chat", label: "Chat" },
-  { href: "/search", label: "Search" },
+  { href: "/gallery", label: "Gallery" },
+  { href: "/discovery", label: "Discover" },
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
@@ -192,8 +194,20 @@ export default function Nav({ role, children }) {
                 </Link>
               ))}
 
-              <p className={styles.groupLabel}>Content</p>
-              {CONTENT.map((link) => (
+              <p className={styles.groupLabel}>Connect</p>
+              {CONNECT.map((link) => (
+                <Link
+                  key={link.href}
+                  className={styles.sidebarLink}
+                  href={link.href}
+                  onClick={close}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              <p className={styles.groupLabel}>Learn</p>
+              {LEARN.map((link) => (
                 <Link
                   key={link.href}
                   className={styles.sidebarLink}

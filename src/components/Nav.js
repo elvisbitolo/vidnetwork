@@ -2,43 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import NotificationBell from "./NotificationBell";
+import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
 import LiveNowBanner from "./LiveNowBanner";
 import ChatbotGuide from "./ChatbotGuide";
 import styles from "./Nav.module.css";
 
-const OVERVIEW = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/feed", label: "Feed" },
-];
-
-const CONNECT = [
-  { href: "/rooms", label: "Rooms" },
-  { href: "/events", label: "Events" },
-  { href: "/challenges", label: "Challenges" },
-];
-
-const LEARN = [
-  { href: "/courses", label: "Courses" },
-  { href: "/articles", label: "Articles" },
-  { href: "/recordings", label: "Recordings" },
-];
-
-const COMMUNITY = [
-  { href: "/members", label: "Members" },
-  { href: "/groups", label: "Groups" },
-  { href: "/spaces", label: "Spaces" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/discovery", label: "Discover" },
-  { href: "/leaderboard", label: "Leaderboard" },
-];
-
 function getAnalyticsLinks(role) {
   if (role === "owner") {
     return [
-      { href: "/admin/analytics", label: "Analytics" },
-      { href: "/admin/income", label: "Income" },
+      { href: "/admin/analytics", key: "analytics" },
+      { href: "/admin/income", key: "income" },
     ];
   }
   return [];
@@ -46,7 +22,7 @@ function getAnalyticsLinks(role) {
 
 function getMonetizationLinks(role) {
   if (role === "owner") {
-    return [{ href: "/admin/promocodes", label: "Promo codes" }];
+    return [{ href: "/admin/promocodes", key: "promoCodes" }];
   }
   return [];
 }
@@ -54,8 +30,8 @@ function getMonetizationLinks(role) {
 function getAutomationLinks(role) {
   if (role === "owner") {
     return [
-      { href: "/admin/automations", label: "Automations" },
-      { href: "/admin/announcements", label: "Announcements" },
+      { href: "/admin/automations", key: "automations" },
+      { href: "/admin/announcements", key: "announcements" },
     ];
   }
   return [];
@@ -64,24 +40,52 @@ function getAutomationLinks(role) {
 function getAdministrationLinks(role) {
   if (role === "owner") {
     return [
-      { href: "/admin/rooms", label: "Manage rooms" },
-      { href: "/admin/courses", label: "Manage courses" },
-      { href: "/admin/collections", label: "Collections" },
-      { href: "/admin/questions", label: "Questions" },
-      { href: "/admin/hosts", label: "Scoped hosts" },
-      { href: "/admin/moderation", label: "Moderation" },
+      { href: "/admin/rooms", key: "manageRooms" },
+      { href: "/admin/courses", key: "manageCourses" },
+      { href: "/admin/collections", key: "collections" },
+      { href: "/admin/questions", key: "questions" },
+      { href: "/admin/hosts", key: "scopedHosts" },
+      { href: "/admin/moderation", key: "moderation" },
     ];
   }
   if (role === "moderator") {
     return [
-      { href: "/admin/hosts", label: "Scoped hosts" },
-      { href: "/admin/moderation", label: "Moderation" },
+      { href: "/admin/hosts", key: "scopedHosts" },
+      { href: "/admin/moderation", key: "moderation" },
     ];
   }
   return [];
 }
 
+const OVERVIEW_ITEMS = [
+  { href: "/dashboard", key: "dashboard" },
+  { href: "/feed", key: "feed" },
+];
+
+const CONNECT_ITEMS = [
+  { href: "/rooms", key: "rooms" },
+  { href: "/events", key: "events" },
+  { href: "/challenges", key: "challenges" },
+];
+
+const LEARN_ITEMS = [
+  { href: "/courses", key: "courses" },
+  { href: "/articles", key: "articles" },
+  { href: "/recordings", key: "recordings" },
+];
+
+const COMMUNITY_ITEMS = [
+  { href: "/members", key: "members" },
+  { href: "/groups", key: "groups" },
+  { href: "/spaces", key: "spaces" },
+  { href: "/gallery", key: "gallery" },
+  { href: "/discovery", key: "discover" },
+  { href: "/leaderboard", key: "leaderboard" },
+];
+
 export default function Nav({ role, children }) {
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("sidebarCollapsed") === "1"
@@ -153,7 +157,7 @@ export default function Nav({ role, children }) {
             onClick={toggleSidebar}
             aria-expanded={mobileOpen || !collapsed}
             aria-controls="sidebar-menu"
-            aria-label="Toggle navigation"
+            aria-label={t("toggleNav")}
           >
             <span className={styles.burgerLine} />
             <span className={styles.burgerLine} />
@@ -164,6 +168,7 @@ export default function Nav({ role, children }) {
           </Link>
         </div>
         <div className={styles.topbarRight}>
+          <LanguageSwitcher />
           <NotificationBell />
           <ProfileMenu />
         </div>
@@ -182,45 +187,45 @@ export default function Nav({ role, children }) {
         >
           <div className={styles.sidebarInner}>
             <nav className={styles.sidebarNav}>
-              <p className={styles.groupLabel}>Overview</p>
-              {OVERVIEW.map((link) => (
+              <p className={styles.groupLabel}>{t("overview")}</p>
+              {OVERVIEW_ITEMS.map((item) => (
                 <Link
-                  key={link.href}
+                  key={item.href}
                   className={styles.sidebarLink}
-                  href={link.href}
+                  href={item.href}
                   onClick={close}
                 >
-                  {link.label}
+                  {t(item.key)}
                 </Link>
               ))}
 
-              <p className={styles.groupLabel}>Connect</p>
-              {CONNECT.map((link) => (
+              <p className={styles.groupLabel}>{t("connect")}</p>
+              {CONNECT_ITEMS.map((item) => (
                 <Link
-                  key={link.href}
+                  key={item.href}
                   className={styles.sidebarLink}
-                  href={link.href}
+                  href={item.href}
                   onClick={close}
                 >
-                  {link.label}
+                  {t(item.key)}
                 </Link>
               ))}
 
-              <p className={styles.groupLabel}>Learn</p>
-              {LEARN.map((link) => (
+              <p className={styles.groupLabel}>{t("learn")}</p>
+              {LEARN_ITEMS.map((item) => (
                 <Link
-                  key={link.href}
+                  key={item.href}
                   className={styles.sidebarLink}
-                  href={link.href}
+                  href={item.href}
                   onClick={close}
                 >
-                  {link.label}
+                  {t(item.key)}
                 </Link>
               ))}
 
               {collections.length > 0 && (
                 <>
-                  <p className={styles.groupLabel}>Collections</p>
+                  <p className={styles.groupLabel}>{t("collections")}</p>
                   {collections.map((collection) => (
                     <div key={collection.id} className={styles.collection}>
                       <p className={styles.collectionName}>{collection.name}</p>
@@ -239,38 +244,38 @@ export default function Nav({ role, children }) {
                 </>
               )}
 
-              <p className={styles.groupLabel}>Community</p>
-              {COMMUNITY.map((link) => (
+              <p className={styles.groupLabel}>{t("community")}</p>
+              {COMMUNITY_ITEMS.map((item) => (
                 <Link
-                  key={link.href}
+                  key={item.href}
                   className={styles.sidebarLink}
-                  href={link.href}
+                  href={item.href}
                   onClick={close}
                 >
-                  {link.label}
+                  {t(item.key)}
                 </Link>
               ))}
 
               {hasHostTools && !analyticsLinks.length && (
                 <>
-                  <p className={styles.groupLabel}>Host</p>
+                  <p className={styles.groupLabel}>{t("host")}</p>
                   <Link className={styles.sidebarLink} href="/host" onClick={close}>
-                    Host tools
+                    {t("hostTools")}
                   </Link>
                 </>
               )}
 
               {analyticsLinks.length > 0 && (
                 <>
-                  <p className={styles.groupLabel}>Analytics</p>
-                  {analyticsLinks.map((link) => (
+                  <p className={styles.groupLabel}>{t("analytics")}</p>
+                  {analyticsLinks.map((item) => (
                     <Link
-                      key={link.href}
+                      key={item.href}
                       className={styles.sidebarLink}
-                      href={link.href}
+                      href={item.href}
                       onClick={close}
                     >
-                      {link.label}
+                      {t(item.key)}
                     </Link>
                   ))}
                 </>
@@ -278,15 +283,15 @@ export default function Nav({ role, children }) {
 
               {monetizationLinks.length > 0 && (
                 <>
-                  <p className={styles.groupLabel}>Monetization</p>
-                  {monetizationLinks.map((link) => (
+                  <p className={styles.groupLabel}>{t("monetization")}</p>
+                  {monetizationLinks.map((item) => (
                     <Link
-                      key={link.href}
+                      key={item.href}
                       className={styles.sidebarLink}
-                      href={link.href}
+                      href={item.href}
                       onClick={close}
                     >
-                      {link.label}
+                      {t(item.key)}
                     </Link>
                   ))}
                 </>
@@ -294,15 +299,15 @@ export default function Nav({ role, children }) {
 
               {automationLinks.length > 0 && (
                 <>
-                  <p className={styles.groupLabel}>Automation</p>
-                  {automationLinks.map((link) => (
+                  <p className={styles.groupLabel}>{t("automation")}</p>
+                  {automationLinks.map((item) => (
                     <Link
-                      key={link.href}
+                      key={item.href}
                       className={styles.sidebarLink}
-                      href={link.href}
+                      href={item.href}
                       onClick={close}
                     >
-                      {link.label}
+                      {t(item.key)}
                     </Link>
                   ))}
                 </>
@@ -310,15 +315,15 @@ export default function Nav({ role, children }) {
 
               {administrationLinks.length > 0 && (
                 <>
-                  <p className={styles.groupLabel}>Administration</p>
-                  {administrationLinks.map((link) => (
+                  <p className={styles.groupLabel}>{t("administration")}</p>
+                  {administrationLinks.map((item) => (
                     <Link
-                      key={link.href}
+                      key={item.href}
                       className={styles.sidebarLink}
-                      href={link.href}
+                      href={item.href}
                       onClick={close}
                     >
-                      {link.label}
+                      {t(item.key)}
                     </Link>
                   ))}
                 </>
@@ -346,7 +351,7 @@ export default function Nav({ role, children }) {
               gap: 12,
             }}>
               <p style={{ fontSize: 14, color: "#f5f5f5", margin: 0 }}>
-                <strong>Complete your profile</strong> — tell us about your craft so we can personalize your experience.
+                <strong>{t("completeProfile")}</strong> — {t("completeProfileDesc")}
               </p>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <button
@@ -361,7 +366,7 @@ export default function Nav({ role, children }) {
                     cursor: "pointer",
                   }}
                 >
-                  Later
+                  {tc("later")}
                 </button>
                 <a
                   href="/onboarding"
@@ -377,7 +382,7 @@ export default function Nav({ role, children }) {
                     textDecoration: "none",
                   }}
                 >
-                  Set up
+                  {t("setUp")}
                 </a>
               </div>
             </div>

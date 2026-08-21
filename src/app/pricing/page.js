@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import styles from "./pricing.module.css";
@@ -10,36 +11,38 @@ import styles from "./pricing.module.css";
 const TIERS = [
   {
     id: "standard",
-    name: "Community",
+    name: "community",
     price: { monthly: "$20", yearly: "$200" },
-    note: "Billed per month or per year",
+    note: "communityNote",
     features: [
-      "Join live video chat rooms (8 hrs/month)",
-      "Video lessons and course library",
-      "Events, calendar & reminders",
-      "Real-time chat with members",
-      "Post photos & projects to the gallery",
-      "Send congratulatory stickers",
+      "communityFeatures.joinLive",
+      "communityFeatures.videoLessons",
+      "communityFeatures.events",
+      "communityFeatures.chat",
+      "communityFeatures.gallery",
+      "communityFeatures.stickers",
     ],
   },
   {
     id: "premium",
-    name: "Creator",
+    name: "creator",
     price: { monthly: "$40", yearly: "$400" },
-    note: "Everything in Community, plus hosting powers",
+    note: "creatorNote",
     features: [
-      "Everything in Community",
-      "Host your own video chat rooms (unlimited hours)",
-      "Premium courses & exclusive lessons",
-      "Private premium group rooms",
-      "Early access to new content",
-      "Priority support",
+      "creatorFeatures.everythingInCommunity",
+      "creatorFeatures.hostRooms",
+      "creatorFeatures.premiumCourses",
+      "creatorFeatures.privateRooms",
+      "creatorFeatures.earlyAccess",
+      "creatorFeatures.prioritySupport",
     ],
     featured: true,
   },
 ];
 
 export default function PricingPage() {
+  const t = useTranslations("pricing");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [billing, setBilling] = useState("monthly");
   const [busy, setBusy] = useState(null);
@@ -76,17 +79,17 @@ export default function PricingPage() {
           data = {};
         }
       }
-      if (!res.ok) throw new Error(data.error || "Checkout failed, please try again");
+      if (!res.ok) throw new Error(data.error || t("checkoutFailed"));
       if (data.url) {
         window.location.assign(data.url);
         return;
       }
       if (data.switched) {
-        const tierName = tier === "standard" ? "Community" : "Creator";
+        const tierName = tier === "standard" ? t("community") : t("creator");
         setNotice(
           data.unchanged
-            ? `You're already on ${tierName} (${billing}).`
-            : `Your membership has been updated to ${tierName} (${billing}).`
+            ? t("alreadyOn", { tier: tierName, billing })
+            : t("updatedTo", { tier: tierName, billing })
         );
         return;
       }
@@ -104,27 +107,27 @@ export default function PricingPage() {
           VidNetwork
         </Link>
         {signedIn ? (
-          <Link className={styles.headerLink} href="/dashboard">Back to your dashboard</Link>
+          <Link className={styles.headerLink} href="/dashboard">{t("backToDashboard")}</Link>
         ) : (
           <Link className={styles.headerLink} href="/login">Sign in</Link>
         )}
       </header>
       <div className={styles.container}>
-        <h1 className={styles.title}>Choose your membership</h1>
-        <p className={styles.subtitle}>Pay with credit card or PayPal. Cancel anytime.</p>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <p className={styles.subtitle}>{t("subtitle")}</p>
 
         <div className={styles.toggle}>
           <button
             className={billing === "monthly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
             onClick={() => setBilling("monthly")}
           >
-            Monthly
+            {t("monthly")}
           </button>
           <button
             className={billing === "yearly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
             onClick={() => setBilling("yearly")}
           >
-            Yearly
+            {t("yearly")}
           </button>
         </div>
 
@@ -137,7 +140,7 @@ export default function PricingPage() {
             className={styles.promo}
             value={promo}
             onChange={(e) => setPromo(e.target.value)}
-            placeholder="Promo code (optional)"
+            placeholder={t("promoPlaceholder")}
             aria-label="Promo code"
           />
         </div>
@@ -148,14 +151,14 @@ export default function PricingPage() {
               key={tier.id}
               className={tier.featured ? `${styles.card} ${styles.cardFeatured}` : styles.card}
             >
-              <h2 className={styles.cardTitle}>{tier.name}</h2>
+              <h2 className={styles.cardTitle}>{t(tier.name)}</h2>
               <p className={styles.price}>
-                {tier.price[billing]} <span className={styles.interval}>{billing === "monthly" ? "per month" : "per year"}</span>
+                {tier.price[billing]} <span className={styles.interval}>{billing === "monthly" ? t("perMonth") : t("perYear")}</span>
               </p>
-              <p className={styles.note}>{tier.note}</p>
+              <p className={styles.note}>{t(tier.note)}</p>
               <ul className={styles.features}>
                 {tier.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
+                  <li key={feature}>{t(feature)}</li>
                 ))}
               </ul>
 
@@ -164,10 +167,10 @@ export default function PricingPage() {
                 onClick={() => handleSubscribe(tier.id)}
                 disabled={busy !== null}
               >
-                {busy === tier.id ? "Redirecting…" : signedIn ? `Subscribe — ${tier.name}` : "Sign in to subscribe"}
+                {busy === tier.id ? t("redirecting") : signedIn ? t("subscribe", { tier: t(tier.name) }) : t("signInToSubscribe")}
               </button>
               <p className={styles.finePrint}>
-                Card or PayPal · 14-day free trial · no credit card required
+                {t("finePrint")}
               </p>
             </div>
           ))}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { signupWithEmail, loginWithGoogle } from "@/lib/client-auth";
@@ -9,6 +10,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 import styles from "../auth.module.css";
 
 export default function SignupPage() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +28,7 @@ export default function SignupPage() {
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
       window.location.assign("/account");
     } catch (err) {
-      setError(err.message || "Google sign-in failed");
+      setError(err.message || t("googleFailed"));
     } finally {
       setBusy("");
     }
@@ -73,27 +76,26 @@ export default function SignupPage() {
       <main className={styles.page}>
         <div className={styles.card}>
           <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-          <h1 className={styles.title}>Verify your email</h1>
+          <h1 className={styles.title}>{t("verifyEmail")}</h1>
           <div className={styles.verifyBox}>
             <p className={styles.verifyText}>
-              We sent a confirmation link to <strong>{verifyEmail}</strong>. Click it to
-              activate your account, then sign in.
+              {t("verifyEmailDesc", { email: verifyEmail })}
             </p>
             {resent ? (
-              <p className={styles.verifyText}>Verification email resent — check your inbox.</p>
+              <p className={styles.verifyText}>{t("verificationResent")}</p>
             ) : (
               <button
                 className={styles.linkBtn}
                 onClick={resendVerification}
                 disabled={!!busy}
               >
-                {busy === "verify" ? "Sending…" : "Resend verification email"}
+                {busy === "verify" ? t("resending") : t("resendVerification")}
               </button>
             )}
           </div>
           {error && <p className={styles.error}>{error}</p>}
           <p className={styles.footer}>
-            <a className={styles.link} href="/login">Sign in after verifying</a>
+            <a className={styles.link} href="/login">{t("signInAfterVerify")}</a>
           </p>
         </div>
       </main>
@@ -104,20 +106,20 @@ export default function SignupPage() {
     <main className={styles.page}>
       <div className={styles.card}>
         <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-        <h1 className={styles.title}>Create your account</h1>
-        <p className={styles.subtitle}>Start connecting with the community</p>
+        <h1 className={styles.title}>{t("createAccount")}</h1>
+        <p className={styles.subtitle}>{t("startConnecting")}</p>
 
         {error && <p className={styles.error}>{error}</p>}
 
         <button className={styles.googleButton} onClick={handleGoogle} disabled={!!busy}>
-          <GoogleIcon /> Continue with Google
+          <GoogleIcon /> {t("continueWithGoogle")}
         </button>
 
-        <div className={styles.divider}>or</div>
+        <div className={styles.divider}>{tc("or")}</div>
 
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="name">Name</label>
+            <label className={styles.label} htmlFor="name">{t("name")}</label>
             <input
               id="name"
               className={styles.input}
@@ -129,7 +131,7 @@ export default function SignupPage() {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">Email</label>
+            <label className={styles.label} htmlFor="email">{t("email")}</label>
             <input
               id="email"
               className={styles.input}
@@ -141,7 +143,7 @@ export default function SignupPage() {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">Password</label>
+            <label className={styles.label} htmlFor="password">{t("password")}</label>
             <input
               id="password"
               className={styles.input}
@@ -154,12 +156,12 @@ export default function SignupPage() {
             />
           </div>
           <button className={styles.submit} type="submit" disabled={!!busy}>
-            {busy === "email" ? "Creating account…" : "Create account"}
+            {busy === "email" ? t("creatingAccount") : t("createAccountBtn")}
           </button>
         </form>
 
         <p className={styles.footer}>
-          Already a member? <a className={styles.link} href="/login">Sign in</a>
+          {t("alreadyMember")} <a className={styles.link} href="/login">{t("signInLink")}</a>
         </p>
       </div>
     </main>

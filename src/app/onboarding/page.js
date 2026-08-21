@@ -2,94 +2,97 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const STEPS = [
   {
     key: "skill",
-    title: "What's your skill level?",
-    subtitle: "This helps us recommend the right content for you.",
+    titleKey: "skillTitle",
+    subtitleKey: "skillSubtitle",
     type: "single",
     options: [
-      { value: "beginner", label: "Beginner", desc: "Just started my journey" },
-      { value: "intermediate", label: "Intermediate", desc: "Can read patterns confidently" },
-      { value: "advanced", label: "Advanced", desc: "I design my own patterns" },
-      { value: "expert", label: "Expert", desc: "I teach and mentor others" },
+      { value: "beginner", labelKey: "beginner", descKey: "beginnerDesc" },
+      { value: "intermediate", labelKey: "intermediate", descKey: "intermediateDesc" },
+      { value: "advanced", labelKey: "advanced", descKey: "advancedDesc" },
+      { value: "expert", labelKey: "expert", descKey: "expertDesc" },
     ],
   },
   {
     key: "crafts",
-    title: "What crafts interest you?",
-    subtitle: "Select all that apply.",
+    titleKey: "craftsTitle",
+    subtitleKey: "craftsSubtitle",
     type: "multi",
     options: [
-      { value: "crochet", label: "Crochet" },
-      { value: "knitting", label: "Knitting" },
-      { value: "weaving", label: "Weaving" },
-      { value: "spinning", label: "Spinning" },
-      { value: "dyeing", label: "Dyeing" },
-      { value: "embroidery", label: "Embroidery" },
-      { value: "macrame", label: "Macramé" },
+      { value: "crochet", labelKey: "crochet" },
+      { value: "knitting", labelKey: "knitting" },
+      { value: "weaving", labelKey: "weaving" },
+      { value: "spinning", labelKey: "spinning" },
+      { value: "dyeing", labelKey: "dyeing" },
+      { value: "embroidery", labelKey: "embroidery" },
+      { value: "macrame", labelKey: "macrame" },
     ],
   },
   {
     key: "projects",
-    title: "What do you like to make?",
-    subtitle: "Pick your favorites.",
+    titleKey: "projectsTitle",
+    subtitleKey: "projectsSubtitle",
     type: "multi",
     options: [
-      { value: "amigurumi", label: "Amigurumi", desc: "Toys & figures" },
-      { value: "garments", label: "Garments", desc: "Clothing & wearables" },
-      { value: "blankets", label: "Blankets", desc: "Afghans & throws" },
-      { value: "accessories", label: "Accessories", desc: "Hats, scarves, bags" },
-      { value: "home-decor", label: "Home Decor", desc: "Coasters, pillows, wall art" },
-      { value: "baby-items", label: "Baby Items", desc: "Booties, blankets, toys" },
-      { value: "jewelry", label: "Jewelry", desc: "Earrings, bracelets, necklaces" },
+      { value: "amigurumi", labelKey: "amigurumi", descKey: "amigurumiDesc" },
+      { value: "garments", labelKey: "garments", descKey: "garmentsDesc" },
+      { value: "blankets", labelKey: "blankets", descKey: "blanketsDesc" },
+      { value: "accessories", labelKey: "accessories", descKey: "accessoriesDesc" },
+      { value: "home-decor", labelKey: "homeDecor", descKey: "homeDecorDesc" },
+      { value: "baby-items", labelKey: "babyItems", descKey: "babyItemsDesc" },
+      { value: "jewelry", labelKey: "jewelry", descKey: "jewelryDesc" },
     ],
   },
   {
     key: "yarn",
-    title: "What yarn weight do you prefer?",
-    subtitle: "This helps match you with similar makers.",
+    titleKey: "yarnTitle",
+    subtitleKey: "yarnSubtitle",
     type: "single",
     options: [
-      { value: "lace-fingering", label: "Lace / Fingering", desc: "Thin, delicate projects" },
-      { value: "sport-dk", label: "Sport / DK", desc: "Lightweight, versatile" },
-      { value: "worsted-aran", label: "Worsted / Aran", desc: "Medium, most popular" },
-      { value: "bulky-super", label: "Bulky / Super Bulky", desc: "Thick, quick results" },
-      { value: "no-preference", label: "No preference", desc: "I use it all!" },
+      { value: "lace-fingering", labelKey: "laceFingering", descKey: "laceFingeringDesc" },
+      { value: "sport-dk", labelKey: "sportDk", descKey: "sportDkDesc" },
+      { value: "worsted-aran", labelKey: "worstedAran", descKey: "worstedAranDesc" },
+      { value: "bulky-super", labelKey: "bulkySuper", descKey: "bulkySuperDesc" },
+      { value: "no-preference", labelKey: "noPreference", descKey: "noPreferenceDesc" },
     ],
   },
   {
     key: "hooks",
-    title: "What hook size do you usually reach for?",
-    subtitle: "",
+    titleKey: "hooksTitle",
+    subtitleKey: "hooksSubtitle",
     type: "single",
     options: [
-      { value: "small", label: "Small (1–3mm)", desc: "Fine, detailed work" },
-      { value: "medium", label: "Medium (3.5–6mm)", desc: "Everyday projects" },
-      { value: "large", label: "Large (6.5–10mm)", desc: "Chunky, cozy pieces" },
-      { value: "mixed", label: "Mixed / No preference", desc: "Depends on the project" },
+      { value: "small", labelKey: "smallHook", descKey: "smallHookDesc" },
+      { value: "medium", labelKey: "mediumHook", descKey: "mediumHookDesc" },
+      { value: "large", labelKey: "largeHook", descKey: "largeHookDesc" },
+      { value: "mixed", labelKey: "mixedHook", descKey: "mixedHookDesc" },
     ],
   },
   {
     key: "goals",
-    title: "What do you want from this community?",
-    subtitle: "Select all that matter to you.",
+    titleKey: "goalsTitle",
+    subtitleKey: "goalsSubtitle",
     type: "multi",
     options: [
-      { value: "learn", label: "Learn new techniques" },
-      { value: "share", label: "Share my work" },
-      { value: "patterns", label: "Find patterns" },
-      { value: "connect", label: "Connect with others" },
-      { value: "marketplace", label: "Buy & sell yarn/tools" },
-      { value: "challenges", label: "Join challenges" },
-      { value: "courses", label: "Take courses" },
+      { value: "learn", labelKey: "learnTechniques" },
+      { value: "share", labelKey: "shareWork" },
+      { value: "patterns", labelKey: "findPatterns" },
+      { value: "connect", labelKey: "connectOthers" },
+      { value: "marketplace", labelKey: "buySell" },
+      { value: "challenges", labelKey: "joinChallenges" },
+      { value: "courses", labelKey: "takeCourses" },
     ],
   },
 ];
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const t = useTranslations("onboarding");
+  const tc = useTranslations("common");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({
     skillLevel: "",
@@ -164,11 +167,11 @@ export default function OnboardingPage() {
           continue;
         }
         if (err.name === "AbortError") {
-          setError("Request timed out. Please try again.");
+          setError(t("timeoutError"));
         } else if (err.message?.includes("NetworkError") || err.message?.includes("Failed to fetch")) {
-          setError("Connection issue. Please try again in a moment.");
+          setError(t("networkError"));
         } else {
-          setError(err.message || "Something went wrong. Please try again.");
+          setError(err.message || t("genericError"));
         }
         setSaving(false);
         return;
@@ -179,7 +182,7 @@ export default function OnboardingPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "#9b9bab", fontSize: 14 }}>Loading...</p>
+        <p style={{ color: "#9b9bab", fontSize: 14 }}>{tc("loading")}</p>
       </div>
     );
   }
@@ -210,7 +213,7 @@ export default function OnboardingPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#a78bfa" }}>
-              Step {step + 1} of {STEPS.length}
+              {t("stepOf", { current: step + 1, total: STEPS.length })}
             </span>
             <button
               onClick={() => router.push("/feed")}
@@ -223,7 +226,7 @@ export default function OnboardingPage() {
                 padding: "4px 8px",
               }}
             >
-              Skip for now
+              {tc("skipForNow")}
             </button>
           </div>
           <div style={{
@@ -243,10 +246,10 @@ export default function OnboardingPage() {
         </div>
 
         <h1 style={{ fontSize: 28, fontWeight: 800, color: "#f5f5f5", margin: "0 0 6px" }}>
-          {current.title}
+          {t(current.titleKey)}
         </h1>
         <p style={{ fontSize: 14, color: "#9b9bab", margin: "0 0 28px" }}>
-          {current.subtitle}
+          {t(current.subtitleKey)}
         </p>
 
         {error && (
@@ -312,12 +315,12 @@ export default function OnboardingPage() {
                     </span>
                   )}
                   <span style={{ fontSize: 15, fontWeight: 600, color: "#f5f5f5" }}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </span>
                 </div>
-                {opt.desc && (
+                {opt.descKey && (
                   <p style={{ fontSize: 12, color: "#9b9bab", margin: "4px 0 0", marginLeft: current.type === "multi" ? 30 : 0 }}>
-                    {opt.desc}
+                    {t(opt.descKey)}
                   </p>
                 )}
               </button>
@@ -340,7 +343,7 @@ export default function OnboardingPage() {
                 cursor: "pointer",
               }}
             >
-              Back
+              {tc("back")}
             </button>
           )}
           <button
@@ -364,7 +367,7 @@ export default function OnboardingPage() {
               cursor: !canProceed() || saving ? "not-allowed" : "pointer",
             }}
           >
-            {saving ? "Saving..." : isLast ? "Finish" : "Continue"}
+            {saving ? t("saving") : isLast ? tc("finish") : tc("continue")}
           </button>
         </div>
       </div>

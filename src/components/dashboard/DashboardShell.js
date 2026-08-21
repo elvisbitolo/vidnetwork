@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import StatCard from "./StatCard";
 import AudienceChart from "./AudienceChart";
 import {
@@ -34,6 +35,8 @@ function StatSkeleton() {
 }
 
 export default function DashboardShell() {
+  const t = useTranslations("dashboard");
+  const tNav = useTranslations("nav");
   const router = useRouter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -108,7 +111,7 @@ export default function DashboardShell() {
       <div className={styles.pageWrap}>
         <div className={styles.page}>
           <SectionError
-            message="The dashboard couldn't load. Check your connection and try again."
+            message={t("dashboardLoadError")}
             onRetry={handleRetry}
           />
         </div>
@@ -129,40 +132,40 @@ export default function DashboardShell() {
     kpis.push(
       <StatCard
         key="members"
-        label="Total members"
+        label={t("totalMembers")}
         value={statsValue.members.total.toLocaleString()}
         delta={statsValue.members.total ? Math.round((statsValue.members.new30 / statsValue.members.total) * 100) : 0}
-        deltaLabel="new in 30d"
+        deltaLabel={t("newIn30d")}
       />
     );
     kpis.push(
       <StatCard
         key="live"
-        label="Live viewers"
+        label={t("liveViewers")}
         value={statsValue.live.viewers.toLocaleString()}
-        deltaLabel={`${statsValue.live.rooms} room${statsValue.live.rooms === 1 ? "" : "s"} live`}
+        deltaLabel={t("roomsLive", { count: statsValue.live.rooms })}
       />
     );
     if (isStaff && statsValue.revenue) {
       kpis.push(
         <StatCard
           key="revenue"
-          label="Est. monthly revenue"
+          label={t("estMonthlyRevenue")}
           value={formatMoney(statsValue.revenue.estMonthlyCents)}
-          deltaLabel={`${statsValue.revenue.activeSubs} active subscriber${statsValue.revenue.activeSubs === 1 ? "" : "s"}`}
+          deltaLabel={t("activeSubscribers", { count: statsValue.revenue.activeSubs })}
         />
       );
     } else {
       kpis.push(
-        <StatCard key="points" label="Your points" value={(user.points || 0).toLocaleString()} deltaLabel="community recognition" />
+        <StatCard key="points" label={t("yourPoints")} value={(user.points || 0).toLocaleString()} deltaLabel={t("communityRecognition")} />
       );
     }
     kpis.push(
       <StatCard
         key="engagement"
-        label="Engagement"
+        label={t("engagement")}
         value={`${statsValue.engagement.contributionRate}%`}
-        deltaLabel={`${statsValue.engagement.active7} active this week`}
+        deltaLabel={t("activeThisWeek", { count: statsValue.engagement.active7 })}
       />
     );
   }
@@ -172,9 +175,9 @@ export default function DashboardShell() {
       <div className={styles.page}>
         <div className={styles.header}>
           <div className={styles.heading}>
-            <h1>Dashboard</h1>
+            <h1>{t("title")}</h1>
             <p>
-              {user.name} · {isStaff ? "Admin & creator" : "Member"}
+              {user.name} · {isStaff ? t("adminAndCreator") : t("member")}
             </p>
           </div>
           <div className={styles.headerRight}>
@@ -188,7 +191,7 @@ export default function DashboardShell() {
               <input
                 className={styles.searchInput}
                 type="search"
-                placeholder="Search the community…"
+                placeholder={t("searchPlaceholder")}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="Search"
@@ -213,13 +216,13 @@ export default function DashboardShell() {
             {activity?.ok ? (
               <RecentActivity data={activityValue} />
             ) : (
-              <SectionError message="Activity couldn't load." onRetry={handleRetry} />
+              <SectionError message={t("activityLoadError")} onRetry={handleRetry} />
             )}
 
             {upcomingRooms?.ok ? (
               <UpcomingRooms data={roomsValue} />
             ) : (
-              <SectionError message="Rooms couldn't load." onRetry={handleRetry} />
+              <SectionError message={t("roomsLoadError")} onRetry={handleRetry} />
             )}
           </div>
 
@@ -227,21 +230,21 @@ export default function DashboardShell() {
             {needsAttention?.ok ? (
               <NeedsAttention data={attentionValue} />
             ) : (
-              <SectionError message="Couldn't load your queue." onRetry={handleRetry} />
+              <SectionError message={t("queueLoadError")} onRetry={handleRetry} />
             )}
 
             {content?.ok ? (
               <ContentPerformance data={contentValue} />
             ) : (
-              <SectionError message="Content couldn't load." onRetry={handleRetry} />
+              <SectionError message={t("contentLoadError")} onRetry={handleRetry} />
             )}
 
             {leaderboard?.ok && leaderboard.value.length > 0 && (
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>Recognition</h2>
+                  <h2 className={styles.cardTitle}>{t("recognition")}</h2>
                   <Link className={styles.cardLink} href="/leaderboard">
-                    Leaderboard
+                    {t("leaderboard")}
                   </Link>
                 </div>
                 <ul className={styles.list}>
@@ -253,7 +256,7 @@ export default function DashboardShell() {
                             #{entry.rank} {entry.name}
                           </span>
                           <span className={styles.itemMeta}>
-                            {entry.points} pts · {entry.badgeCount} badges
+                            {t("pts", { points: entry.points, badges: entry.badgeCount })}
                           </span>
                         </span>
                       </Link>

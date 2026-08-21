@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { auth } from "@/lib/firebase/client";
 import { sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
 import { loginWithEmail, loginWithGoogle } from "@/lib/client-auth";
@@ -9,6 +10,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 import styles from "../auth.module.css";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -45,7 +48,7 @@ export default function LoginPage() {
         setVerifyNotice(err.message);
         setResent(false);
       } else {
-        setError(err.message || "Google sign-in failed");
+        setError(err.message || t("googleFailed"));
       }
     } finally {
       setBusy("");
@@ -92,15 +95,13 @@ export default function LoginPage() {
       <main className={styles.page}>
         <div className={styles.card}>
           <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-          <h1 className={styles.title}>Reset your password</h1>
+          <h1 className={styles.title}>{t("resetPassword")}</h1>
           <p className={styles.subtitle}>
-            Enter your email and we&apos;ll send you a reset link.
+            {t("resetPasswordDesc")}
           </p>
 
           {resetSent ? (
-            <p className={styles.success}>
-              Reset link sent to {email}. Check your inbox.
-            </p>
+            <p className={styles.success}>{t("resetSent", { email })}</p>
           ) : (
             <>
         {error && <p className={styles.error}>{error}</p>}
@@ -108,21 +109,21 @@ export default function LoginPage() {
           <div className={styles.verifyBox}>
             <p className={styles.verifyText}>{verifyNotice}</p>
             {resent ? (
-              <p className={styles.verifyText}>Verification email resent — check your inbox.</p>
+              <p className={styles.verifyText}>{t("verificationResent")}</p>
             ) : (
               <button
                 className={styles.linkBtn}
                 onClick={resendVerification}
                 disabled={!!busy}
               >
-                {busy === "verify" ? "Sending…" : "Resend verification email"}
+                {busy === "verify" ? t("resending") : t("resendVerification")}
               </button>
             )}
           </div>
         )}
               <form onSubmit={handleReset}>
                 <div className={styles.field}>
-                  <label className={styles.label} htmlFor="reset-email">Email</label>
+                  <label className={styles.label} htmlFor="reset-email">{t("email")}</label>
                   <input
                     id="reset-email"
                     className={styles.input}
@@ -134,7 +135,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <button className={styles.submit} type="submit" disabled={!!busy}>
-                  {busy === "reset" ? "Sending…" : "Send reset link"}
+                  {busy === "reset" ? t("resending") : t("sendResetLink")}
                 </button>
               </form>
             </>
@@ -142,7 +143,7 @@ export default function LoginPage() {
 
           <p className={styles.footer}>
             <a className={styles.link} onClick={() => { setForgotPassword(false); setResetSent(false); setError(""); }} href="/login">
-              Back to sign in
+              {t("backToSignIn")}
             </a>
           </p>
         </div>
@@ -154,20 +155,20 @@ export default function LoginPage() {
     <main className={styles.page}>
       <div className={styles.card}>
         <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-        <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Sign in to join the community</p>
+        <h1 className={styles.title}>{t("welcomeBack")}</h1>
+        <p className={styles.subtitle}>{t("signInToJoin")}</p>
 
         {error && <p className={styles.error}>{error}</p>}
 
         <button className={styles.googleButton} onClick={handleGoogle} disabled={!!busy}>
-          <GoogleIcon /> Continue with Google
+          <GoogleIcon /> {t("continueWithGoogle")}
         </button>
 
-        <div className={styles.divider}>or</div>
+        <div className={styles.divider}>{tc("or")}</div>
 
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">Email</label>
+            <label className={styles.label} htmlFor="email">{t("email")}</label>
             <input
               id="email"
               className={styles.input}
@@ -179,7 +180,7 @@ export default function LoginPage() {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">Password</label>
+            <label className={styles.label} htmlFor="password">{t("password")}</label>
             <input
               id="password"
               className={styles.input}
@@ -191,18 +192,18 @@ export default function LoginPage() {
             />
           </div>
           <button className={styles.submit} type="submit" disabled={!!busy}>
-            {busy === "email" ? "Signing in…" : "Sign in"}
+            {busy === "email" ? t("signingIn") : t("signIn")}
           </button>
         </form>
 
         <p className={styles.forgot}>
           <a className={styles.link} href="/login" onClick={(e) => { e.preventDefault(); setForgotPassword(true); setError(""); }}>
-            Forgot password?
+            {t("forgotPassword")}
           </a>
         </p>
 
         <p className={styles.footer}>
-          New here? <a className={styles.link} href="/signup">Create an account</a>
+          {t("newHere")} <a className={styles.link} href="/signup">{t("createAccountLink")}</a>
         </p>
       </div>
     </main>

@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/Providers";
 import PushSetup from "@/components/PushSetup";
 
 const geistSans = Geist({
@@ -48,12 +49,19 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const messages = {
+    en: (await import("../../messages/en.json")).default,
+    fr: (await import("../../messages/fr.json")).default,
+    de: (await import("../../messages/de.json")).default,
+  };
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <PushSetup />
-        {children}
+        <Providers messages={messages}>
+          <PushSetup />
+          {children}
+        </Providers>
       </body>
     </html>
   );

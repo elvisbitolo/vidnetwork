@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import LandingNav from "@/components/LandingNav";
 import LandingPricing from "@/components/LandingPricing";
 import Reveal from "@/components/Reveal";
@@ -40,47 +41,49 @@ export const metadata = {
 };
 
 const VALUE_ITEMS = [
-  { icon: VideoIcon, label: "Live Rooms" },
-  { icon: BookIcon, label: "Courses" },
-  { icon: CalendarIcon, label: "Events" },
-  { icon: UsersIcon, label: "Community" },
+  { icon: VideoIcon, label: "liveRooms" },
+  { icon: BookIcon, label: "courses" },
+  { icon: CalendarIcon, label: "events" },
+  { icon: UsersIcon, label: "community" },
 ];
 
 const FEATURES = [
   {
     icon: VideoIcon,
-    name: "Live video rooms",
-    desc: "Talk face-to-face with members in real time, from any device.",
+    name: "liveVideoRooms",
+    desc: "liveVideoRoomsDesc",
   },
   {
     icon: BookIcon,
-    name: "Courses & learning",
-    desc: "Work through video lessons at your own pace and track your progress.",
+    name: "coursesLearning",
+    desc: "coursesLearningDesc",
   },
   {
     icon: CalendarIcon,
-    name: "Events & community",
-    desc: "Discover upcoming events, RSVP and show up alongside the community.",
+    name: "eventsCommunity",
+    desc: "eventsCommunityDesc",
   },
   {
     icon: UsersIcon,
-    name: "Groups & conversations",
-    desc: "Join smaller groups and keep the conversation going beyond the rooms.",
+    name: "groupsConversations",
+    desc: "groupsConversationsDesc",
   },
 ];
 
 const COMMUNITY_CHIPS = [
-  { icon: UsersIcon, label: "Members" },
-  { icon: VideoIcon, label: "Live rooms" },
-  { icon: ChatIcon, label: "Conversations" },
-  { icon: BookIcon, label: "Learning" },
-  { icon: CalendarIcon, label: "Events" },
-  { icon: UsersIcon, label: "Groups" },
+  { icon: UsersIcon, label: "members" },
+  { icon: VideoIcon, label: "liveRoomsChip" },
+  { icon: ChatIcon, label: "conversations" },
+  { icon: BookIcon, label: "learning" },
+  { icon: CalendarIcon, label: "events" },
+  { icon: UsersIcon, label: "groups" },
 ];
 
 const PARTICIPANTS = ["Host", "Speaker", "Speaker", "Speaker", "Speaker", "You"];
 
 export default function Home() {
+  const t = useTranslations("landing");
+  const tc = useTranslations("common");
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -105,21 +108,19 @@ export default function Home() {
             <div className={styles.heroCopy}>
               <span className={styles.eyebrow}>
                 <span className={styles.eyebrowDot} aria-hidden="true" />
-                Live communities · Courses · Events
+                {t("liveCommunities")}
               </span>
-              <h1 className={styles.heroTitle}>Connect. Learn. Grow together.</h1>
-              <p className={styles.heroSub}>
-                Live communities, courses, events and real conversations — all in one place.
-              </p>
+              <h1 className={styles.heroTitle}>{t("heroTitle")}</h1>
+              <p className={styles.heroSub}>{t("heroSub")}</p>
               <div className={styles.heroCtas}>
                 <Link className={styles.primary} href="/signup">
-                  Join VidNetwork
+                  {t("joinVidNetwork")}
                 </Link>
                 <Link className={styles.secondary} href="/explore">
-                  Explore the community
+                  {t("exploreCommunity")}
                 </Link>
               </div>
-              <p className={styles.heroFine}>14-day free trial · no credit card required</p>
+              <p className={styles.heroFine}>{t("freeTrial")}</p>
             </div>
 
             <div className={styles.heroVisual}>
@@ -140,14 +141,14 @@ export default function Home() {
       <section className={styles.valueStrip} aria-label="Platform highlights">
         <div className={styles.wrap}>
           <div className={styles.valueInner}>
-            <p className={styles.valueLead}>Everything you need to participate, learn and connect</p>
+            <p className={styles.valueLead}>{t("valueLead")}</p>
             <div className={styles.valueItems}>
               {VALUE_ITEMS.map((item) => (
                 <div key={item.label} className={styles.valueItem}>
                   <span className={styles.valueIcon}>
                     <item.icon size={17} />
                   </span>
-                  {item.label}
+                  {t(item.label)}
                 </div>
               ))}
             </div>
@@ -160,13 +161,9 @@ export default function Home() {
           <Reveal>
             <div className={styles.sectionHead}>
               <h2 id="overview-title" className={styles.sectionTitle}>
-                Your community, all in one place.
+                {t("communityAllInOne")}
               </h2>
-              <p className={styles.sectionSub}>
-                Move between live conversations, learning, events and community interaction
-                without juggling separate platforms. Everything your membership needs lives
-                on one platform.
-              </p>
+              <p className={styles.sectionSub}>{t("communityDesc")}</p>
             </div>
           </Reveal>
           <Reveal>
@@ -176,8 +173,8 @@ export default function Home() {
                   <span className={styles.featureIcon}>
                     <feature.icon size={22} />
                   </span>
-                  <h3 className={styles.featureName}>{feature.name}</h3>
-                  <p className={styles.featureDesc}>{feature.desc}</p>
+                  <h3 className={styles.featureName}>{t(feature.name)}</h3>
+                  <p className={styles.featureDesc}>{t(feature.desc)}</p>
                 </article>
               ))}
             </div>
@@ -190,12 +187,9 @@ export default function Home() {
           <Reveal>
             <div className={styles.sectionHead}>
               <h2 id="showcase-title" className={styles.sectionTitle}>
-                Meet face-to-face, wherever you are.
+                {t("meetFaceToFace")}
               </h2>
-              <p className={styles.sectionSub}>
-                Join live rooms, talk in real time and interact with the community — with
-                recordings you can come back to later.
-              </p>
+              <p className={styles.sectionSub}>{t("meetFaceToFaceDesc")}</p>
             </div>
           </Reveal>
           <Reveal>
@@ -206,8 +200,8 @@ export default function Home() {
             >
               <div className={styles.showcaseHead}>
                 <div>
-                  <p className={styles.showcaseTitle}>Community Room</p>
-                  <p className={styles.showcaseSub}>Broadcast live to members</p>
+                  <p className={styles.showcaseTitle}>{t("communityRoom")}</p>
+                  <p className={styles.showcaseSub}>{t("broadcastLive")}</p>
                 </div>
                 <span className={styles.liveBadge}>
                   <span className={styles.liveDot} aria-hidden="true" />
@@ -229,7 +223,7 @@ export default function Home() {
                   ))}
                 </div>
                 <div className={styles.chat}>
-                  <p className={styles.chatHeader}>Live chat</p>
+                  <p className={styles.chatHeader}>{t("liveChat")}</p>
                   <div className={styles.chatMsgs}>
                     <div className={styles.msgOther}>Welcome to the room!</div>
                     <div className={styles.msgMe}>Hi everyone</div>
@@ -261,14 +255,11 @@ export default function Home() {
             <Reveal>
               <div className={styles.splitCopy}>
                 <h2 id="learning-title" className={styles.sectionTitle}>
-                  Learn at your own pace.
+                  {t("learnAtOwnPace")}
                 </h2>
-                <p className={styles.sectionSub}>
-                  Courses with structured video lessons. Your progress is saved, so you can
-                  pick up right where you left off — whenever it suits you.
-                </p>
+                <p className={styles.sectionSub}>{t("learnAtOwnPaceDesc")}</p>
                 <Link className={styles.secondary} href="/courses">
-                  Browse courses
+                  {t("browseCourses")}
                 </Link>
               </div>
             </Reveal>
@@ -283,8 +274,8 @@ export default function Home() {
                     <BookIcon size={18} />
                   </span>
                   <div>
-                    <p className={styles.learningTitle}>Your learning progress</p>
-                    <p className={styles.learningSub}>Resume where you left off</p>
+                    <p className={styles.learningTitle}>{t("yourLearningProgress")}</p>
+                    <p className={styles.learningSub}>{t("resumeWhereLeftOff")}</p>
                   </div>
                 </div>
                 <div className={styles.progressTrack} aria-hidden="true">
@@ -295,29 +286,29 @@ export default function Home() {
                     <span className={styles.lessonIcon}>
                       <CheckIcon size={14} />
                     </span>
-                    Lesson 1
-                    <span className={styles.lessonStatus}>Completed</span>
+                    {t("lesson", { number: 1 })}
+                    <span className={styles.lessonStatus}>{t("completed")}</span>
                   </li>
                   <li className={`${styles.lessonRow} ${styles.lessonDone}`}>
                     <span className={styles.lessonIcon}>
                       <CheckIcon size={14} />
                     </span>
-                    Lesson 2
-                    <span className={styles.lessonStatus}>Completed</span>
+                    {t("lesson", { number: 2 })}
+                    <span className={styles.lessonStatus}>{t("completed")}</span>
                   </li>
                   <li className={`${styles.lessonRow} ${styles.lessonCurrent}`}>
                     <span className={styles.lessonIcon}>
                       <PlayIcon size={13} />
                     </span>
-                    Lesson 3
-                    <span className={styles.lessonStatus}>Current</span>
+                    {t("lesson", { number: 3 })}
+                    <span className={styles.lessonStatus}>{t("current")}</span>
                   </li>
                   <li className={styles.lessonRow}>
                     <span className={`${styles.lessonIcon} ${styles.lessonIconUpcoming}`}>
                       <ClockIcon size={13} />
                     </span>
-                    Lesson 4
-                    <span className={styles.lessonStatus}>Upcoming</span>
+                    {t("lesson", { number: 4 })}
+                    <span className={styles.lessonStatus}>{t("upcoming")}</span>
                   </li>
                 </ul>
               </div>
@@ -332,14 +323,11 @@ export default function Home() {
             <Reveal>
               <div className={styles.splitCopy}>
                 <h2 id="events-title" className={styles.sectionTitle}>
-                  Never miss what&apos;s happening.
+                  {t("neverMiss")}
                 </h2>
-                <p className={styles.sectionSub}>
-                  Discover upcoming community events, RSVP and get reminders — so you can show
-                  up for what matters.
-                </p>
+                <p className={styles.sectionSub}>{t("neverMissDesc")}</p>
                 <Link className={styles.secondary} href="/events">
-                  Explore events
+                  {t("exploreEvents")}
                 </Link>
               </div>
             </Reveal>
@@ -354,20 +342,20 @@ export default function Home() {
                     <CalendarIcon size={20} />
                   </span>
                   <div className={styles.eventBody}>
-                    <p className={styles.eventName}>Upcoming event</p>
-                    <p className={styles.eventMeta}>RSVP to join the community live</p>
+                    <p className={styles.eventName}>{t("upcomingEvent")}</p>
+                    <p className={styles.eventMeta}>{t("rsvpToJoin")}</p>
                   </div>
-                  <span className={styles.rsvp}>RSVP</span>
+                  <span className={styles.rsvp}>{t("rsvp")}</span>
                 </div>
                 <div className={styles.eventCard}>
                   <span className={styles.eventCal}>
                     <CalendarIcon size={20} />
                   </span>
                   <div className={styles.eventBody}>
-                    <p className={styles.eventName}>Upcoming event</p>
-                    <p className={styles.eventMeta}>Get notified when it starts</p>
+                    <p className={styles.eventName}>{t("upcomingEvent")}</p>
+                    <p className={styles.eventMeta}>{t("getNotified")}</p>
                   </div>
-                  <span className={styles.rsvp}>RSVP</span>
+                  <span className={styles.rsvp}>{t("rsvp")}</span>
                 </div>
               </div>
             </Reveal>
@@ -380,17 +368,14 @@ export default function Home() {
           <Reveal>
             <div className={styles.communityInner}>
               <h2 id="community-title" className={styles.sectionTitle}>
-                More than a video call.
+                {t("moreThanVideoCall")}
               </h2>
-              <p className={styles.sectionSub}>
-                VidNetwork brings together conversations, groups, members, live rooms,
-                learning and events — one place for everything.
-              </p>
+              <p className={styles.sectionSub}>{t("moreThanVideoCallDesc")}</p>
               <div className={styles.chips}>
                 {COMMUNITY_CHIPS.map((chip, i) => (
                   <span key={chip.label + i} className={styles.chip}>
                     <chip.icon size={15} />
-                    {chip.label}
+                    {t(chip.label)}
                   </span>
                 ))}
               </div>
@@ -404,12 +389,9 @@ export default function Home() {
           <Reveal>
             <div className={styles.sectionHead}>
               <h2 id="pricing-title" className={styles.sectionTitle}>
-                Simple, transparent membership.
+                {t("simpleTransparent")}
               </h2>
-              <p className={styles.sectionSub}>
-                Start free for 14 days, then choose the plan that fits. Upgrade or cancel
-                anytime.
-              </p>
+              <p className={styles.sectionSub}>{t("simpleTransparentDesc")}</p>
             </div>
           </Reveal>
           <Reveal>
@@ -423,15 +405,13 @@ export default function Home() {
           <Reveal>
             <div className={styles.finalPanel}>
               <h2 id="final-cta-title" className={styles.finalTitle}>
-                Ready to join the community?
+                {t("readyToJoin")}
               </h2>
-              <p className={styles.finalSub}>
-                Start connecting, learning and participating in one place.
-              </p>
+              <p className={styles.finalSub}>{t("readyToJoinDesc")}</p>
               <Link className={styles.finalCtaBtn} href="/signup">
-                Start your free trial
+                {t("startFreeTrial")}
               </Link>
-              <p className={styles.finalFine}>14-day free trial · no credit card required</p>
+              <p className={styles.finalFine}>{t("freeTrial")}</p>
             </div>
           </Reveal>
         </div>
@@ -445,23 +425,21 @@ export default function Home() {
                 <PlayIcon size={14} />
               </span>
               <span className={styles.brandName}>VidNetwork</span>
-              <p className={styles.footerTagline}>
-                A paid membership community for live rooms, courses, events and conversation.
-              </p>
+              <p className={styles.footerTagline}>{t("footerTagline")}</p>
             </div>
             <nav aria-label="Footer navigation" className={styles.footerCol}>
-              <p className={styles.footerTitle}>Navigation</p>
+              <p className={styles.footerTitle}>{t("navigation")}</p>
               <Link className={styles.footerLink} href="/rooms">
                 Rooms
               </Link>
               <Link className={styles.footerLink} href="/courses">
-                Courses
+                {t("courses")}
               </Link>
               <Link className={styles.footerLink} href="/events">
-                Events
+                {t("events")}
               </Link>
               <Link className={styles.footerLink} href="/groups">
-                Community
+                {t("community")}
               </Link>
               <Link className={styles.footerLink} href="/pricing">
                 Pricing
@@ -470,16 +448,16 @@ export default function Home() {
                 About
               </Link>
               <Link className={styles.footerLink} href="/guidelines">
-                Community Guidelines
+                {t("communityGuidelines")}
               </Link>
             </nav>
             <nav aria-label="Account links" className={styles.footerCol}>
-              <p className={styles.footerTitle}>Account</p>
+              <p className={styles.footerTitle}>{t("account")}</p>
               <Link className={styles.footerLink} href="/login">
-                Log in
+                {t("login")}
               </Link>
               <Link className={styles.footerLink} href="/signup">
-                Sign up
+                {t("signup")}
               </Link>
             </nav>
           </div>

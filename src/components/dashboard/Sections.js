@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import styles from "./dashboard.module.css";
 import { Card, EmptyState } from "./Section";
 
@@ -29,6 +30,7 @@ function formatTime(ms) {
 }
 
 export function WelcomeBanner({ name }) {
+  const t = useTranslations("dashboard");
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
@@ -37,15 +39,15 @@ export function WelcomeBanner({ name }) {
   return (
     <div className={styles.welcome}>
       <div>
-        <h2 className={styles.welcomeTitle}>Welcome back, {name}</h2>
+        <h2 className={styles.welcomeTitle}>{t("welcomeBack", { name })}</h2>
         <p className={styles.welcomeSub}>{today}</p>
       </div>
       <div className={styles.welcomeActions}>
         <Link className={styles.welcomeLink} href="/rooms">
-          Join a live room
+          {t("joinLiveRoom")}
         </Link>
         <Link className={styles.welcomeLink} href="/feed">
-          View the feed
+          {t("viewFeed")}
         </Link>
       </div>
     </div>
@@ -53,14 +55,15 @@ export function WelcomeBanner({ name }) {
 }
 
 export function QuickActions({ isStaff }) {
+  const t = useTranslations("dashboard");
   const actions = [
-    { label: "Start live", href: "/rooms", icon: "●" },
-    { label: "Upload video", href: "/recordings", icon: "▲" },
-    { label: "Create room", href: isStaff ? "/admin/rooms" : "/rooms", icon: "+" },
-    { label: "Create post", href: "/feed", icon: "✎" },
+    { key: "startLive", href: "/rooms", icon: "●" },
+    { key: "uploadVideo", href: "/recordings", icon: "▲" },
+    { key: "createRoom", href: isStaff ? "/admin/rooms" : "/rooms", icon: "+" },
+    { key: "createPost", href: "/feed", icon: "✎" },
   ];
   return (
-    <Card title="Quick actions">
+    <Card title={t("quickActions")}>
       <div
         style={{
           display: "grid",
@@ -70,13 +73,13 @@ export function QuickActions({ isStaff }) {
       >
         {actions.map((action) => (
           <Link
-            key={action.label}
+            key={action.key}
             className={styles.kpi}
             href={action.href}
             style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
           >
             <span style={{ fontSize: 18, color: "#a78bfa" }}>{action.icon}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{action.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{t(action.key)}</span>
           </Link>
         ))}
       </div>
@@ -85,10 +88,11 @@ export function QuickActions({ isStaff }) {
 }
 
 export function RecentActivity({ data }) {
+  const t = useTranslations("dashboard");
   return (
-    <Card title="Recent activity" linkLabel="Open feed" linkHref="/feed">
+    <Card title={t("recentActivity")} linkLabel={t("openFeed")} linkHref="/feed">
       {data.length === 0 ? (
-        <EmptyState text="Nothing has happened yet. Start the conversation in the feed." />
+        <EmptyState text={t("noActivity")} />
       ) : (
         <ul className={styles.list}>
           {data.map((item) => (
@@ -111,10 +115,11 @@ export function RecentActivity({ data }) {
 }
 
 export function UpcomingRooms({ data }) {
+  const t = useTranslations("dashboard");
   return (
-    <Card title="Live & upcoming" linkLabel="All rooms" linkHref="/rooms">
+    <Card title={t("liveAndUpcoming")} linkLabel={t("allRooms")} linkHref="/rooms">
       {data.length === 0 ? (
-        <EmptyState text="No live or upcoming rooms. Schedule an event to get going." />
+        <EmptyState text={t("noRooms")} />
       ) : (
         <ul className={styles.list}>
           {data.map((item) => (
@@ -127,15 +132,15 @@ export function UpcomingRooms({ data }) {
                       {item.title}
                     </span>
                     <span className={styles.itemMeta}>
-                      {item.kind === "live" ? "Live now" : formatTime(item.startTime)}
+                      {item.kind === "live" ? t("liveNow") : formatTime(item.startTime)}
                     </span>
                   </span>
                 </span>
                 {item.kind === "upcoming" && item.rsvpCount > 0 && (
-                  <span className={`${styles.tag} ${styles.tagRsvp}`}>{item.rsvpCount} RSVPs</span>
+                  <span className={`${styles.tag} ${styles.tagRsvp}`}>{t("rsvps", { count: item.rsvpCount })}</span>
                 )}
                 {item.kind === "live" && (
-                  <span className={`${styles.tag} ${styles.tagLive}`}>LIVE</span>
+                  <span className={`${styles.tag} ${styles.tagLive}`}>{t("live")}</span>
                 )}
               </Link>
             </li>
@@ -171,10 +176,11 @@ export function RecentMessages({ data }) {
 }
 
 export function ContentPerformance({ data }) {
+  const t = useTranslations("dashboard");
   return (
-    <Card title="Top content" linkLabel="Explore" linkHref="/feed">
+    <Card title={t("topContent")} linkLabel={t("explore")} linkHref="/feed">
       {!data || data.items.length === 0 ? (
-        <EmptyState text="Share posts to start building your content library." />
+        <EmptyState text={t("sharePosts")} />
       ) : (
         <ul className={styles.list}>
           {data.items.map((item) => (
@@ -189,7 +195,7 @@ export function ContentPerformance({ data }) {
                   </span>
                 </span>
                 <span className={styles.itemMeta}>
-                  by {item.authorName} · {item.likeCount} likes · {item.commentCount} comments
+                  {t("byAuthor", { name: item.authorName })} · {t("likesAndComments", { likes: item.likeCount, comments: item.commentCount })}
                 </span>
               </Link>
             </li>
@@ -226,10 +232,11 @@ export function NotificationsPanel({ data }) {
 }
 
 export function NeedsAttention({ data }) {
+  const t = useTranslations("dashboard");
   return (
-    <Card title="Needs attention">
+    <Card title={t("needsAttention")}>
       {data.length === 0 ? (
-        <EmptyState text="You're all caught up." />
+        <EmptyState text={t("allCaughtUp")} />
       ) : (
         <ul className={styles.list}>
           {data.map((item) => (
@@ -237,7 +244,7 @@ export function NeedsAttention({ data }) {
               <Link className={styles.attention} href={item.href}>
                 <span className={styles.attentionIcon}>!</span>
                 <span className={styles.attentionText}>{item.label}</span>
-                <span className={styles.attentionMeta}>Review</span>
+                <span className={styles.attentionMeta}>{t("review")}</span>
               </Link>
             </li>
           ))}

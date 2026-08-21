@@ -5,6 +5,7 @@ import Link from "next/link";
 import NotificationBell from "./NotificationBell";
 import ProfileMenu from "./ProfileMenu";
 import LiveNowBanner from "./LiveNowBanner";
+import ChatbotGuide from "./ChatbotGuide";
 import styles from "./Nav.module.css";
 
 const OVERVIEW = [{ href: "/dashboard", label: "Dashboard" }];
@@ -369,6 +370,7 @@ export default function Nav({ role, children }) {
           )}
           {children}
         </div>
+        <ChatbotGuide />
       </div>
     </>
   );

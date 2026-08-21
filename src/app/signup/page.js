@@ -23,7 +23,7 @@ export default function SignupPage() {
     try {
       await loginWithGoogle();
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/dashboard");
+      window.location.assign("/account");
     } catch (err) {
       setError(err.message || "Google sign-in failed");
     } finally {

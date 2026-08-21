@@ -75,8 +75,8 @@ export function QuickActions({ isStaff }) {
             href={action.href}
             style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
           >
-            <span style={{ fontSize: 18, color: "#4f46e5" }}>{action.icon}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#17171c" }}>{action.label}</span>
+            <span style={{ fontSize: 18, color: "#a78bfa" }}>{action.icon}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{action.label}</span>
           </Link>
         ))}
       </div>

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import styles from "./LandingNav.module.css";
 import { PlayIcon } from "./LandingIcons";
 
 const LINKS = [
-  { href: "/explore", label: "Explore" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/explore", key: "exploreCommunity" },
+  { href: "/pricing", key: "pricing" },
 ];
 
 export default function LandingNav() {
+  const t = useTranslations("landing");
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,15 +29,15 @@ export default function LandingNav() {
           <div className={styles.desktopLinks}>
             {LINKS.map((link) => (
               <Link key={link.href} className={styles.link} href={link.href}>
-                {link.label}
+                {t(link.key)}
               </Link>
             ))}
             <span className={styles.divider} aria-hidden="true" />
             <Link className={styles.link} href="/login">
-              Log in
+              {t("login")}
             </Link>
             <Link className={styles.cta} href="/signup">
-              Sign up
+              {t("signup")}
             </Link>
           </div>
 
@@ -62,14 +64,14 @@ export default function LandingNav() {
                 href={link.href}
                 onClick={() => setOpen(false)}
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             ))}
             <Link className={styles.mobileLink} href="/login" onClick={() => setOpen(false)}>
-              Log in
+              {t("login")}
             </Link>
             <Link className={styles.mobileCta} href="/signup" onClick={() => setOpen(false)}>
-              Sign up
+              {t("signup")}
             </Link>
           </div>
         )}

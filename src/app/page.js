@@ -79,7 +79,14 @@ const COMMUNITY_CHIPS = [
   { icon: UsersIcon, label: "groups" },
 ];
 
-const PARTICIPANTS = ["Host", "Speaker", "Speaker", "Speaker", "Speaker", "You"];
+const PARTICIPANTS = [
+  { key: "host" },
+  { key: "speaker" },
+  { key: "speaker" },
+  { key: "speaker" },
+  { key: "speaker" },
+  { key: "you" },
+];
 
 export default function Home() {
   const t = useTranslations("landing");
@@ -205,32 +212,32 @@ export default function Home() {
                 </div>
                 <span className={styles.liveBadge}>
                   <span className={styles.liveDot} aria-hidden="true" />
-                  Live
+                  {t("live")}
                 </span>
               </div>
               <div className={styles.showcaseBody}>
                 <div className={styles.showcaseGrid}>
-                  {PARTICIPANTS.map((label, i) => (
+                  {PARTICIPANTS.map((p, i) => (
                     <div
-                      key={label + i}
-                      className={label === "You" ? `${styles.tile} ${styles.tileYou}` : styles.tile}
+                      key={p.key + i}
+                      className={p.key === "you" ? `${styles.tile} ${styles.tileYou}` : styles.tile}
                     >
                       <span className={styles.avatar}>
                         <UsersIcon size={22} />
                       </span>
-                      <span className={styles.tileLabel}>{label}</span>
+                      <span className={styles.tileLabel}>{t(p.key)}</span>
                     </div>
                   ))}
                 </div>
                 <div className={styles.chat}>
                   <p className={styles.chatHeader}>{t("liveChat")}</p>
                   <div className={styles.chatMsgs}>
-                    <div className={styles.msgOther}>Welcome to the room!</div>
-                    <div className={styles.msgMe}>Hi everyone</div>
-                    <div className={styles.msgOther}>Great to see you here</div>
-                    <div className={styles.msgMe}>Ready when you are</div>
+                    <div className={styles.msgOther}>{t("welcomeToRoom")}</div>
+                    <div className={styles.msgMe}>{t("hiEveryone")}</div>
+                    <div className={styles.msgOther}>{t("greatToSeeYou")}</div>
+                    <div className={styles.msgMe}>{t("readyWhenYouAre")}</div>
                   </div>
-                  <div className={styles.chatInput}>Type a message…</div>
+                  <div className={styles.chatInput}>{t("typeMessage")}</div>
                 </div>
               </div>
               <div className={styles.controls}>
@@ -430,7 +437,7 @@ export default function Home() {
             <nav aria-label="Footer navigation" className={styles.footerCol}>
               <p className={styles.footerTitle}>{t("navigation")}</p>
               <Link className={styles.footerLink} href="/rooms">
-                Rooms
+                {t("rooms")}
               </Link>
               <Link className={styles.footerLink} href="/courses">
                 {t("courses")}
@@ -442,10 +449,10 @@ export default function Home() {
                 {t("community")}
               </Link>
               <Link className={styles.footerLink} href="/pricing">
-                Pricing
+                {t("pricing")}
               </Link>
               <Link className={styles.footerLink} href="/about">
-                About
+                {t("about")}
               </Link>
               <Link className={styles.footerLink} href="/guidelines">
                 {t("communityGuidelines")}

@@ -2,40 +2,42 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import styles from "./LandingPricing.module.css";
 import { CheckIcon } from "./LandingIcons";
 
 const TIERS = [
   {
     id: "standard",
-    name: "Standard",
-    price: { monthly: "$20", yearly: "$200" },
-    note: { monthly: "per month", yearly: "per year" },
-    benefits: [
-      "Access to all live video rooms",
-      "Video lessons and course library",
-      "Events, calendar & reminders",
-      "Broadcast live streams",
-      "Real-time chat with members",
+    nameKey: "community",
+    priceKey: "community",
+    noteKey: "communityNote",
+    benefitsKeys: [
+      "pricing.communityFeatures.joinLive",
+      "pricing.communityFeatures.videoLessons",
+      "pricing.communityFeatures.events",
+      "pricing.communityFeatures.chat",
     ],
   },
   {
     id: "premium",
-    name: "Premium",
-    price: { monthly: "$40", yearly: "$400" },
-    note: { monthly: "per month", yearly: "per year" },
-    benefits: [
-      "Everything in Standard",
-      "Premium courses & exclusive lessons",
-      "Private premium group rooms",
-      "Early access to new content",
-      "Priority support",
+    nameKey: "creator",
+    priceKey: "creator",
+    noteKey: "creatorNote",
+    benefitsKeys: [
+      "pricing.creatorFeatures.everythingInCommunity",
+      "pricing.creatorFeatures.premiumCourses",
+      "pricing.creatorFeatures.privateRooms",
+      "pricing.creatorFeatures.earlyAccess",
+      "pricing.creatorFeatures.prioritySupport",
     ],
     featured: true,
   },
 ];
 
 export default function LandingPricing() {
+  const t = useTranslations("landing");
+  const tp = useTranslations("pricing");
   const [billing, setBilling] = useState("monthly");
 
   return (
@@ -46,14 +48,14 @@ export default function LandingPricing() {
           className={billing === "monthly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
           onClick={() => setBilling("monthly")}
         >
-          Monthly
+          {tp("monthly")}
         </button>
         <button
           type="button"
           className={billing === "yearly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
           onClick={() => setBilling("yearly")}
         >
-          Yearly
+          {tp("yearly")}
         </button>
       </div>
 
@@ -64,18 +66,18 @@ export default function LandingPricing() {
             className={tier.featured ? `${styles.card} ${styles.cardFeatured}` : styles.card}
           >
             {tier.featured && <span className={styles.rec}>Most popular</span>}
-            <h3 className={styles.name}>{tier.name}</h3>
+            <h3 className={styles.name}>{tp(tier.nameKey)}</h3>
             <p className={styles.price}>
-              {tier.price[billing]}
-              <span className={styles.interval}> {tier.note[billing]}</span>
+              {tier.id === "standard" ? "$20" : "$40"}
+              <span className={styles.interval}> {billing === "monthly" ? tp("perMonth") : tp("perYear")}</span>
             </p>
             <ul className={styles.benefits}>
-              {tier.benefits.map((benefit) => (
-                <li key={benefit} className={styles.benefit}>
+              {tier.benefitsKeys.map((key) => (
+                <li key={key} className={styles.benefit}>
                   <span className={styles.benefitIcon}>
                     <CheckIcon size={14} />
                   </span>
-                  {benefit}
+                  {tp(key)}
                 </li>
               ))}
             </ul>
@@ -83,13 +85,13 @@ export default function LandingPricing() {
               className={tier.featured ? `${styles.cta} ${styles.ctaFeatured}` : styles.cta}
               href="/pricing"
             >
-              Choose {tier.name}
+              {tp("subscribe", { tier: tp(tier.nameKey) })}
             </Link>
           </div>
         ))}
       </div>
 
-      <p className={styles.fine}>14-day free trial · no credit card required · card or PayPal</p>
+      <p className={styles.fine}>{tp("finePrint")}</p>
     </div>
   );
 }

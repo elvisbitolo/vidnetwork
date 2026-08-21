@@ -340,6 +340,18 @@
     "account": "Konto",
     "login": "Anmelden",
     "signup": "Registrieren",
-    "communityGuidelines": "Community-Richtlinien"
+    "communityGuidelines": "Community-Richtlinien",
+    "rooms": "Räume",
+    "pricing": "Preise",
+    "about": "Über uns",
+    "live": "Live",
+    "welcomeToRoom": "Willkommen im Raum!",
+    "hiEveryone": "Hallo zusammen",
+    "greatToSeeYou": "Schön, Sie hier zu sehen",
+    "readyWhenYouAre": "Bereit, wann immer Sie es sind",
+    "typeMessage": "Nachricht eingeben…",
+    "host": "Moderator",
+    "speaker": "Referent",
+    "you": "Sie"
   }
 }

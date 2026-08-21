@@ -340,6 +340,18 @@
     "account": "Account",
     "login": "Log in",
     "signup": "Sign up",
-    "communityGuidelines": "Community Guidelines"
+    "communityGuidelines": "Community Guidelines",
+    "rooms": "Rooms",
+    "pricing": "Pricing",
+    "about": "About",
+    "live": "Live",
+    "welcomeToRoom": "Welcome to the room!",
+    "hiEveryone": "Hi everyone",
+    "greatToSeeYou": "Great to see you here",
+    "readyWhenYouAre": "Ready when you are",
+    "typeMessage": "Type a message…",
+    "host": "Host",
+    "speaker": "Speaker",
+    "you": "You"
   }
 }

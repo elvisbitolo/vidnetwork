@@ -341,6 +341,18 @@
     "account": "Compte",
     "login": "Se connecter",
     "signup": "S'inscrire",
-    "communityGuidelines": "Règles de la communauté"
+    "communityGuidelines": "Règles de la communauté",
+    "rooms": "Salons",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "live": "En direct",
+    "welcomeToRoom": "Bienvenue dans le salon !",
+    "hiEveryone": "Bonjour à tous",
+    "greatToSeeYou": "Ravi de vous voir ici",
+    "readyWhenYouAre": "Prêt quand vous l'êtes",
+    "typeMessage": "Tapez un message…",
+    "host": "Animateur",
+    "speaker": "Intervenant",
+    "you": "Vous"
   }
 }

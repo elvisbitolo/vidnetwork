@@ -140,20 +140,39 @@ export default function OnboardingPage() {
   async function handleFinish() {
     setSaving(true);
     setError("");
-    try {
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save");
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+        const res = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(answers),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Server error (${res.status})`);
+        }
+        setSaving(false);
+        router.push("/feed");
+        return;
+      } catch (err) {
+        if (attempt === 0 && (err.name === "AbortError" || err.message?.includes("NetworkError") || err.message?.includes("Failed to fetch"))) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        if (err.name === "AbortError") {
+          setError("Request timed out. Please try again.");
+        } else if (err.message?.includes("NetworkError") || err.message?.includes("Failed to fetch")) {
+          setError("Connection issue. Please try again in a moment.");
+        } else {
+          setError(err.message || "Something went wrong. Please try again.");
+        }
+        setSaving(false);
+        return;
       }
-      router.push("/feed");
-    } catch (err) {
-      setError(err.message);
-      setSaving(false);
     }
   }
 

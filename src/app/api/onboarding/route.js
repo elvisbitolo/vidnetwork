@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
 
+export const dynamic = "force-dynamic";
+
 const VALID_SKILLS = ["beginner", "intermediate", "advanced", "expert"];
 const VALID_CRAFTS = ["crochet", "knitting", "weaving", "spinning", "dyeing", "embroidery", "macrame"];
 const VALID_PROJECTS = ["amigurumi", "garments", "blankets", "accessories", "home-decor", "baby-items", "jewelry"];

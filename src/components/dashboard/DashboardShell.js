@@ -10,11 +10,8 @@ import {
   QuickActions,
   RecentActivity,
   UpcomingRooms,
-  RecentMessages,
   ContentPerformance,
-  NotificationsPanel,
   NeedsAttention,
-  OnboardingProgress,
 } from "./Sections";
 import { CardSkeleton, SectionError } from "./Section";
 import styles from "./dashboard.module.css";
@@ -119,16 +116,13 @@ export default function DashboardShell() {
     );
   }
 
-  const { user, isStaff, stats, activity, upcomingRooms, messages, content, notifications, needsAttention, onboarding, leaderboard } = data;
+  const { user, isStaff, stats, activity, upcomingRooms, content, needsAttention, leaderboard } = data;
 
   const statsValue = stats?.ok ? stats.value : null;
   const activityValue = activity?.ok ? activity.value : [];
   const roomsValue = upcomingRooms?.ok ? upcomingRooms.value : [];
-  const messagesValue = messages?.ok ? messages.value : [];
   const contentValue = content?.ok ? content.value : null;
-  const notificationsValue = notifications?.ok ? notifications.value : [];
   const attentionValue = needsAttention?.ok ? needsAttention.value : [];
-  const onboardingValue = onboarding?.ok ? onboarding.value : null;
 
   const kpis = [];
   if (statsValue) {
@@ -230,28 +224,10 @@ export default function DashboardShell() {
           </div>
 
           <div className={styles.col}>
-            {onboarding?.ok ? (
-              <OnboardingProgress data={onboardingValue} />
-            ) : (
-              <SectionError message="Onboarding couldn't load." onRetry={handleRetry} />
-            )}
-
             {needsAttention?.ok ? (
               <NeedsAttention data={attentionValue} />
             ) : (
               <SectionError message="Couldn't load your queue." onRetry={handleRetry} />
-            )}
-
-            {notifications?.ok ? (
-              <NotificationsPanel data={notificationsValue} />
-            ) : (
-              <SectionError message="Notifications couldn't load." onRetry={handleRetry} />
-            )}
-
-            {messages?.ok ? (
-              <RecentMessages data={messagesValue} />
-            ) : (
-              <SectionError message="Messages couldn't load." onRetry={handleRetry} />
             )}
 
             {content?.ok ? (

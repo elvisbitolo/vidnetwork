@@ -15,17 +15,25 @@ export default function RecognitionForm({ toUid, values }) {
     setError("");
     setBusy(true);
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
       const res = await fetch("/api/recognitions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ toUid, value, note }),
+        signal: controller.signal,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Recognition failed");
+      clearTimeout(timeout);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
       setDone(true);
       setNote("");
     } catch (err) {
-      setError(err.message);
+      if (err.name === "AbortError") {
+        setError("Timed out. Please try again.");
+      } else {
+        setError(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setBusy(false);
     }

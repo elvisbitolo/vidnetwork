@@ -12,10 +12,8 @@ export default function RoomMusicPicker({ isStaff }) {
   const [uploadError, setUploadError] = useState("");
   const [urlError, setUrlError] = useState("");
   const [previewSrc, setPreviewSrc] = useState("");
-  const [previewPlaying, setPreviewPlaying] = useState(false);
   const panelRef = useRef(null);
   const fileRef = useRef(null);
-  const previewRef = useRef(null);
 
   useEffect(() => {
     if (!isStaff) return;
@@ -63,22 +61,6 @@ export default function RoomMusicPicker({ isStaff }) {
     e.target.value = "";
   }
 
-  function togglePreview() {
-    if (!previewRef.current) return;
-    if (previewPlaying) {
-      previewRef.current.pause();
-      setPreviewPlaying(false);
-    } else {
-      previewRef.current.play().then(() => setPreviewPlaying(true)).catch(() => {});
-    }
-  }
-
-  useEffect(() => {
-    if (!previewRef.current || !previewSrc) return;
-    previewRef.current.load();
-    previewRef.current.play().then(() => setPreviewPlaying(true)).catch(() => {});
-  }, [previewSrc]);
-
   async function save(updates) {
     if (updates.musicUrl && !updates.musicUrl.startsWith("data:")) {
       const ext = updates.musicUrl.split("?")[0].split(".").pop().toLowerCase();
@@ -96,9 +78,8 @@ export default function RoomMusicPicker({ isStaff }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
-      const data = await res.json();
       if (!res.ok) {
-        setUrlError(data.error || "Failed to save");
+        setUrlError("Failed to save");
         setSaving(false);
         return;
       }
@@ -170,7 +151,7 @@ export default function RoomMusicPicker({ isStaff }) {
             Room Music
           </div>
           <p style={{ fontSize: 12, color: "#8b8b9b", margin: "0 0 14px" }}>
-            Set a song for the Community Lounge. Plays continuously through LiveKit — even if you close your phone.
+            Set the background music. Plays on every page for all visitors.
           </p>
 
           {playing && (
@@ -186,7 +167,7 @@ export default function RoomMusicPicker({ isStaff }) {
             }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80", animation: "pulse 1.5s infinite" }} />
               <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}>
-                Playing live — {name || "Music"}
+                Now playing — {name || "Music"}
               </span>
             </div>
           )}
@@ -265,33 +246,15 @@ export default function RoomMusicPicker({ isStaff }) {
           />
           {urlError && <p style={{ fontSize: 12, color: "#f87171", margin: "0 0 10px" }}>{urlError}</p>}
           <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 14px" }}>
-            Direct link to an audio file (.mp3, .wav, .ogg). Right-click the audio player on the source site and copy the audio URL.
+            Direct link to an audio file (.mp3, .wav, .ogg).
           </p>
 
           {url && (
             <div style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: "#6b6b7b" }}>
-                  {url.startsWith("data:") ? "Uploaded file" : "Preview"}
-                </span>
-                <button
-                  onClick={togglePreview}
-                  style={{
-                    padding: "2px 8px",
-                    borderRadius: 6,
-                    border: "none",
-                    background: previewPlaying ? "rgba(239,68,68,0.15)" : "rgba(109,93,246,0.15)",
-                    color: previewPlaying ? "#f87171" : "#a78bfa",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                >
-                  {previewPlaying ? "Stop preview" : "Preview"}
-                </button>
+              <div style={{ fontSize: 11, color: "#6b6b7b", marginBottom: 4 }}>
+                {url.startsWith("data:") ? "Uploaded file" : "Preview"}
               </div>
-              <audio ref={previewRef} src={previewSrc || url} style={{ display: "none" }} />
-              <audio controls src={url} style={{ width: "100%", height: 36, borderRadius: 8 }} />
+              <audio controls src={previewSrc || url} style={{ width: "100%", height: 36, borderRadius: 8 }} />
             </div>
           )}
 
@@ -327,7 +290,7 @@ export default function RoomMusicPicker({ isStaff }) {
                 cursor: url ? "pointer" : "default",
               }}
             >
-              {saving ? "…" : playing ? "Stop" : "Play live"}
+              {saving ? "…" : playing ? "Stop" : "Play"}
             </button>
           </div>
         </div>

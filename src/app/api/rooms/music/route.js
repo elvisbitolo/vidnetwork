@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
-import { startMusicIngress, stopMusicIngress } from "@/lib/server/livekit";
 
 export const dynamic = "force-dynamic";
 
@@ -36,37 +35,11 @@ export async function POST(req) {
   const room = await findRoom();
   if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
-  const data = room.data();
   const update = {};
 
   if (typeof musicName === "string") update.musicName = musicName;
-
-  if (typeof musicUrl === "string") {
-    update.musicUrl = musicUrl;
-  }
-
-  if (typeof musicPlaying === "boolean") {
-    const url = musicUrl || data.musicUrl;
-    const name = musicName || data.musicName || "Room Music";
-
-    if (musicPlaying && url) {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vidnetwork.vercel.app";
-      const streamUrl = url.startsWith("data:")
-        ? `${baseUrl}/api/rooms/music/stream`
-        : url;
-      const result = await startMusicIngress(ALWAYS_ON_SLUG, streamUrl, name);
-      if (result.ok) {
-        update.musicPlaying = true;
-        update.musicIngressId = result.ingressId;
-      } else {
-        return NextResponse.json({ error: result.error }, { status: 500 });
-      }
-    } else if (!musicPlaying) {
-      await stopMusicIngress(ALWAYS_ON_SLUG);
-      update.musicPlaying = false;
-      update.musicIngressId = null;
-    }
-  }
+  if (typeof musicUrl === "string") update.musicUrl = musicUrl;
+  if (typeof musicPlaying === "boolean") update.musicPlaying = musicPlaying;
 
   await room.ref.set(update, { merge: true });
 

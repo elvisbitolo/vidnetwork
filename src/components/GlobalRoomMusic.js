@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 export default function GlobalRoomMusic() {
   const [src, setSrc] = useState("");
   const [playing, setPlaying] = useState(false);
   const [songName, setSongName] = useState("");
-  const [show, setShow] = useState(false);
   const audioRef = useRef(null);
   const pollingRef = useRef(null);
+  const pathname = usePathname();
+  const inRoom = pathname?.startsWith("/rooms/");
 
   async function fetchMusic() {
     try {
@@ -21,18 +23,16 @@ export default function GlobalRoomMusic() {
           : data.music;
         setSrc(audioSrc);
         setSongName(data.musicName || "");
-        setShow(true);
       } else {
         setSrc("");
         setPlaying(false);
-        setShow(false);
       }
     } catch {}
   }
 
   useEffect(() => {
     fetchMusic();
-    pollingRef.current = setInterval(fetchMusic, 15000);
+    pollingRef.current = setInterval(fetchMusic, 10000);
     return () => clearInterval(pollingRef.current);
   }, []);
 
@@ -41,6 +41,15 @@ export default function GlobalRoomMusic() {
     audioRef.current.load();
     audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
   }, [src]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (inRoom) {
+      audioRef.current.pause();
+    } else if (src) {
+      audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+    }
+  }, [inRoom, src]);
 
   useEffect(() => {
     return () => {
@@ -61,15 +70,15 @@ export default function GlobalRoomMusic() {
     }
   }
 
-  if (!show) return null;
+  if (!src) return null;
 
   return (
     <>
-      {src && <audio ref={audioRef} src={src} loop preload="auto" />}
+      <audio ref={audioRef} src={src} loop preload="auto" />
       <button
         onClick={toggle}
-        aria-label={playing ? "Mute room music" : "Play room music"}
-        title={songName ? `🎵 ${songName}` : "Room music"}
+        aria-label={playing ? "Mute music" : "Play music"}
+        title={songName || "Room music"}
         style={{
           position: "fixed",
           bottom: 24,
@@ -78,7 +87,9 @@ export default function GlobalRoomMusic() {
           height: 40,
           padding: "0 14px",
           borderRadius: 20,
-          border: playing ? "1px solid rgba(167,139,250,0.4)" : "1px solid rgba(255,255,255,0.15)",
+          border: playing
+            ? "1px solid rgba(167,139,250,0.4)"
+            : "1px solid rgba(255,255,255,0.15)",
           background: playing
             ? "linear-gradient(135deg, rgba(109,93,246,0.9), rgba(167,139,250,0.8))"
             : "rgba(30,30,38,0.9)",
@@ -114,7 +125,11 @@ export default function GlobalRoomMusic() {
             <line x1="17" y1="9" x2="23" y2="15" />
           </svg>
         )}
-        {songName && <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis" }}>{songName}</span>}
+        {songName && (
+          <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis" }}>
+            {songName}
+          </span>
+        )}
       </button>
     </>
   );

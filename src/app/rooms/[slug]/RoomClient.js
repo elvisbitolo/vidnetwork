@@ -148,7 +148,7 @@ function HostControls({ roomId, isHost }) {
   );
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn, musicUrl, musicPlaying }) {
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn, musicUrl, musicPlaying, musicFileId }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -325,7 +325,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   return (
     <main className={styles.page}>
       <div className={styles.roomWrap} style={{ position: "relative" }}>
-        <AmbientAudio active={alwaysOn} musicUrl={musicUrl} musicPlaying={musicPlaying} isStaff={isStaff} />
+        <AmbientAudio active={alwaysOn} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         <LiveKitRoom
           token={token}

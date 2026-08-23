@@ -64,6 +64,7 @@ export default async function RoomPage({ params }) {
         alwaysOn={!!room.alwaysOn}
         musicUrl={room.musicUrl || ""}
         musicPlaying={!!room.musicPlaying}
+        musicFileId={room.musicFileId || ""}
       />
 </Nav>
     </>

@@ -1,0 +1,202 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+
+const PRESETS = [
+  { name: "Default", bg: "#1a1a1f", surface: "#24242a", border: "#2e2e38", text: "#f5f5f5", muted: "#8b8b9b", accent: "#a78bfa" },
+  { name: "Midnight", bg: "#0a0a12", surface: "#12121e", border: "#1e1e2e", text: "#e8e8f0", muted: "#6b6b80", accent: "#7c8cf8" },
+  { name: "Ocean", bg: "#0c1929", surface: "#132236", border: "#1c3048", text: "#e0eaf5", muted: "#6b8aaa", accent: "#38bdf8" },
+  { name: "Forest", bg: "#0f1a12", surface: "#172618", border: "#1f3420", text: "#e0f0e4", muted: "#6b9a72", accent: "#4ade80" },
+  { name: "Sunset", bg: "#1a1008", surface: "#2a1a0e", border: "#3a2818", text: "#f5e8d8", muted: "#9a8060", accent: "#fb923c" },
+  { name: "Rose", bg: "#1a0f14", surface: "#281520", border: "#381e2c", text: "#f5e0ea", muted: "#9a6880", accent: "#f472b6" },
+  { name: "Arctic", bg: "#f0f4f8", surface: "#ffffff", border: "#d8dee6", text: "#1a202c", muted: "#5a6578", accent: "#6366f1" },
+  { name: "Warm Light", bg: "#faf8f5", surface: "#ffffff", border: "#e8e2da", text: "#2c2418", muted: "#8a7a68", accent: "#d97706" },
+];
+
+function Swatch({ color, size = 28 }) {
+  return (
+    <span style={{
+      width: size, height: size, borderRadius: 8,
+      background: color, border: "2px solid rgba(255,255,255,0.15)",
+      flexShrink: 0,
+    }} />
+  );
+}
+
+function ColorRow({ label, value, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+      <label style={{ flex: 1, fontSize: 12, color: "#a0a0ac", fontWeight: 500 }}>{label}</label>
+      <div style={{ position: "relative" }}>
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ width: 32, height: 32, border: "none", borderRadius: 8, cursor: "pointer", background: "transparent", padding: 0 }}
+        />
+      </div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onChange(e.target.value); }}
+        style={{
+          width: 78, padding: "5px 8px", borderRadius: 8, border: "1px solid #2e2e38",
+          background: "#1a1a1f", color: "#e0e0e8", fontSize: 11, fontFamily: "monospace",
+          outline: "none",
+        }}
+      />
+    </div>
+  );
+}
+
+export default function DashboardThemePicker() {
+  const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/dashboard/theme")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.theme) setTheme(data.theme);
+        else setTheme(PRESETS[0]);
+      })
+      .catch(() => setTheme(PRESETS[0]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!theme) return;
+    const r = document.documentElement;
+    r.style.setProperty("--dash-bg", theme.bg);
+    r.style.setProperty("--dash-surface", theme.surface);
+    r.style.setProperty("--dash-border", theme.border);
+    r.style.setProperty("--dash-text", theme.text);
+    r.style.setProperty("--dash-muted", theme.muted);
+    r.style.setProperty("--dash-accent", theme.accent);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+    }
+    function handleKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  function applyPreset(preset) {
+    setTheme({ ...preset });
+    save({ ...preset });
+  }
+
+  function updateColor(key, value) {
+    setTheme((prev) => {
+      const next = { ...prev, [key]: value };
+      save(next);
+      return next;
+    });
+  }
+
+  function save(t) {
+    fetch("/api/dashboard/theme", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: t }),
+    }).catch(() => {});
+  }
+
+  if (loading || !theme) return null;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title="Customize theme"
+        style={{
+          width: 36, height: 36, borderRadius: 10, border: "1px solid #2e2e38",
+          background: "#24242a", color: "#a0a0ac", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "background 0.15s, border-color 0.15s",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#a78bfa"; e.currentTarget.style.color = "#f5f5f5"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2e2e38"; e.currentTarget.style.color = "#a0a0ac"; }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M12 2a5 5 0 0 1 5 5c0 2-1 3-2 4l-1 1a1 1 0 0 0-.3.7V14a1 1 0 0 1-1 1h-1.4a1 1 0 0 0-.7.3l-.7.7a1 1 0 0 1-.7.3H9a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3z" />
+          <circle cx="7.5" cy="11.5" r="1.5" fill="currentColor" />
+          <circle cx="10" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="14" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="16.5" cy="11.5" r="1.5" fill="currentColor" />
+        </svg>
+      </button>
+
+      {open && (
+        <div ref={panelRef} style={{
+          position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 200,
+          width: 320, maxHeight: "calc(100vh - 120px)", overflowY: "auto",
+          background: "#1a1a1f", border: "1px solid #2e2e38", borderRadius: 16,
+          padding: 18, boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#f5f5f5", marginBottom: 14 }}>
+            Customize Dashboard
+          </div>
+
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#6b6b7b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+            Presets
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 18 }}>
+            {PRESETS.map((p) => {
+              const isActive = theme.bg === p.bg && theme.surface === p.surface;
+              return (
+                <button
+                  key={p.name}
+                  onClick={() => applyPreset(p)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 10px", borderRadius: 10,
+                    border: isActive ? "2px solid #a78bfa" : "1px solid #2e2e38",
+                    background: p.surface, cursor: "pointer",
+                    transition: "border-color 0.15s",
+                  }}
+                >
+                  <Swatch color={p.bg} size={18} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: p.text }}>{p.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#6b6b7b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+            Custom Colors
+          </div>
+          <ColorRow label="Background" value={theme.bg} onChange={(v) => updateColor("bg", v)} />
+          <ColorRow label="Surface / Cards" value={theme.surface} onChange={(v) => updateColor("surface", v)} />
+          <ColorRow label="Borders" value={theme.border} onChange={(v) => updateColor("border", v)} />
+          <ColorRow label="Text" value={theme.text} onChange={(v) => updateColor("text", v)} />
+          <ColorRow label="Muted Text" value={theme.muted} onChange={(v) => updateColor("muted", v)} />
+          <ColorRow label="Accent" value={theme.accent} onChange={(v) => updateColor("accent", v)} />
+
+          <button
+            onClick={() => applyPreset(PRESETS[0])}
+            style={{
+              width: "100%", marginTop: 12, padding: "8px 0", borderRadius: 10,
+              border: "1px solid #2e2e38", background: "transparent",
+              color: "#8b8b9b", fontSize: 12, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            Reset to Default
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

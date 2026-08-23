@@ -17,6 +17,7 @@ import {
 import { CardSkeleton, SectionError } from "./Section";
 import styles from "./dashboard.module.css";
 import DashboardTour from "../DashboardTour";
+import DashboardThemePicker from "../DashboardThemePicker";
 
 function formatMoney(cents) {
   if (cents == null) return "—";
@@ -182,6 +183,7 @@ export default function DashboardShell() {
             </p>
           </div>
           <div className={styles.headerRight} data-tour="tour-search">
+            <DashboardThemePicker />
             <form className={styles.search} onSubmit={handleSearch}>
               <span className={styles.searchIcon}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">

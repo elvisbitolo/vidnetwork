@@ -1,7 +1,8 @@
 .pageWrap {
   width: 100%;
   min-height: calc(100vh - 60px);
-  background: #1a1a1f;
+  background: var(--dash-bg, #1a1a1f);
+  transition: background 0.2s ease;
 }
 
 .page {
@@ -23,14 +24,14 @@
 .heading h1 {
   font-size: 26px;
   font-weight: 700;
-  color: #f5f5f5;
+  color: var(--dash-text, #f5f5f5);
   letter-spacing: -0.02em;
 }
 
 .heading p {
   margin-top: 4px;
   font-size: 14px;
-  color: #8b8b9b;
+  color: var(--dash-muted, #8b8b9b);
   overflow: visible;
   text-overflow: unset;
   white-space: normal;
@@ -49,17 +50,17 @@
 .searchInput {
   width: 240px;
   padding: 9px 12px 9px 34px;
-  border: 1px solid #2e2e38;
+  border: 1px solid var(--dash-border, #2e2e38);
   border-radius: 10px;
   font-size: 14px;
-  background: #24242a;
-  color: #f5f5f5;
+  background: var(--dash-surface, #24242a);
+  color: var(--dash-text, #f5f5f5);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .searchInput:focus {
-  border-color: #6d5df6;
+  border-color: var(--dash-accent, #6d5df6);
   box-shadow: 0 0 0 3px rgba(109, 93, 246, 0.2);
 }
 
@@ -68,7 +69,7 @@
   left: 11px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9b9bab;
+  color: var(--dash-muted, #9b9bab);
   display: flex;
 }
 
@@ -126,15 +127,15 @@
 }
 
 .kpi {
-  background: #24242a;
-  border: 1px solid #2e2e38;
+  background: var(--dash-surface, #24242a);
+  border: 1px solid var(--dash-border, #2e2e38);
   border-radius: 14px;
   padding: 18px;
 }
 
 .kpiLabel {
   font-size: 13px;
-  color: #8b8b9b;
+  color: var(--dash-muted, #8b8b9b);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -145,13 +146,13 @@
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #f5f5f5;
+  color: var(--dash-text, #f5f5f5);
 }
 
 .kpiDelta {
   margin-top: 6px;
   font-size: 12px;
-  color: #6b6b7b;
+  color: var(--dash-muted, #6b6b7b);
 }
 
 .kpiDeltaUp {
@@ -177,8 +178,8 @@
 }
 
 .card {
-  background: #24242a;
-  border: 1px solid #2e2e38;
+  background: var(--dash-surface, #24242a);
+  border: 1px solid var(--dash-border, #2e2e38);
   border-radius: 14px;
   padding: 18px;
   min-width: 0;
@@ -195,17 +196,17 @@
 .cardTitle {
   font-size: 15px;
   font-weight: 700;
-  color: #f5f5f5;
+  color: var(--dash-text, #f5f5f5);
 }
 
 .cardLink {
   font-size: 13px;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--dash-accent, #a78bfa);
 }
 
 .cardLink:hover {
-  color: #c4b5fd;
+  color: var(--dash-accent, #c4b5fd);
 }
 
 .list {
@@ -230,18 +231,18 @@
 }
 
 .item:hover {
-  background: #2e2e38;
+  background: var(--dash-border, #2e2e38);
 }
 
 .itemTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #f5f5f5;
+  color: var(--dash-text, #f5f5f5);
 }
 
 .itemBody {
   font-size: 13px;
-  color: #8b8b9b;
+  color: var(--dash-muted, #8b8b9b);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -251,7 +252,7 @@
 
 .itemMeta {
   font-size: 12px;
-  color: #6b6b7b;
+  color: var(--dash-muted, #6b6b7b);
   white-space: nowrap;
 }
 
@@ -266,11 +267,11 @@
 .empty {
   padding: 22px 10px;
   text-align: center;
-  color: #6b6b7b;
+  color: var(--dash-muted, #6b6b7b);
   font-size: 14px;
-  border: 1px dashed #2e2e38;
+  border: 1px dashed var(--dash-border, #2e2e38);
   border-radius: 10px;
-  background: #1e1e24;
+  background: var(--dash-surface, #1e1e24);
 }
 
 .error {
@@ -283,24 +284,24 @@
 .retry {
   margin-top: 10px;
   padding: 7px 14px;
-  border: 1px solid #2e2e38;
+  border: 1px solid var(--dash-border, #2e2e38);
   border-radius: 8px;
-  background: #24242a;
+  background: var(--dash-surface, #24242a);
   font-size: 13px;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--dash-accent, #a78bfa);
   cursor: pointer;
 }
 
 .retry:hover {
-  background: #2e2e38;
+  background: var(--dash-border, #2e2e38);
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2e2e38;
+  background: var(--dash-border, #2e2e38);
   flex-shrink: 0;
 }
 
@@ -326,17 +327,17 @@
 
 .tagUpcoming {
   background: rgba(109, 93, 246, 0.15);
-  color: #a78bfa;
+  color: var(--dash-accent, #a78bfa);
 }
 
 .tagRsvp {
-  background: #2e2e38;
-  color: #8b8b9b;
+  background: var(--dash-border, #2e2e38);
+  color: var(--dash-muted, #8b8b9b);
 }
 
 .progress {
   height: 6px;
-  background: #2e2e38;
+  background: var(--dash-border, #2e2e38);
   border-radius: 999px;
   overflow: hidden;
   margin-top: 8px;
@@ -344,7 +345,7 @@
 
 .progressFill {
   height: 100%;
-  background: #6d5df6;
+  background: var(--dash-accent, #6d5df6);
   border-radius: 999px;
 }
 
@@ -357,7 +358,7 @@
 }
 
 .attention:hover {
-  background: #2e2e38;
+  background: var(--dash-border, #2e2e38);
 }
 
 .attentionIcon {
@@ -375,13 +376,13 @@
 
 .attentionText {
   font-size: 13px;
-  color: #d4d4dc;
+  color: var(--dash-text, #d4d4dc);
 }
 
 .attentionMeta {
   margin-left: auto;
   font-size: 12px;
-  color: #6b6b7b;
+  color: var(--dash-muted, #6b6b7b);
   white-space: nowrap;
 }
 
@@ -393,23 +394,23 @@
 
 .chartBtn {
   padding: 6px 12px;
-  border: 1px solid #2e2e38;
+  border: 1px solid var(--dash-border, #2e2e38);
   border-radius: 8px;
-  background: #24242a;
+  background: var(--dash-surface, #24242a);
   font-size: 13px;
   font-weight: 600;
-  color: #8b8b9b;
+  color: var(--dash-muted, #8b8b9b);
   cursor: pointer;
 }
 
 .chartBtn:hover {
-  border-color: #6d5df6;
-  color: #a78bfa;
+  border-color: var(--dash-accent, #6d5df6);
+  color: var(--dash-accent, #a78bfa);
 }
 
 .chartBtnActive {
-  background: #6d5df6;
-  border-color: #6d5df6;
+  background: var(--dash-accent, #6d5df6);
+  border-color: var(--dash-accent, #6d5df6);
   color: #fff;
 }
 
@@ -417,13 +418,13 @@
   margin-top: 4px;
   font-size: 24px;
   font-weight: 700;
-  color: #f5f5f5;
+  color: var(--dash-text, #f5f5f5);
   letter-spacing: -0.02em;
 }
 
 .chartCaption {
   font-size: 13px;
-  color: #8b8b9b;
+  color: var(--dash-muted, #8b8b9b);
   margin-bottom: 10px;
 }
 
@@ -435,15 +436,15 @@
 
 .skeleton {
   border-radius: 14px;
-  background: #24242a;
-  border: 1px solid #2e2e38;
+  background: var(--dash-surface, #24242a);
+  border: 1px solid var(--dash-border, #2e2e38);
   padding: 18px;
 }
 
 .skeletonLine {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #2e2e38 25%, #3a3a44 50%, #2e2e38 75%);
+  background: linear-gradient(90deg, var(--dash-border, #2e2e38) 25%, #3a3a44 50%, var(--dash-border, #2e2e38) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   margin-bottom: 12px;

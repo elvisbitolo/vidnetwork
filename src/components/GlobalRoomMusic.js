@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 export default function GlobalRoomMusic() {
@@ -12,7 +12,7 @@ export default function GlobalRoomMusic() {
   const pathname = usePathname();
   const inRoom = pathname?.startsWith("/rooms/");
 
-  async function fetchMusic() {
+  const fetchMusic = useCallback(async () => {
     try {
       const res = await fetch("/api/rooms/music");
       if (!res.ok) return;
@@ -28,13 +28,21 @@ export default function GlobalRoomMusic() {
         setPlaying(false);
       }
     } catch {}
-  }
+  }, []);
 
   useEffect(() => {
     fetchMusic();
     pollingRef.current = setInterval(fetchMusic, 10000);
-    return () => clearInterval(pollingRef.current);
-  }, []);
+
+    function onMusicChange() {
+      fetchMusic();
+    }
+    window.addEventListener("room-music-changed", onMusicChange);
+    return () => {
+      clearInterval(pollingRef.current);
+      window.removeEventListener("room-music-changed", onMusicChange);
+    };
+  }, [fetchMusic]);
 
   useEffect(() => {
     if (!audioRef.current || !src) return;

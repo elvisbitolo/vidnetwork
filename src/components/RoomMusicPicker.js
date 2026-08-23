@@ -11,9 +11,10 @@ export default function RoomMusicPicker({ isStaff }) {
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState("");
   const [urlError, setUrlError] = useState("");
-  const [previewSrc, setPreviewSrc] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
   const panelRef = useRef(null);
   const fileRef = useRef(null);
+  const previewRef = useRef(null);
 
   useEffect(() => {
     if (!isStaff) return;
@@ -53,12 +54,15 @@ export default function RoomMusicPicker({ isStaff }) {
     const reader = new FileReader();
     reader.onload = () => {
       setUrl(reader.result);
-      setPreviewSrc(reader.result);
       if (!name) setName(file.name.replace(/\.[^.]+$/, ""));
     };
     reader.onerror = () => setUploadError("Failed to read file.");
     reader.readAsDataURL(file);
     e.target.value = "";
+  }
+
+  function notifyGlobalPlayer() {
+    window.dispatchEvent(new Event("room-music-changed"));
   }
 
   async function save(updates) {
@@ -86,6 +90,7 @@ export default function RoomMusicPicker({ isStaff }) {
       if (typeof updates.musicPlaying === "boolean") setPlaying(updates.musicPlaying);
       if (typeof updates.musicUrl === "string") setUrl(updates.musicUrl);
       if (typeof updates.musicName === "string") setName(updates.musicName);
+      notifyGlobalPlayer();
     } catch {}
     setSaving(false);
   }
@@ -229,7 +234,7 @@ export default function RoomMusicPicker({ isStaff }) {
           <input
             type="url"
             value={url.startsWith("data:") ? "" : url}
-            onChange={(e) => { setUrl(e.target.value); setUrlError(""); setPreviewSrc(""); }}
+            onChange={(e) => { setUrl(e.target.value); setUrlError(""); }}
             placeholder="https://example.com/song.mp3"
             style={{
               width: "100%",
@@ -248,15 +253,6 @@ export default function RoomMusicPicker({ isStaff }) {
           <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 14px" }}>
             Direct link to an audio file (.mp3, .wav, .ogg).
           </p>
-
-          {url && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: "#6b6b7b", marginBottom: 4 }}>
-                {url.startsWith("data:") ? "Uploaded file" : "Preview"}
-              </div>
-              <audio controls src={previewSrc || url} style={{ width: "100%", height: 36, borderRadius: 8 }} />
-            </div>
-          )}
 
           <div style={{ display: "flex", gap: 8 }}>
             <button

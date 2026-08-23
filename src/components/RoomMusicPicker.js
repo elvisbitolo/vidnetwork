@@ -77,12 +77,16 @@ export default function RoomMusicPicker({ isStaff }) {
     setUrlError("");
     setSaving(true);
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
       const res = await fetch("/api/rooms/music", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(updates),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Failed to save" }));
         setUrlError(err.error || "Failed to save");

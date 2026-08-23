@@ -60,7 +60,7 @@ export default async function RoomPage({ params }) {
         opensAt={opensAt}
         isHost={rights.isHost}
         isCoHost={rights.isCoHost}
-        canRecord={rights.canRecord}
+        canRecord={rights.canRecord && !room.alwaysOn}
         alwaysOn={!!room.alwaysOn}
       />
 </Nav>

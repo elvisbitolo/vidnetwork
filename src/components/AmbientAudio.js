@@ -98,8 +98,6 @@ export default function AmbientAudio({ active, musicUrl, musicPlaying, isStaff }
     }
   }
 
-  if (!active) return null;
-
   return (
     <>
       {src && <audio ref={audioRef} src={src} loop preload="auto" />}

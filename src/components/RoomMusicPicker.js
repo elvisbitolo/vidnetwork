@@ -10,6 +10,7 @@ export default function RoomMusicPicker({ isStaff }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState("");
+  const [urlError, setUrlError] = useState("");
   const panelRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -59,6 +60,14 @@ export default function RoomMusicPicker({ isStaff }) {
   }
 
   async function save(updates) {
+    if (updates.musicUrl && !updates.musicUrl.startsWith("data:")) {
+      const ext = updates.musicUrl.split("?")[0].split(".").pop().toLowerCase();
+      const validExts = ["mp3", "wav", "ogg", "aac", "flac", "m4a", "webm"];
+      if (!validExts.includes(ext)) {
+        setUrlError("This doesn't look like an audio file URL. It needs to end in .mp3, .wav, .ogg, etc. Right-click the audio player on the source site and copy the audio URL.");
+        return;
+      }
+    }
     setSaving(true);
     try {
       await fetch("/api/rooms/music", {
@@ -190,21 +199,25 @@ export default function RoomMusicPicker({ isStaff }) {
           <input
             type="url"
             value={url.startsWith("data:") ? "" : url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => { setUrl(e.target.value); setUrlError(""); }}
             placeholder="https://example.com/song.mp3"
             style={{
               width: "100%",
               padding: "8px 12px",
               borderRadius: 10,
-              border: "1px solid #2e2e38",
+              border: urlError ? "1px solid rgba(239,68,68,0.5)" : "1px solid #2e2e38",
               background: "#24242a",
               color: "#f5f5f5",
               fontSize: 13,
               outline: "none",
-              marginBottom: 14,
+              marginBottom: 6,
               boxSizing: "border-box",
             }}
           />
+          {urlError && <p style={{ fontSize: 12, color: "#f87171", margin: "0 0 10px" }}>{urlError}</p>}
+          <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 14px" }}>
+            Must be a direct link to an audio file (.mp3, .wav, .ogg). Not a webpage — right-click the audio and copy its URL.
+          </p>
 
           {url && (
             <div style={{ marginBottom: 14 }}>

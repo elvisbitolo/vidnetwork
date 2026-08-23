@@ -1,0 +1,42 @@
+import { NextResponse } from "next/server";
+import { adminDb } from "@/lib/firebase/admin";
+
+export const dynamic = "force-dynamic";
+
+const ALWAYS_ON_SLUG = "community-lounge-247";
+const ALWAYS_ON_NAME = "Community Lounge";
+
+export async function GET() {
+  const snap = await adminDb()
+    .collection("rooms")
+    .where("slug", "==", ALWAYS_ON_SLUG)
+    .limit(1)
+    .get();
+
+  if (!snap.empty) {
+    const doc = snap.docs[0];
+    return NextResponse.json({ id: doc.id, ...doc.data() });
+  }
+
+  const ref = adminDb().collection("rooms").doc();
+  const room = {
+    name: ALWAYS_ON_NAME,
+    slug: ALWAYS_ON_SLUG,
+    description: "Always open — drop in anytime for company and good vibes.",
+    status: "active",
+    maxParticipants: 50,
+    groupId: "",
+    spaceId: "",
+    kind: "standard",
+    publicPreview: true,
+    opensAt: null,
+    recordingAllowed: false,
+    replayVisibility: "members",
+    alwaysOn: true,
+    createdBy: "system",
+    createdAt: new Date(),
+  };
+  await ref.set(room);
+
+  return NextResponse.json({ id: ref.id, ...room });
+}

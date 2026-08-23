@@ -37,13 +37,15 @@ export async function POST(req) {
   const isHost = rights.isHost;
   const isCoHost = rights.isCoHost;
 
-  let opensAt = await getUpcomingRoomStart(room.slug);
-  if (!opensAt && room.opensAt) opensAt = room.opensAt.toMillis?.() || 0;
-  if (opensAt && !isHost) {
-    return NextResponse.json(
-      { error: "This room opens at the scheduled time", opensAt },
-      { status: 423 }
-    );
+  if (!room.alwaysOn) {
+    let opensAt = await getUpcomingRoomStart(room.slug);
+    if (!opensAt && room.opensAt) opensAt = room.opensAt.toMillis?.() || 0;
+    if (opensAt && !isHost) {
+      return NextResponse.json(
+        { error: "This room opens at the scheduled time", opensAt },
+        { status: 423 }
+      );
+    }
   }
 
   const roomHost = isHost || isCoHost;

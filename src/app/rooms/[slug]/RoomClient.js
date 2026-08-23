@@ -13,6 +13,7 @@ import {
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
+import AmbientAudio from "@/components/AmbientAudio";
 import styles from "./room.module.css";
 
 function currentTime() {
@@ -146,7 +147,7 @@ function HostControls({ roomId, isHost }) {
   );
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord }) {
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -279,7 +280,11 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
             <BackButton fallback="/rooms" label="Back to rooms" />
             <div className={styles.prejoin}>
               <h1 className={styles.title}>{roomName}</h1>
-              {isBroadcast ? (
+              {alwaysOn ? (
+                <p className={styles.subtitle}>
+                  Always open — drop in anytime. Background music plays when you&apos;re alone.
+                </p>
+              ) : isBroadcast ? (
                 <p className={styles.subtitle}>
                   This is a live broadcast. Join to watch the stream.
                 </p>
@@ -290,7 +295,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
               )}
               {error && <p className={styles.error}>{error}</p>}
               <button className={styles.join} onClick={handleJoin} disabled={busy}>
-                {busy ? "Joining…" : isBroadcast ? "Watch broadcast" : "Join room"}
+                {busy ? "Joining…" : alwaysOn ? "Drop in" : isBroadcast ? "Watch broadcast" : "Join room"}
               </button>
               {canRecord && (
                 <div className={styles.recordBox}>
@@ -317,7 +322,8 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
 
   return (
     <main className={styles.page}>
-      <div className={styles.roomWrap}>
+      <div className={styles.roomWrap} style={{ position: "relative" }}>
+        <AmbientAudio active={alwaysOn} />
         <LiveKitRoom
           token={token}
           serverUrl={serverUrl}

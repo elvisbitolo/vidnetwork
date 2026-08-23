@@ -61,6 +61,7 @@ export default async function RoomPage({ params }) {
         isHost={rights.isHost}
         isCoHost={rights.isCoHost}
         canRecord={rights.canRecord}
+        alwaysOn={!!room.alwaysOn}
       />
 </Nav>
     </>

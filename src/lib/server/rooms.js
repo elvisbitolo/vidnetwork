@@ -85,3 +85,35 @@ export async function deleteRoom(room) {
   await deleteDocs(eventsSnap.docs);
   await adminDb().collection("rooms").doc(room.id).delete();
 }
+
+const ALWAYS_ON_SLUG = "community-lounge-247";
+
+export async function seedAlwaysOnRoom() {
+  const snap = await adminDb()
+    .collection("rooms")
+    .where("slug", "==", ALWAYS_ON_SLUG)
+    .limit(1)
+    .get();
+  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+  const ref = adminDb().collection("rooms").doc();
+  const room = {
+    name: "Community Lounge",
+    slug: ALWAYS_ON_SLUG,
+    description: "Always open — drop in anytime for company and good vibes.",
+    status: "active",
+    maxParticipants: 50,
+    groupId: "",
+    spaceId: "",
+    kind: "standard",
+    publicPreview: true,
+    opensAt: null,
+    recordingAllowed: false,
+    replayVisibility: "members",
+    alwaysOn: true,
+    createdBy: "system",
+    createdAt: new Date(),
+  };
+  await ref.set(room);
+  return { id: ref.id, ...room };
+}

@@ -21,6 +21,7 @@ export async function GET() {
   const data = room.data();
   return NextResponse.json({
     music: data.musicUrl || null,
+    musicFileId: data.musicFileId || null,
     musicName: data.musicName || null,
     musicPlaying: !!data.musicPlaying,
   });
@@ -31,17 +32,16 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { musicUrl, musicName, musicPlaying } = await req.json();
+  const { musicUrl, musicFileId, musicName, musicPlaying } = await req.json();
   const room = await findRoom();
   if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
   const update = {};
-
   if (typeof musicName === "string") update.musicName = musicName;
   if (typeof musicUrl === "string") update.musicUrl = musicUrl;
+  if (typeof musicFileId === "string") update.musicFileId = musicFileId;
   if (typeof musicPlaying === "boolean") update.musicPlaying = musicPlaying;
 
   await room.ref.set(update, { merge: true });
-
   return NextResponse.json({ ok: true });
 }

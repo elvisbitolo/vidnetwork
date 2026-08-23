@@ -5,16 +5,15 @@ import { useState, useEffect, useRef } from "react";
 export default function RoomMusicPicker({ isStaff }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
+  const [fileId, setFileId] = useState("");
   const [name, setName] = useState("");
   const [playing, setPlaying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [uploadError, setUploadError] = useState("");
-  const [urlError, setUrlError] = useState("");
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [error, setError] = useState("");
   const panelRef = useRef(null);
   const fileRef = useRef(null);
-  const previewRef = useRef(null);
 
   useEffect(() => {
     if (!isStaff) return;
@@ -23,6 +22,7 @@ export default function RoomMusicPicker({ isStaff }) {
       .then((data) => {
         if (data) {
           setUrl(data.music || "");
+          setFileId(data.musicFileId || "");
           setName(data.musicName || "");
           setPlaying(data.musicPlaying);
         }
@@ -47,17 +47,32 @@ export default function RoomMusicPicker({ isStaff }) {
     };
   }, [open]);
 
-  function handleFile(e) {
+  async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadError("");
-    const reader = new FileReader();
-    reader.onload = () => {
-      setUrl(reader.result);
+    setError("");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/rooms/music/upload", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Upload failed");
+        setUploading(false);
+        return;
+      }
+      setFileId(data.id);
+      setUrl("");
       if (!name) setName(file.name.replace(/\.[^.]+$/, ""));
-    };
-    reader.onerror = () => setUploadError("Failed to read file.");
-    reader.readAsDataURL(file);
+    } catch {
+      setError("Upload failed");
+    }
+    setUploading(false);
     e.target.value = "";
   }
 
@@ -70,11 +85,11 @@ export default function RoomMusicPicker({ isStaff }) {
       const ext = updates.musicUrl.split("?")[0].split(".").pop().toLowerCase();
       const validExts = ["mp3", "wav", "ogg", "aac", "flac", "m4a", "webm"];
       if (!validExts.includes(ext)) {
-        setUrlError("Doesn't look like an audio file. Must end in .mp3, .wav, .ogg, etc.");
+        setError("Doesn't look like an audio file. Must end in .mp3, .wav, .ogg, etc.");
         return;
       }
     }
-    setUrlError("");
+    setError("");
     setSaving(true);
     try {
       const controller = new AbortController();
@@ -89,19 +104,25 @@ export default function RoomMusicPicker({ isStaff }) {
       clearTimeout(timer);
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Failed to save" }));
-        setUrlError(err.error || "Failed to save");
+        setError(err.error || "Failed to save");
         setSaving(false);
         return;
       }
       if (typeof updates.musicPlaying === "boolean") setPlaying(updates.musicPlaying);
       if (typeof updates.musicUrl === "string") setUrl(updates.musicUrl);
+      if (typeof updates.musicFileId === "string") setFileId(updates.musicFileId);
       if (typeof updates.musicName === "string") setName(updates.musicName);
       notifyGlobalPlayer();
-    } catch {}
+    } catch (e) {
+      if (e.name === "AbortError") setError("Save timed out — try again");
+      else setError("Failed to save");
+    }
     setSaving(false);
   }
 
   if (!isStaff || loading) return null;
+
+  const hasMusic = !!(fileId || url);
 
   return (
     <>
@@ -183,6 +204,12 @@ export default function RoomMusicPicker({ isStaff }) {
             </div>
           )}
 
+          {error && (
+            <div style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", marginBottom: 14 }}>
+              <span style={{ fontSize: 12, color: "#f87171" }}>{error}</span>
+            </div>
+          )}
+
           <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#a0a0ac", marginBottom: 4 }}>
             Song name
           </label>
@@ -207,6 +234,7 @@ export default function RoomMusicPicker({ isStaff }) {
 
           <button
             onClick={() => fileRef.current?.click()}
+            disabled={uploading}
             style={{
               width: "100%",
               padding: "10px 0",
@@ -222,65 +250,73 @@ export default function RoomMusicPicker({ isStaff }) {
               justifyContent: "center",
               gap: 6,
               marginBottom: 6,
+              opacity: uploading ? 0.5 : 1,
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
             </svg>
-            Upload audio file
+            {uploading ? "Uploading…" : "Upload audio file"}
           </button>
           <input ref={fileRef} type="file" accept="audio/*" onChange={handleFile} style={{ display: "none" }} />
-          {uploadError && <p style={{ fontSize: 12, color: "#f87171", margin: "0 0 10px" }}>{uploadError}</p>}
+          <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 10px" }}>
+            Max 750KB. For larger songs, use a URL below.
+          </p>
 
-          <div style={{ height: 1, background: "#2e2e38", margin: "12px 0" }} />
+          {fileId && (
+            <div style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              <span style={{ fontSize: 12, color: "#4ade80" }}>File uploaded</span>
+            </div>
+          )}
+
+          <div style={{ height: 1, background: "#2e2e38", margin: "10px 0" }} />
 
           <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#a0a0ac", marginBottom: 4 }}>
             Or paste an audio URL
           </label>
           <input
             type="url"
-            value={url.startsWith("data:") ? "" : url}
-            onChange={(e) => { setUrl(e.target.value); setUrlError(""); }}
+            value={url}
+            onChange={(e) => { setUrl(e.target.value); setFileId(""); setError(""); }}
             placeholder="https://example.com/song.mp3"
             style={{
               width: "100%",
               padding: "8px 12px",
               borderRadius: 10,
-              border: urlError ? "1px solid rgba(239,68,68,0.5)" : "1px solid #2e2e38",
+              border: "1px solid #2e2e38",
               background: "#24242a",
               color: "#f5f5f5",
               fontSize: 13,
               outline: "none",
-              marginBottom: 6,
+              marginBottom: 14,
               boxSizing: "border-box",
             }}
           />
-          {urlError && <p style={{ fontSize: 12, color: "#f87171", margin: "0 0 10px" }}>{urlError}</p>}
-          <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 14px" }}>
-            Direct link to an audio file (.mp3, .wav, .ogg).
-          </p>
 
           <div style={{ display: "flex", gap: 8 }}>
             <button
-              onClick={() => save({ musicUrl: url, musicName: name })}
-              disabled={saving || !url}
+              onClick={() => save({ musicUrl: url || undefined, musicFileId: fileId || undefined, musicName: name })}
+              disabled={saving || (!url && !fileId)}
               style={{
                 flex: 1,
                 padding: "9px 0",
                 borderRadius: 10,
                 border: "none",
-                background: url ? "linear-gradient(135deg, #6d5df6, #a78bfa)" : "#2e2e38",
-                color: url ? "#fff" : "#6b6b7b",
+                background: (url || fileId) ? "linear-gradient(135deg, #6d5df6, #a78bfa)" : "#2e2e38",
+                color: (url || fileId) ? "#fff" : "#6b6b7b",
                 fontSize: 13,
                 fontWeight: 600,
-                cursor: url ? "pointer" : "default",
+                cursor: (url || fileId) ? "pointer" : "default",
               }}
             >
               {saving ? "Saving…" : "Save song"}
             </button>
             <button
               onClick={() => save({ musicPlaying: !playing })}
-              disabled={saving || !url}
+              disabled={saving || (!url && !fileId)}
               style={{
                 padding: "9px 16px",
                 borderRadius: 10,
@@ -289,7 +325,7 @@ export default function RoomMusicPicker({ isStaff }) {
                 color: playing ? "#f87171" : "#4ade80",
                 fontSize: 13,
                 fontWeight: 600,
-                cursor: url ? "pointer" : "default",
+                cursor: (url || fileId) ? "pointer" : "default",
               }}
             >
               {saving ? "…" : playing ? "Stop" : "Play"}

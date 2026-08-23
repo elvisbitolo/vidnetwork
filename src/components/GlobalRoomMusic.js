@@ -17,9 +17,9 @@ export default function GlobalRoomMusic() {
       const res = await fetch("/api/rooms/music");
       if (!res.ok) return;
       const data = await res.json();
-      if (data.musicPlaying && data.music) {
-        const audioSrc = data.music.startsWith("data:")
-          ? "/api/rooms/music/stream"
+      if (data.musicPlaying && (data.music || data.musicFileId)) {
+        const audioSrc = data.musicFileId
+          ? `/api/rooms/music/stream?id=${data.musicFileId}`
           : data.music;
         setSrc(audioSrc);
         setSongName(data.musicName || "");

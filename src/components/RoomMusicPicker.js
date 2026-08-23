@@ -18,7 +18,7 @@ export default function RoomMusicPicker({ isStaff }) {
 
   useEffect(() => {
     if (!isStaff) return;
-    fetch("/api/rooms/music")
+    fetch("/api/rooms/music", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) {
@@ -80,10 +80,12 @@ export default function RoomMusicPicker({ isStaff }) {
       const res = await fetch("/api/rooms/music", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(updates),
       });
       if (!res.ok) {
-        setUrlError("Failed to save");
+        const err = await res.json().catch(() => ({ error: "Failed to save" }));
+        setUrlError(err.error || "Failed to save");
         setSaving(false);
         return;
       }

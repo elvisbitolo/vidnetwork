@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
+import { startMusicIngress, stopMusicIngress } from "@/lib/server/livekit";
 
 export const dynamic = "force-dynamic";
 
@@ -35,10 +36,37 @@ export async function POST(req) {
   const room = await findRoom();
   if (!room) return NextResponse.json({ error: "Room not found" }, { status: 404 });
 
+  const data = room.data();
   const update = {};
-  if (typeof musicUrl === "string") update.musicUrl = musicUrl;
+
   if (typeof musicName === "string") update.musicName = musicName;
-  if (typeof musicPlaying === "boolean") update.musicPlaying = musicPlaying;
+
+  if (typeof musicUrl === "string") {
+    update.musicUrl = musicUrl;
+  }
+
+  if (typeof musicPlaying === "boolean") {
+    const url = musicUrl || data.musicUrl;
+    const name = musicName || data.musicName || "Room Music";
+
+    if (musicPlaying && url) {
+      if (url.startsWith("data:")) {
+        update.musicPlaying = true;
+      } else {
+        const result = await startMusicIngress(ALWAYS_ON_SLUG, url, name);
+        if (result.ok) {
+          update.musicPlaying = true;
+          update.musicIngressId = result.ingressId;
+        } else {
+          return NextResponse.json({ error: result.error }, { status: 500 });
+        }
+      }
+    } else if (!musicPlaying) {
+      await stopMusicIngress(ALWAYS_ON_SLUG);
+      update.musicPlaying = false;
+      update.musicIngressId = null;
+    }
+  }
 
   await room.ref.set(update, { merge: true });
 

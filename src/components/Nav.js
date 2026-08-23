@@ -106,6 +106,15 @@ export default function Nav({ role, children }) {
     window.localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
   }, [collapsed]);
 
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   function toggleSidebar() {
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches) {
       setMobileOpen((v) => !v);

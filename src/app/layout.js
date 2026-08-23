@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import PushSetup from "@/components/PushSetup";
+import GlobalTheme from "@/components/GlobalTheme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

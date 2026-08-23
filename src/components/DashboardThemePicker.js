@@ -69,12 +69,18 @@ export default function DashboardThemePicker() {
   useEffect(() => {
     if (!theme) return;
     const r = document.documentElement;
-    r.style.setProperty("--dash-bg", theme.bg);
-    r.style.setProperty("--dash-surface", theme.surface);
-    r.style.setProperty("--dash-border", theme.border);
-    r.style.setProperty("--dash-text", theme.text);
-    r.style.setProperty("--dash-muted", theme.muted);
-    r.style.setProperty("--dash-accent", theme.accent);
+    if (theme.bg) {
+      r.style.setProperty("--background", theme.bg);
+      r.style.setProperty("--dash-bg", theme.bg);
+    }
+    if (theme.surface) r.style.setProperty("--dash-surface", theme.surface);
+    if (theme.border) r.style.setProperty("--dash-border", theme.border);
+    if (theme.text) {
+      r.style.setProperty("--foreground", theme.text);
+      r.style.setProperty("--dash-text", theme.text);
+    }
+    if (theme.muted) r.style.setProperty("--dash-muted", theme.muted);
+    if (theme.accent) r.style.setProperty("--dash-accent", theme.accent);
   }, [theme]);
 
   useEffect(() => {

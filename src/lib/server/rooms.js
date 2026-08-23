@@ -94,7 +94,13 @@ export async function seedAlwaysOnRoom() {
     .where("slug", "==", ALWAYS_ON_SLUG)
     .limit(1)
     .get();
-  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+  if (!snap.empty) {
+    const doc = snap.docs[0];
+    if (!doc.data().alwaysOn) {
+      await doc.ref.set({ alwaysOn: true }, { merge: true });
+    }
+    return { id: doc.id, ...doc.data(), alwaysOn: true };
+  }
 
   const ref = adminDb().collection("rooms").doc();
   const room = {

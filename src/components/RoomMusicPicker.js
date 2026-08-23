@@ -9,7 +9,9 @@ export default function RoomMusicPicker({ isStaff }) {
   const [playing, setPlaying] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploadError, setUploadError] = useState("");
   const panelRef = useRef(null);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     if (!isStaff) return;
@@ -41,6 +43,20 @@ export default function RoomMusicPicker({ isStaff }) {
       document.removeEventListener("keydown", handleKey);
     };
   }, [open]);
+
+  function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUrl(reader.result);
+      if (!name) setName(file.name.replace(/\.[^.]+$/, ""));
+    };
+    reader.onerror = () => setUploadError("Failed to read file.");
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
 
   async function save(updates) {
     setSaving(true);
@@ -101,6 +117,8 @@ export default function RoomMusicPicker({ isStaff }) {
             zIndex: 1000,
             width: 340,
             maxWidth: "calc(100vw - 32px)",
+            maxHeight: "calc(100vh - 120px)",
+            overflowY: "auto",
             background: "#1a1a1f",
             border: "1px solid #2e2e38",
             borderRadius: 16,
@@ -137,12 +155,41 @@ export default function RoomMusicPicker({ isStaff }) {
             }}
           />
 
+          <button
+            onClick={() => fileRef.current?.click()}
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              borderRadius: 10,
+              border: "1px dashed rgba(167,139,250,0.4)",
+              background: "rgba(109,93,246,0.08)",
+              color: "#a78bfa",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              marginBottom: 6,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+            </svg>
+            Upload audio file
+          </button>
+          <input ref={fileRef} type="file" accept="audio/*" onChange={handleFile} style={{ display: "none" }} />
+          {uploadError && <p style={{ fontSize: 12, color: "#f87171", margin: "0 0 10px" }}>{uploadError}</p>}
+
+          <div style={{ height: 1, background: "#2e2e38", margin: "12px 0" }} />
+
           <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#a0a0ac", marginBottom: 4 }}>
-            Audio URL
+            Or paste an audio URL
           </label>
           <input
             type="url"
-            value={url}
+            value={url.startsWith("data:") ? "" : url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/song.mp3"
             style={{
@@ -154,16 +201,16 @@ export default function RoomMusicPicker({ isStaff }) {
               color: "#f5f5f5",
               fontSize: 13,
               outline: "none",
-              marginBottom: 6,
+              marginBottom: 14,
               boxSizing: "border-box",
             }}
           />
-          <p style={{ fontSize: 11, color: "#6b6b7b", margin: "0 0 14px" }}>
-            Paste a direct link to any audio file (mp3, wav, ogg). The song loops for everyone.
-          </p>
 
           {url && (
             <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: "#6b6b7b", marginBottom: 4 }}>
+                {url.startsWith("data:") ? "Uploaded file" : "Preview"}
+              </div>
               <audio controls src={url} style={{ width: "100%", height: 36, borderRadius: 8 }} />
             </div>
           )}

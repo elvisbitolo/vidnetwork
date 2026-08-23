@@ -57,18 +57,25 @@ function generateAmbientWav() {
   return "data:audio/wav;base64," + btoa(binary);
 }
 
-export default function AmbientAudio({ active }) {
-  const [playing, setPlaying] = useState(false);
+export default function AmbientAudio({ active, musicUrl, musicPlaying, isStaff }) {
   const [src, setSrc] = useState("");
+  const [playing, setPlaying] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
     if (!active) return;
-    setSrc(generateAmbientWav());
-  }, [active]);
+    if (musicUrl && musicPlaying) {
+      setSrc(musicUrl);
+    } else if (!musicUrl) {
+      setSrc(generateAmbientWav());
+    } else {
+      setSrc("");
+    }
+  }, [active, musicUrl, musicPlaying]);
 
   useEffect(() => {
     if (!audioRef.current || !src) return;
+    audioRef.current.load();
     audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
   }, [src]);
 
@@ -91,14 +98,14 @@ export default function AmbientAudio({ active }) {
     }
   }
 
-  if (!active || !src) return null;
+  if (!active) return null;
 
   return (
     <>
-      <audio ref={audioRef} src={src} loop preload="auto" />
+      {src && <audio ref={audioRef} src={src} loop preload="auto" />}
       <button
         onClick={toggle}
-        aria-label={playing ? "Mute ambient music" : "Play ambient music"}
+        aria-label={playing ? "Mute music" : "Play music"}
         style={{
           position: "fixed",
           bottom: 24,

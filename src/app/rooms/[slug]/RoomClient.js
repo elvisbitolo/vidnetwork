@@ -14,6 +14,7 @@ import {
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
 import AmbientAudio from "@/components/AmbientAudio";
+import RoomMusicPicker from "@/components/RoomMusicPicker";
 import styles from "./room.module.css";
 
 function currentTime() {
@@ -147,7 +148,7 @@ function HostControls({ roomId, isHost }) {
   );
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn }) {
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn, musicUrl, musicPlaying }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -167,6 +168,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
 
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
+  const isStaff = role === "owner" || role === "moderator";
   const canToggleRecording = isBroadcast && canRecord;
   const waiting = Boolean(opensAt) && !isHost && now < opensAt;
   const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
@@ -323,7 +325,8 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   return (
     <main className={styles.page}>
       <div className={styles.roomWrap} style={{ position: "relative" }}>
-        <AmbientAudio active={alwaysOn} />
+        <AmbientAudio active={alwaysOn} musicUrl={musicUrl} musicPlaying={musicPlaying} isStaff={isStaff} />
+        {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         <LiveKitRoom
           token={token}
           serverUrl={serverUrl}

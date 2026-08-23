@@ -50,16 +50,16 @@ export async function POST(req) {
     const name = musicName || data.musicName || "Room Music";
 
     if (musicPlaying && url) {
-      if (url.startsWith("data:")) {
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vidnetwork.vercel.app";
+      const streamUrl = url.startsWith("data:")
+        ? `${baseUrl}/api/rooms/music/stream`
+        : url;
+      const result = await startMusicIngress(ALWAYS_ON_SLUG, streamUrl, name);
+      if (result.ok) {
         update.musicPlaying = true;
+        update.musicIngressId = result.ingressId;
       } else {
-        const result = await startMusicIngress(ALWAYS_ON_SLUG, url, name);
-        if (result.ok) {
-          update.musicPlaying = true;
-          update.musicIngressId = result.ingressId;
-        } else {
-          return NextResponse.json({ error: result.error }, { status: 500 });
-        }
+        return NextResponse.json({ error: result.error }, { status: 500 });
       }
     } else if (!musicPlaying) {
       await stopMusicIngress(ALWAYS_ON_SLUG);

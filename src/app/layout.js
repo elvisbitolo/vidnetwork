@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import PushSetup from "@/components/PushSetup";
 import GlobalTheme from "@/components/GlobalTheme";
+import GlobalRoomMusic from "@/components/GlobalRoomMusic";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,6 +65,7 @@ export default async function RootLayout({ children }) {
       <body>
         <Providers messages={messages} locale={locale}>
           <PushSetup />
+          <GlobalRoomMusic />
           {children}
         </Providers>
       </body>

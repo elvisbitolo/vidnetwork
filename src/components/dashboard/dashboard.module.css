@@ -31,6 +31,9 @@
   margin-top: 4px;
   font-size: 14px;
   color: #8b8b9b;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
 }
 
 .headerRight {

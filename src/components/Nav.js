@@ -3,12 +3,19 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import NotificationBell from "./NotificationBell";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
 import LiveNowBanner from "./LiveNowBanner";
 import ChatbotGuide from "./ChatbotGuide";
 import styles from "./Nav.module.css";
+
+const CHEVRON = (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 function getAnalyticsLinks(role) {
   if (role === "owner") {
@@ -83,13 +90,35 @@ const COMMUNITY_ITEMS = [
   { href: "/leaderboard", key: "leaderboard" },
 ];
 
+function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) {
+  const isOpen = open.has(id);
+  return (
+    <div>
+      <button type="button" className={styles.groupToggle} onClick={() => onToggle(id)} aria-expanded={isOpen}>
+        <span className={styles.groupLabel}>{label}</span>
+        <span className={isOpen ? `${styles.groupChevron} ${styles.groupChevronOpen}` : styles.groupChevron}>{CHEVRON}</span>
+      </button>
+      <div className={isOpen ? `${styles.groupBody} ${styles.groupBodyOpen}` : styles.groupBody}>
+        {items && items.map((item) => (
+          <Link key={item.href} className={styles.sidebarLink} href={item.href} onClick={close}>
+            {t(item.key)}
+          </Link>
+        ))}
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function Nav({ role, children }) {
   const t = useTranslations("nav");
   const tc = useTranslations("common");
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("sidebarCollapsed") === "1"
   );
+  const [openGroups, setOpenGroups] = useState(() => new Set());
   const [collections, setCollections] = useState([]);
   const [hasHostTools, setHasHostTools] = useState(
     () => role === "owner" || role === "moderator"
@@ -101,6 +130,39 @@ export default function Nav({ role, children }) {
   const automationLinks = getAutomationLinks(role);
   const administrationLinks = getAdministrationLinks(role);
   const close = () => setMobileOpen(false);
+
+  function toggleGroup(id) {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  useEffect(() => {
+    const allGroups = [
+      { id: "overview", items: OVERVIEW_ITEMS },
+      { id: "connect", items: CONNECT_ITEMS },
+      { id: "learn", items: LEARN_ITEMS },
+      { id: "community", items: COMMUNITY_ITEMS },
+      { id: "analytics", items: analyticsLinks },
+      { id: "monetization", items: monetizationLinks },
+      { id: "automation", items: automationLinks },
+      { id: "administration", items: administrationLinks },
+      { id: "host", items: hasHostTools ? [{ href: "/host" }] : [] },
+    ];
+    const matched = allGroups
+      .filter((g) => g.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/")))
+      .map((g) => g.id);
+    if (matched.length) {
+      setOpenGroups((prev) => {
+        const next = new Set(prev);
+        matched.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  }, [pathname, analyticsLinks, monetizationLinks, automationLinks, administrationLinks, hasHostTools]);
 
   useEffect(() => {
     window.localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
@@ -196,146 +258,45 @@ export default function Nav({ role, children }) {
         >
           <div className={styles.sidebarInner}>
             <nav className={styles.sidebarNav}>
-              <p className={styles.groupLabel}>{t("overview")}</p>
-              {OVERVIEW_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  className={styles.sidebarLink}
-                  href={item.href}
-                  onClick={close}
-                >
-                  {t(item.key)}
-                </Link>
-              ))}
-
-              <p className={styles.groupLabel}>{t("connect")}</p>
-              {CONNECT_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  className={styles.sidebarLink}
-                  href={item.href}
-                  onClick={close}
-                >
-                  {t(item.key)}
-                </Link>
-              ))}
-
-              <p className={styles.groupLabel}>{t("learn")}</p>
-              {LEARN_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  className={styles.sidebarLink}
-                  href={item.href}
-                  onClick={close}
-                >
-                  {t(item.key)}
-                </Link>
-              ))}
+              <SidebarGroup id="overview" label={t("overview")} items={OVERVIEW_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
+              <SidebarGroup id="connect" label={t("connect")} items={CONNECT_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
+              <SidebarGroup id="learn" label={t("learn")} items={LEARN_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
 
               {collections.length > 0 && (
-                <>
-                  <p className={styles.groupLabel}>{t("collections")}</p>
+                <SidebarGroup id="collections" label={t("collections")} open={openGroups} onToggle={toggleGroup} t={t} close={close}>
                   {collections.map((collection) => (
                     <div key={collection.id} className={styles.collection}>
                       <p className={styles.collectionName}>{collection.name}</p>
                       {collection.spaces.map((space) => (
-                        <Link
-                          key={space.id}
-                          className={styles.sidebarLinkNested}
-                          href={`/spaces/${space.slug}`}
-                          onClick={close}
-                        >
+                        <Link key={space.id} className={styles.sidebarLinkNested} href={`/spaces/${space.slug}`} onClick={close}>
                           {space.name}
                         </Link>
                       ))}
                     </div>
                   ))}
-                </>
+                </SidebarGroup>
               )}
 
-              <p className={styles.groupLabel}>{t("community")}</p>
-              {COMMUNITY_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  className={styles.sidebarLink}
-                  href={item.href}
-                  onClick={close}
-                >
-                  {t(item.key)}
-                </Link>
-              ))}
+              <SidebarGroup id="community" label={t("community")} items={COMMUNITY_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
 
               {hasHostTools && !analyticsLinks.length && (
-                <>
-                  <p className={styles.groupLabel}>{t("host")}</p>
-                  <Link className={styles.sidebarLink} href="/host" onClick={close}>
-                    {t("hostTools")}
-                  </Link>
-                </>
+                <SidebarGroup id="host" label={t("host")} items={[{ href: "/host", key: "hostTools" }]} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
 
               {analyticsLinks.length > 0 && (
-                <>
-                  <p className={styles.groupLabel}>{t("analytics")}</p>
-                  {analyticsLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      className={styles.sidebarLink}
-                      href={item.href}
-                      onClick={close}
-                    >
-                      {t(item.key)}
-                    </Link>
-                  ))}
-                </>
+                <SidebarGroup id="analytics" label={t("analytics")} items={analyticsLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
 
               {monetizationLinks.length > 0 && (
-                <>
-                  <p className={styles.groupLabel}>{t("monetization")}</p>
-                  {monetizationLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      className={styles.sidebarLink}
-                      href={item.href}
-                      onClick={close}
-                    >
-                      {t(item.key)}
-                    </Link>
-                  ))}
-                </>
+                <SidebarGroup id="monetization" label={t("monetization")} items={monetizationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
 
               {automationLinks.length > 0 && (
-                <>
-                  <p className={styles.groupLabel}>{t("automation")}</p>
-                  {automationLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      className={styles.sidebarLink}
-                      href={item.href}
-                      onClick={close}
-                    >
-                      {t(item.key)}
-                    </Link>
-                  ))}
-                </>
+                <SidebarGroup id="automation" label={t("automation")} items={automationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
 
               {administrationLinks.length > 0 && (
-                <>
-                  <p className={styles.groupLabel}>{t("administration")}</p>
-                  {administrationLinks.map((item) => (
-                    <Link
-                      key={item.href}
-                      className={styles.sidebarLink}
-                      href={item.href}
-                      onClick={close}
-                    >
-                      {t(item.key)}
-                    </Link>
-                  ))}
-                </>
+                <SidebarGroup id="administration" label={t("administration")} items={administrationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
             </nav>
           </div>

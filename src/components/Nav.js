@@ -256,7 +256,7 @@ export default function Nav({ role, children }) {
                 : styles.sidebar
           }
         >
-          <div className={styles.sidebarInner}>
+          <div className={styles.sidebarInner} data-tour="tour-sidebar">
             <nav className={styles.sidebarNav}>
               <SidebarGroup id="overview" label={t("overview")} items={OVERVIEW_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               <SidebarGroup id="connect" label={t("connect")} items={CONNECT_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />

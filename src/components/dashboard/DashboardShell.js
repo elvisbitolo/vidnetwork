@@ -16,6 +16,7 @@ import {
 } from "./Sections";
 import { CardSkeleton, SectionError } from "./Section";
 import styles from "./dashboard.module.css";
+import DashboardTour from "../DashboardTour";
 
 function formatMoney(cents) {
   if (cents == null) return "—";
@@ -180,7 +181,7 @@ export default function DashboardShell() {
               {user.name} · {isStaff ? t("adminAndCreator") : t("member")}
             </p>
           </div>
-          <div className={styles.headerRight}>
+          <div className={styles.headerRight} data-tour="tour-search">
             <form className={styles.search} onSubmit={handleSearch}>
               <span className={styles.searchIcon}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
@@ -200,10 +201,14 @@ export default function DashboardShell() {
           </div>
         </div>
 
-        <WelcomeBanner name={user.name} />
-        <QuickActions isStaff={isStaff} />
+        <div data-tour="tour-welcome">
+          <WelcomeBanner name={user.name} />
+        </div>
+        <div data-tour="tour-actions">
+          <QuickActions isStaff={isStaff} />
+        </div>
 
-        <div className={styles.kpiGrid}>{kpis}</div>
+        <div className={styles.kpiGrid} data-tour="tour-kpis">{kpis}</div>
 
         <div className={styles.grid}>
           <div className={styles.col}>
@@ -214,13 +219,17 @@ export default function DashboardShell() {
           )}
 
             {activity?.ok ? (
-              <RecentActivity data={activityValue} />
+              <div data-tour="tour-activity">
+                <RecentActivity data={activityValue} />
+              </div>
             ) : (
               <SectionError message={t("activityLoadError")} onRetry={handleRetry} />
             )}
 
             {upcomingRooms?.ok ? (
-              <UpcomingRooms data={roomsValue} />
+              <div data-tour="tour-rooms">
+                <UpcomingRooms data={roomsValue} />
+              </div>
             ) : (
               <SectionError message={t("roomsLoadError")} onRetry={handleRetry} />
             )}
@@ -268,6 +277,7 @@ export default function DashboardShell() {
           </div>
         </div>
       </div>
+      <DashboardTour />
     </div>
   );
 }

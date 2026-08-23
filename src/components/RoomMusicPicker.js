@@ -60,26 +60,26 @@ export default function RoomMusicPicker({ isStaff }) {
   if (!isStaff || loading) return null;
 
   return (
-    <div style={{ position: "relative" }}>
+    <>
       <button
         onClick={() => setOpen((v) => !v)}
         title="Manage room music"
         style={{
+          position: "fixed",
+          bottom: 24,
+          left: 82,
+          zIndex: 999,
           width: 48,
           height: 48,
           borderRadius: 14,
-          border: playing ? "1px solid rgba(167,139,250,0.4)" : "1px solid rgba(255,255,255,0.15)",
-          background: playing
-            ? "linear-gradient(135deg, rgba(109,93,246,0.85), rgba(167,139,250,0.75))"
-            : "rgba(30,30,38,0.9)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          background: "rgba(30,30,38,0.9)",
           color: "#fff",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: playing
-            ? "0 4px 20px rgba(109,93,246,0.4)"
-            : "0 2px 12px rgba(0,0,0,0.4)",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
           transition: "all 0.2s ease",
           backdropFilter: "blur(8px)",
         }}
@@ -95,9 +95,9 @@ export default function RoomMusicPicker({ isStaff }) {
         <div
           ref={panelRef}
           style={{
-            position: "absolute",
-            bottom: "calc(100% + 10px)",
-            left: 0,
+            position: "fixed",
+            bottom: 82,
+            left: 24,
             zIndex: 1000,
             width: 340,
             maxWidth: "calc(100vw - 32px)",
@@ -205,6 +205,6 @@ export default function RoomMusicPicker({ isStaff }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

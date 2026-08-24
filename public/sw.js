@@ -1,10 +1,24 @@
-const VERSION = "v1";
+const VERSION = "v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(VERSION)
-      .then((cache) => cache.addAll(["/", "/login", "/pricing", "/about", "/guidelines"]))
+      .then((cache) =>
+        cache.addAll([
+          "/",
+          "/login",
+          "/pricing",
+          "/about",
+          "/guidelines",
+          "/rooms",
+          "/feed",
+          "/chat",
+          "/dashboard",
+          "/icon-192.png",
+          "/icon-512.png",
+        ])
+      )
       .catch(() => {})
   );
   self.skipWaiting();
@@ -28,18 +42,28 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches
-            .open(VERSION)
-            .then((cache) => cache.put("/", copy))
-            .catch(() => {});
+          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
           return response;
         })
-        .catch(() => caches.match("/"))
+        .catch(() =>
+          caches.match(request).then((cached) => cached || caches.match("/"))
+        )
     );
     return;
   }
 
-  event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const fetching = fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+        }
+        return response;
+      }).catch(() => cached);
+      return cached || fetching;
+    })
+  );
 });
 
 self.addEventListener("push", (event) => {

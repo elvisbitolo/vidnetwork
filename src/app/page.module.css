@@ -97,7 +97,7 @@
 
 .heroFine {
   font-size: 13px;
-  color: #52525b;
+  color: #71717a;
   margin-top: 18px;
 }
 
@@ -175,7 +175,7 @@
 .mockupUrl {
   margin-left: 12px;
   font-size: 11px;
-  color: #52525b;
+  color: #a1a1aa;
   font-family: monospace;
 }
 
@@ -241,7 +241,7 @@
 
 .mockupStatLabel {
   font-size: 12px;
-  color: #52525b;
+  color: #a1a1aa;
 }
 
 .mockupFeed {
@@ -398,7 +398,7 @@
 
 .showcaseSub {
   font-size: 13px;
-  color: #52525b;
+  color: #a1a1aa;
   margin: 2px 0 0;
 }
 
@@ -518,7 +518,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   font-size: 11px;
-  color: #52525b;
+  color: #71717a;
   background: #141418;
 }
 
@@ -641,7 +641,7 @@
 
 .learningSub {
   font-size: 13px;
-  color: #52525b;
+  color: #a1a1aa;
   margin: 2px 0 0;
 }
 
@@ -696,7 +696,7 @@
 
 .lessonIconUpcoming {
   background: rgba(255, 255, 255, 0.04);
-  color: #52525b;
+  color: #a1a1aa;
 }
 
 .lessonDone {
@@ -722,7 +722,7 @@
 }
 
 .lessonRow:not(.lessonDone):not(.lessonCurrent) .lessonStatus {
-  color: #52525b;
+  color: #a1a1aa;
 }
 
 /* ---------- Gamification mockup ---------- */
@@ -773,7 +773,7 @@
 
 .gamCardLabel {
   font-size: 11px;
-  color: #52525b;
+  color: #a1a1aa;
   margin: 2px 0 0;
 }
 
@@ -811,7 +811,7 @@
   width: 22px;
   font-size: 13px;
   font-weight: 700;
-  color: #52525b;
+  color: #a1a1aa;
   text-align: center;
 }
 
@@ -841,7 +841,7 @@
 .lbPoints {
   font-size: 13px;
   font-weight: 700;
-  color: #52525b;
+  color: #a1a1aa;
 }
 
 .lbRowActive .lbPoints {
@@ -925,7 +925,7 @@
   flex-basis: 100%;
   font-size: 14px;
   line-height: 1.6;
-  color: #52525b;
+  color: #a1a1aa;
   max-width: 320px;
   margin: 8px 0 0;
 }
@@ -942,7 +942,7 @@
 .footerLink {
   display: block;
   font-size: 14px;
-  color: #52525b;
+  color: #a1a1aa;
   padding: 6px 0;
   transition: color 0.15s ease;
 }
@@ -956,7 +956,7 @@
   padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 13px;
-  color: #52525b;
+  color: #71717a;
   text-align: center;
 }
 

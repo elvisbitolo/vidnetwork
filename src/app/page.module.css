@@ -244,6 +244,21 @@
   color: #a1a1aa;
 }
 
+.mockupPlaceholder {
+  height: 12px;
+  width: 60%;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mockupPlaceholderShort {
+  width: 35%;
+}
+
+.mockupPlaceholderMed {
+  width: 48%;
+}
+
 .mockupFeed {
   display: flex;
   flex-direction: column;

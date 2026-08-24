@@ -177,18 +177,9 @@ export default function Home() {
                     </div>
                   </div>
                   <div className={styles.mockupContent}>
-                    <div className={styles.mockupStat}>
-                      <span className={styles.mockupStatNum}>2.4k</span>
-                      <span className={styles.mockupStatLabel}>Members</span>
-                    </div>
-                    <div className={styles.mockupStat}>
-                      <span className={styles.mockupStatNum}>18</span>
-                      <span className={styles.mockupStatLabel}>Live now</span>
-                    </div>
-                    <div className={styles.mockupStat}>
-                      <span className={styles.mockupStatNum}>$4.2k</span>
-                      <span className={styles.mockupStatLabel}>Revenue</span>
-                    </div>
+                    <div className={styles.mockupPlaceholder} />
+                    <div className={`${styles.mockupPlaceholder} ${styles.mockupPlaceholderShort}`} />
+                    <div className={`${styles.mockupPlaceholder} ${styles.mockupPlaceholderMed}`} />
                     <div className={styles.mockupFeed}>
                       <div className={styles.mockupFeedItem} />
                       <div className={styles.mockupFeedItem} />

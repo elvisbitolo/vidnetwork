@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import LandingNav from "@/components/LandingNav";
 import LandingPricing from "@/components/LandingPricing";
@@ -15,17 +14,21 @@ import {
   MicIcon,
   PhoneIcon,
   ClockIcon,
+  TrophyIcon,
+  ZapIcon,
+  StarIcon,
+  TrendingUpIcon,
 } from "@/components/LandingIcons";
 import styles from "./page.module.css";
 
 export const metadata = {
   title: "VidNetwork — Connect, Learn & Grow Together",
   description:
-    "VidNetwork is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
+    "VidNetwork is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
   openGraph: {
     title: "VidNetwork — Connect, Learn & Grow Together",
     description:
-      "Live communities, courses, events and real conversations — all in one place.",
+      "Live communities, courses, events, gamification and real conversations — all in one place.",
     url: "https://vidnetwork.vercel.app",
     siteName: "VidNetwork",
     type: "website",
@@ -40,46 +43,58 @@ export const metadata = {
   },
 };
 
-const VALUE_ITEMS = [
-  { icon: VideoIcon, label: "liveRooms" },
-  { icon: BookIcon, label: "courses" },
-  { icon: CalendarIcon, label: "events" },
-  { icon: UsersIcon, label: "community" },
-];
-
 const FEATURES = [
   {
     icon: VideoIcon,
-    name: "liveVideoRooms",
-    desc: "liveVideoRoomsDesc",
+    name: "feature1Title",
+    desc: "feature1Desc",
+    tag: "feature1Tag",
+  },
+  {
+    icon: ChatIcon,
+    name: "feature2Title",
+    desc: "feature2Desc",
+    tag: "feature2Tag",
   },
   {
     icon: BookIcon,
-    name: "coursesLearning",
-    desc: "coursesLearningDesc",
+    name: "feature3Title",
+    desc: "feature3Desc",
+    tag: "feature3Tag",
   },
   {
     icon: CalendarIcon,
-    name: "eventsCommunity",
-    desc: "eventsCommunityDesc",
+    name: "feature4Title",
+    desc: "feature4Desc",
+    tag: "feature4Tag",
+  },
+  {
+    icon: TrophyIcon,
+    name: "feature5Title",
+    desc: "feature5Desc",
+    tag: "feature5Tag",
   },
   {
     icon: UsersIcon,
-    name: "groupsConversations",
-    desc: "groupsConversationsDesc",
+    name: "feature6Title",
+    desc: "feature6Desc",
+    tag: "feature6Tag",
+  },
+  {
+    icon: BookIcon,
+    name: "feature7Title",
+    desc: "feature7Desc",
+    tag: "feature7Tag",
+  },
+  {
+    icon: TrendingUpIcon,
+    name: "feature8Title",
+    desc: "feature8Desc",
+    tag: "feature8Tag",
   },
 ];
 
-const COMMUNITY_CHIPS = [
-  { icon: UsersIcon, label: "members" },
-  { icon: VideoIcon, label: "liveRoomsChip" },
-  { icon: ChatIcon, label: "conversations" },
-  { icon: BookIcon, label: "learning" },
-  { icon: CalendarIcon, label: "events" },
-  { icon: UsersIcon, label: "groups" },
-];
-
-const PARTICIPANTS = [
+const ROOM_PARTICIPANTS = [
   { key: "host" },
   { key: "speaker" },
   { key: "speaker" },
@@ -97,7 +112,7 @@ export default function Home() {
     name: "VidNetwork",
     url: "https://vidnetwork.vercel.app",
     description:
-      "A paid membership community with live video rooms, courses, events, groups and real conversations.",
+      "A paid membership community with live video rooms, courses, events, gamification and real conversations.",
     sameAs: [],
   };
 
@@ -109,6 +124,7 @@ export default function Home() {
       />
       <LandingNav />
 
+      {/* ─── Hero ─── */}
       <section className={styles.hero}>
         <div className={styles.wrap}>
           <div className={styles.heroInner}>
@@ -129,71 +145,99 @@ export default function Home() {
               </div>
               <p className={styles.heroFine}>{t("freeTrial")}</p>
             </div>
-
             <div className={styles.heroVisual}>
-              <Image
-                src="/vidnetwork-hero.png"
-                alt="VidNetwork platform showing live community rooms, courses, events and member interactions"
-                width={1672}
-                height={941}
-                priority
-                sizes="(max-width: 900px) 100vw, 56vw"
-                className={styles.heroImage}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.valueStrip} aria-label="Platform highlights">
-        <div className={styles.wrap}>
-          <div className={styles.valueInner}>
-            <p className={styles.valueLead}>{t("valueLead")}</p>
-            <div className={styles.valueItems}>
-              {VALUE_ITEMS.map((item) => (
-                <div key={item.label} className={styles.valueItem}>
-                  <span className={styles.valueIcon}>
-                    <item.icon size={17} />
-                  </span>
-                  {t(item.label)}
+              <div className={styles.heroMockup} role="img" aria-label="VidNetwork dashboard preview">
+                <div className={styles.mockupBar}>
+                  <span className={styles.mockupDot} />
+                  <span className={styles.mockupDot} />
+                  <span className={styles.mockupDot} />
+                  <span className={styles.mockupUrl}>vidnetwork.vercel.app</span>
                 </div>
-              ))}
+                <div className={styles.mockupBody}>
+                  <div className={styles.mockupSidebar}>
+                    <div className={styles.mockupSidebarItem}>
+                      <span className={styles.mockupSidebarIcon} />
+                      <span className={styles.mockupSidebarLine} />
+                    </div>
+                    <div className={styles.mockupSidebarItem}>
+                      <span className={styles.mockupSidebarIcon} />
+                      <span className={styles.mockupSidebarLine} />
+                    </div>
+                    <div className={styles.mockupSidebarItem}>
+                      <span className={styles.mockupSidebarIcon} />
+                      <span className={styles.mockupSidebarLine} />
+                    </div>
+                    <div className={styles.mockupSidebarItem}>
+                      <span className={styles.mockupSidebarIcon} />
+                      <span className={styles.mockupSidebarLine} />
+                    </div>
+                    <div className={styles.mockupSidebarItem}>
+                      <span className={styles.mockupSidebarIcon} />
+                      <span className={styles.mockupSidebarLine} />
+                    </div>
+                  </div>
+                  <div className={styles.mockupContent}>
+                    <div className={styles.mockupStat}>
+                      <span className={styles.mockupStatNum}>2.4k</span>
+                      <span className={styles.mockupStatLabel}>Members</span>
+                    </div>
+                    <div className={styles.mockupStat}>
+                      <span className={styles.mockupStatNum}>18</span>
+                      <span className={styles.mockupStatLabel}>Live now</span>
+                    </div>
+                    <div className={styles.mockupStat}>
+                      <span className={styles.mockupStatNum}>$4.2k</span>
+                      <span className={styles.mockupStatLabel}>Revenue</span>
+                    </div>
+                    <div className={styles.mockupFeed}>
+                      <div className={styles.mockupFeedItem} />
+                      <div className={styles.mockupFeedItem} />
+                      <div className={styles.mockupFeedItem} />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="overview-title">
+      {/* ─── What you get ─── */}
+      <section className={styles.featuresSection} aria-labelledby="features-title">
         <div className={styles.wrap}>
           <Reveal>
             <div className={styles.sectionHead}>
-              <h2 id="overview-title" className={styles.sectionTitle}>
-                {t("communityAllInOne")}
+              <h2 id="features-title" className={styles.sectionTitle}>
+                {t("whatYouGetTitle")}
               </h2>
-              <p className={styles.sectionSub}>{t("communityDesc")}</p>
+              <p className={styles.sectionSub}>{t("whatYouGetDesc")}</p>
             </div>
           </Reveal>
-          <Reveal>
-            <div className={styles.featureGrid}>
-              {FEATURES.map((feature) => (
-                <article key={feature.name} className={styles.featureCard}>
-                  <span className={styles.featureIcon}>
-                    <feature.icon size={22} />
-                  </span>
+          <div className={styles.featureGrid}>
+            {FEATURES.map((feature, i) => (
+              <Reveal key={feature.name}>
+                <article className={styles.featureCard}>
+                  <div className={styles.featureTop}>
+                    <span className={styles.featureIcon}>
+                      <feature.icon size={20} />
+                    </span>
+                    <span className={styles.featureTag}>{t(feature.tag)}</span>
+                  </div>
                   <h3 className={styles.featureName}>{t(feature.name)}</h3>
                   <p className={styles.featureDesc}>{t(feature.desc)}</p>
                 </article>
-              ))}
-            </div>
-          </Reveal>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className={`${styles.section} ${styles.sectionAlt}`} aria-labelledby="showcase-title">
+      {/* ─── Live Rooms showcase ─── */}
+      <section className={styles.showcaseSection} aria-labelledby="rooms-title">
         <div className={styles.wrap}>
           <Reveal>
             <div className={styles.sectionHead}>
-              <h2 id="showcase-title" className={styles.sectionTitle}>
+              <h2 id="rooms-title" className={styles.sectionTitle}>
                 {t("meetFaceToFace")}
               </h2>
               <p className={styles.sectionSub}>{t("meetFaceToFaceDesc")}</p>
@@ -203,7 +247,7 @@ export default function Home() {
             <div
               className={styles.showcaseWindow}
               role="img"
-              aria-label="Large preview of a VidNetwork live broadcast room with participants, chat and call controls"
+              aria-label="Live room preview with participants and chat"
             >
               <div className={styles.showcaseHead}>
                 <div>
@@ -217,13 +261,13 @@ export default function Home() {
               </div>
               <div className={styles.showcaseBody}>
                 <div className={styles.showcaseGrid}>
-                  {PARTICIPANTS.map((p, i) => (
+                  {ROOM_PARTICIPANTS.map((p, i) => (
                     <div
                       key={p.key + i}
                       className={p.key === "you" ? `${styles.tile} ${styles.tileYou}` : styles.tile}
                     >
                       <span className={styles.avatar}>
-                        <UsersIcon size={22} />
+                        <UsersIcon size={20} />
                       </span>
                       <span className={styles.tileLabel}>{t(p.key)}</span>
                     </div>
@@ -242,13 +286,13 @@ export default function Home() {
               </div>
               <div className={styles.controls}>
                 <span className={styles.controlBtn}>
-                  <MicIcon size={18} />
+                  <MicIcon size={16} />
                 </span>
                 <span className={styles.controlBtn}>
-                  <VideoIcon size={18} />
+                  <VideoIcon size={16} />
                 </span>
                 <span className={`${styles.controlBtn} ${styles.controlEnd}`}>
-                  <PhoneIcon size={18} />
+                  <PhoneIcon size={16} />
                 </span>
               </div>
             </div>
@@ -256,12 +300,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="learning-title">
+      {/* ─── Courses showcase ─── */}
+      <section className={styles.showcaseSection} aria-labelledby="courses-title">
         <div className={styles.wrap}>
           <div className={styles.split}>
             <Reveal>
               <div className={styles.splitCopy}>
-                <h2 id="learning-title" className={styles.sectionTitle}>
+                <h2 id="courses-title" className={styles.sectionTitle}>
                   {t("learnAtOwnPace")}
                 </h2>
                 <p className={styles.sectionSub}>{t("learnAtOwnPaceDesc")}</p>
@@ -271,11 +316,7 @@ export default function Home() {
               </div>
             </Reveal>
             <Reveal>
-              <div
-                className={styles.learningPanel}
-                role="img"
-                aria-label="Preview of course progress showing completed and current lessons"
-              >
+              <div className={styles.learningPanel}>
                 <div className={styles.learningHeader}>
                   <span className={styles.learningIcon}>
                     <BookIcon size={18} />
@@ -324,45 +365,69 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`${styles.section} ${styles.sectionAlt}`} aria-labelledby="events-title">
+      {/* ─── Gamification showcase ─── */}
+      <section className={styles.showcaseSection} aria-labelledby="gamification-title">
         <div className={styles.wrap}>
           <div className={`${styles.split} ${styles.splitReverse}`}>
             <Reveal>
               <div className={styles.splitCopy}>
-                <h2 id="events-title" className={styles.sectionTitle}>
-                  {t("neverMiss")}
+                <h2 id="gamification-title" className={styles.sectionTitle}>
+                  {t("feature5Title")}
                 </h2>
-                <p className={styles.sectionSub}>{t("neverMissDesc")}</p>
-                <Link className={styles.secondary} href="/events">
-                  {t("exploreEvents")}
-                </Link>
+                <p className={styles.sectionSub}>{t("feature5Desc")}</p>
               </div>
             </Reveal>
             <Reveal>
-              <div
-                className={styles.eventsList}
-                role="img"
-                aria-label="Preview of upcoming events with RSVP"
-              >
-                <div className={styles.eventCard}>
-                  <span className={styles.eventCal}>
-                    <CalendarIcon size={20} />
-                  </span>
-                  <div className={styles.eventBody}>
-                    <p className={styles.eventName}>{t("upcomingEvent")}</p>
-                    <p className={styles.eventMeta}>{t("rsvpToJoin")}</p>
+              <div className={styles.gamificationPanel}>
+                <div className={styles.gamRow}>
+                  <div className={styles.gamCard}>
+                    <div className={styles.gamCardIcon}>
+                      <TrophyIcon size={20} />
+                    </div>
+                    <div>
+                      <p className={styles.gamCardValue}>1,240</p>
+                      <p className={styles.gamCardLabel}>Points earned</p>
+                    </div>
                   </div>
-                  <span className={styles.rsvp}>{t("rsvp")}</span>
+                  <div className={styles.gamCard}>
+                    <div className={styles.gamCardIcon}>
+                      <StarIcon size={20} />
+                    </div>
+                    <div>
+                      <p className={styles.gamCardValue}>7</p>
+                      <p className={styles.gamCardLabel}>Badges</p>
+                    </div>
+                  </div>
+                  <div className={styles.gamCard}>
+                    <div className={styles.gamCardIcon}>
+                      <ZapIcon size={20} />
+                    </div>
+                    <div>
+                      <p className={styles.gamCardValue}>12</p>
+                      <p className={styles.gamCardLabel}>Day streak</p>
+                    </div>
+                  </div>
                 </div>
-                <div className={styles.eventCard}>
-                  <span className={styles.eventCal}>
-                    <CalendarIcon size={20} />
-                  </span>
-                  <div className={styles.eventBody}>
-                    <p className={styles.eventName}>{t("upcomingEvent")}</p>
-                    <p className={styles.eventMeta}>{t("getNotified")}</p>
+                <div className={styles.leaderboard}>
+                  <p className={styles.leaderboardTitle}>Leaderboard</p>
+                  <div className={styles.lbRow}>
+                    <span className={styles.lbRank}>1</span>
+                    <span className={styles.lbAvatar} />
+                    <span className={styles.lbName}>Sarah M.</span>
+                    <span className={styles.lbPoints}>2,840 pts</span>
                   </div>
-                  <span className={styles.rsvp}>{t("rsvp")}</span>
+                  <div className={`${styles.lbRow} ${styles.lbRowActive}`}>
+                    <span className={styles.lbRank}>2</span>
+                    <span className={styles.lbAvatar} />
+                    <span className={styles.lbName}>You</span>
+                    <span className={styles.lbPoints}>2,410 pts</span>
+                  </div>
+                  <div className={styles.lbRow}>
+                    <span className={styles.lbRank}>3</span>
+                    <span className={styles.lbAvatar} />
+                    <span className={styles.lbName}>James K.</span>
+                    <span className={styles.lbPoints}>1,980 pts</span>
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -370,28 +435,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="community-title">
-        <div className={styles.wrap}>
-          <Reveal>
-            <div className={styles.communityInner}>
-              <h2 id="community-title" className={styles.sectionTitle}>
-                {t("moreThanVideoCall")}
-              </h2>
-              <p className={styles.sectionSub}>{t("moreThanVideoCallDesc")}</p>
-              <div className={styles.chips}>
-                {COMMUNITY_CHIPS.map((chip, i) => (
-                  <span key={chip.label + i} className={styles.chip}>
-                    <chip.icon size={15} />
-                    {t(chip.label)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className={styles.section} aria-labelledby="pricing-title">
+      {/* ─── Pricing ─── */}
+      <section className={styles.pricingSection} aria-labelledby="pricing-title">
         <div className={styles.wrap}>
           <Reveal>
             <div className={styles.sectionHead}>
@@ -407,23 +452,25 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.finalCta} aria-labelledby="final-cta-title">
+      {/* ─── Final CTA ─── */}
+      <section className={styles.ctaSection} aria-labelledby="final-cta-title">
         <div className={styles.wrap}>
           <Reveal>
-            <div className={styles.finalPanel}>
-              <h2 id="final-cta-title" className={styles.finalTitle}>
+            <div className={styles.ctaPanel}>
+              <h2 id="final-cta-title" className={styles.ctaTitle}>
                 {t("readyToJoin")}
               </h2>
-              <p className={styles.finalSub}>{t("readyToJoinDesc")}</p>
-              <Link className={styles.finalCtaBtn} href="/signup">
+              <p className={styles.ctaSub}>{t("readyToJoinDesc")}</p>
+              <Link className={styles.primary} href="/signup">
                 {t("startFreeTrial")}
               </Link>
-              <p className={styles.finalFine}>{t("freeTrial")}</p>
+              <p className={styles.ctaFine}>{t("freeTrial")}</p>
             </div>
           </Reveal>
         </div>
       </section>
 
+      {/* ─── Footer ─── */}
       <footer className={styles.footer}>
         <div className={styles.wrap}>
           <div className={styles.footerInner}>

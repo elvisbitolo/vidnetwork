@@ -7,6 +7,7 @@ import { sendEmailVerification } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import { signupWithEmail, loginWithGoogle } from "@/lib/client-auth";
 import GoogleIcon from "@/components/GoogleIcon";
+import PasswordInput from "@/components/PasswordInput";
 import styles from "../auth.module.css";
 
 export default function SignupPage() {
@@ -142,19 +143,13 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">{t("password")}</label>
-            <input
-              id="password"
-              className={styles.input}
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            label={t("password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
           <button className={styles.submit} type="submit" disabled={!!busy}>
             {busy === "email" ? t("creatingAccount") : t("createAccountBtn")}
           </button>

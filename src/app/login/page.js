@@ -7,6 +7,7 @@ import { auth } from "@/lib/firebase/client";
 import { sendPasswordResetEmail, sendEmailVerification } from "firebase/auth";
 import { loginWithEmail, loginWithGoogle } from "@/lib/client-auth";
 import GoogleIcon from "@/components/GoogleIcon";
+import PasswordInput from "@/components/PasswordInput";
 import styles from "../auth.module.css";
 
 export default function LoginPage() {
@@ -179,18 +180,14 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="password">{t("password")}</label>
-            <input
-              id="password"
-              className={styles.input}
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            label={t("password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            showRules={false}
+          />
           <button className={styles.submit} type="submit" disabled={!!busy}>
             {busy === "email" ? t("signingIn") : t("signIn")}
           </button>

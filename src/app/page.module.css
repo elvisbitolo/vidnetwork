@@ -2,14 +2,6 @@
   min-height: 100vh;
   background: #0e0e12;
   color: #f5f5f5;
-  --primary: #f6077a;
-  --primary-light: #fa81cd;
-  --primary-hover: #d1066a;
-  --accent: #019a9f;
-  --accent-light: #6dd9d1;
-  --success: #7fb704;
-  --warning: #fb7906;
-  --highlight: #faf100;
 }
 
 .wrap {
@@ -31,7 +23,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(1000px 500px at 72% -8%, rgba(246, 7, 122, 0.12), transparent 62%);
+  background: radial-gradient(1000px 500px at 72% -8%, var(--primary), transparent 62%);
+  opacity: 0.12;
   pointer-events: none;
 }
 
@@ -63,9 +56,9 @@
   align-items: center;
   gap: 8px;
   padding: 7px 14px;
-  border: 1px solid rgba(246, 7, 122, 0.25);
-  background: rgba(246, 7, 122, 0.08);
-  color: #fa81cd;
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--primary-light);
   font-size: 13px;
   font-weight: 600;
   border-radius: 999px;
@@ -76,7 +69,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #fa81cd;
+  background: var(--primary-light);
 }
 
 .heroTitle {
@@ -126,15 +119,15 @@
 }
 
 .primary {
-  background: #f6077a;
+  background: var(--primary);
   color: #ffffff;
-  box-shadow: 0 14px 34px -14px rgba(246, 7, 122, 0.5);
+  box-shadow: 0 14px 34px -14px var(--primary);
 }
 
 .primary:hover {
-  background: #d1066a;
+  background: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 18px 40px -16px rgba(246, 7, 122, 0.6);
+  box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--primary) 60%, transparent);
 }
 
 .secondary {
@@ -144,8 +137,8 @@
 }
 
 .secondary:hover {
-  border-color: #f6077a;
-  color: #fa81cd;
+  border-color: var(--primary);
+  color: var(--primary-light);
   transform: translateY(-1px);
   box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.4);
 }
@@ -220,7 +213,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 40px 80px -32px rgba(246, 7, 122, 0.2);
+  box-shadow: 0 40px 80px -32px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .mockupBar {
@@ -276,7 +269,7 @@
 }
 
 .mockupSidebarIcon:first-child {
-  background: rgba(246, 7, 122, 0.15);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .mockupSidebarLine {
@@ -404,7 +397,7 @@
 .featureCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 18px 44px -22px rgba(0, 0, 0, 0.4);
-  border-color: rgba(246, 7, 122, 0.3);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .featureTop {
@@ -418,8 +411,8 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(246, 7, 122, 0.1);
-  color: #fa81cd;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -430,8 +423,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #f6077a;
-  background: rgba(246, 7, 122, 0.1);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -459,7 +452,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 30px 70px -32px rgba(246, 7, 122, 0.15);
+  box-shadow: 0 30px 70px -32px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .showcaseHead {
@@ -518,8 +511,8 @@
 }
 
 .tileYou {
-  outline: 2px solid #f6077a;
-  box-shadow: 0 0 0 4px rgba(246, 7, 122, 0.3);
+  outline: 2px solid var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .avatar {
@@ -589,7 +582,7 @@
 
 .msgMe {
   align-self: flex-end;
-  background: #f6077a;
+  background: var(--primary);
   color: #ffffff;
   border-bottom-right-radius: 3px;
 }
@@ -706,8 +699,8 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: rgba(246, 7, 122, 0.1);
-  color: #fa81cd;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -739,7 +732,7 @@
   display: block;
   width: 45%;
   height: 100%;
-  background: linear-gradient(90deg, #f6077a, #fa81cd);
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
   border-radius: 999px;
 }
 
@@ -768,8 +761,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: rgba(246, 7, 122, 0.1);
-  color: #fa81cd;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -782,19 +775,19 @@
 }
 
 .lessonDone {
-  border-color: rgba(246, 7, 122, 0.15);
+  border-color: color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .lessonCurrent {
-  border-color: rgba(246, 7, 122, 0.3);
-  background: rgba(246, 7, 122, 0.06);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
 }
 
 .lessonStatus {
   margin-left: auto;
   font-size: 12px;
   font-weight: 700;
-  color: #fa81cd;
+  color: var(--primary-light);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -838,8 +831,8 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: rgba(246, 7, 122, 0.1);
-  color: #fa81cd;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -885,8 +878,8 @@
 }
 
 .lbRowActive {
-  background: rgba(246, 7, 122, 0.08);
-  border: 1px solid rgba(246, 7, 122, 0.15);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .lbRank {
@@ -898,7 +891,7 @@
 }
 
 .lbRowActive .lbRank {
-  color: #fa81cd;
+  color: var(--primary-light);
 }
 
 .lbAvatar {
@@ -917,7 +910,7 @@
 }
 
 .lbRowActive .lbName {
-  color: #fa81cd;
+  color: var(--primary-light);
 }
 
 .lbPoints {
@@ -927,7 +920,7 @@
 }
 
 .lbRowActive .lbPoints {
-  color: #fa81cd;
+  color: var(--primary-light);
 }
 
 /* ---------- CTA ---------- */
@@ -935,12 +928,12 @@
 .ctaPanel {
   max-width: 980px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #f6077a, #d1066a);
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   color: #ffffff;
   border-radius: 24px;
   padding: 72px 32px;
   text-align: center;
-  box-shadow: 0 34px 80px -34px rgba(246, 7, 122, 0.3);
+  box-shadow: 0 34px 80px -34px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .ctaTitle {
@@ -989,7 +982,7 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #f6077a, #fa81cd);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -1030,7 +1023,7 @@
 }
 
 .footerLink:hover {
-  color: #fa81cd;
+  color: var(--primary-light);
 }
 
 .footerBottom {
@@ -1045,7 +1038,7 @@
 /* ---------- Focus / reduced motion ---------- */
 
 .page a:focus-visible {
-  outline: 3px solid #f6077a;
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
   border-radius: 8px;
 }

@@ -100,6 +100,36 @@ export default async function MemberProfilePage({ params }) {
               </p>
             )}
             {member.bio && <p className={styles.bio}>{member.bio}</p>}
+            {Array.isArray(member.socialLinks) && member.socialLinks.length > 0 && (
+              <div className={styles.socialLinks}>
+                {member.socialLinks.map((link, i) => (
+                  <a
+                    key={i}
+                    className={styles.socialLink}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={link.platform}
+                  >
+                    <span className={styles.socialIcon}>
+                      {link.platform === "instagram" && "📷"}
+                      {link.platform === "tiktok" && "🎵"}
+                      {link.platform === "youtube" && "▶"}
+                      {link.platform === "facebook" && "👤"}
+                      {link.platform === "twitter" && "𝕏"}
+                      {link.platform === "etsy" && "🛍"}
+                      {link.platform === "pinterest" && "📌"}
+                      {link.platform === "ravelry" && "🧶"}
+                      {link.platform === "website" && "🌐"}
+                      {link.platform === "other" && "🔗"}
+                    </span>
+                    <span className={styles.socialLabel}>
+                      {link.platform === "twitter" ? "X / Twitter" : link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
             {(member.favoriteColors?.length > 0 ||
               member.goToYarn ||
               member.favoriteHookSize ||

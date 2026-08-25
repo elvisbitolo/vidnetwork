@@ -43,6 +43,16 @@ export function normalizeProfile(body) {
       errors.notifications = "Notifications must be \"on\" or \"off\"";
     }
   }
+  if ("socialLinks" in body) {
+    const raw = Array.isArray(body.socialLinks) ? body.socialLinks : [];
+    patch.socialLinks = raw
+      .slice(0, 8)
+      .map((link) => ({
+        platform: clean(typeof link.platform === "string" ? link.platform : "other", 30) || "other",
+        url: clean(typeof link.url === "string" ? link.url : "", 300),
+      }))
+      .filter((link) => link.url.length > 0);
+  }
 
   return { patch, errors };
 }

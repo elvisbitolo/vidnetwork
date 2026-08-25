@@ -60,6 +60,11 @@ export default function ProfileEditor({ initial }) {
   const [favoriteHookSize, setFavoriteHookSize] = useState(initial.favoriteHookSize || "");
   const [proudestProject, setProudestProject] = useState(initial.proudestProject || "");
   const [bestGiftProject, setBestGiftProject] = useState(initial.bestGiftProject || "");
+  const [socialLinks, setSocialLinks] = useState(
+    Array.isArray(initial.socialLinks) && initial.socialLinks.length
+      ? initial.socialLinks
+      : [{ platform: "website", url: "" }]
+  );
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
@@ -200,6 +205,13 @@ export default function ProfileEditor({ initial }) {
     if (cleanProud !== normalize(initial.proudestProject)) patch.proudestProject = cleanProud;
     const cleanGift = normalize(bestGiftProject);
     if (cleanGift !== normalize(initial.bestGiftProject)) patch.bestGiftProject = cleanGift;
+
+    const cleanSocial = socialLinks
+      .filter((l) => normalize(l.url))
+      .map((l) => ({ platform: normalize(l.platform) || "other", url: normalize(l.url) }));
+    if (JSON.stringify(cleanSocial) !== JSON.stringify(initial.socialLinks || [])) {
+      patch.socialLinks = cleanSocial;
+    }
 
     if (Object.keys(patch).length === 0) {
       setNotice("No changes to save.");
@@ -351,6 +363,62 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setBio(e.target.value)}
         />
       </div>
+
+      <h3 className={styles.sectionTitle}>Social links</h3>
+      <p className={styles.fieldHint} style={{ marginTop: -8, marginBottom: 12 }}>
+        Add your other social profiles so members can connect with you.
+      </p>
+      {socialLinks.map((link, i) => (
+        <div key={i} className={styles.socialRow}>
+          <select
+            className={styles.socialSelect}
+            value={link.platform}
+            onChange={(e) => {
+              setSocialLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, platform: e.target.value } : l)));
+            }}
+          >
+            <option value="website">Website</option>
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="facebook">Facebook</option>
+            <option value="twitter">X / Twitter</option>
+            <option value="etsy">Etsy</option>
+            <option value="pinterest">Pinterest</option>
+            <option value="ravelry">Ravelry</option>
+            <option value="other">Other</option>
+          </select>
+          <input
+            className={styles.socialInput}
+            type="url"
+            placeholder="https://…"
+            maxLength={300}
+            value={link.url}
+            onChange={(e) => {
+              setSocialLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)));
+            }}
+          />
+          {socialLinks.length > 1 && (
+            <button
+              type="button"
+              className={styles.socialRemove}
+              onClick={() => setSocialLinks((prev) => prev.filter((_, idx) => idx !== i))}
+              aria-label="Remove link"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      ))}
+      {socialLinks.length < 8 && (
+        <button
+          type="button"
+          className={styles.socialAdd}
+          onClick={() => setSocialLinks((prev) => [...prev, { platform: "website", url: "" }])}
+        >
+          + Add another link
+        </button>
+      )}
 
       <h3 className={styles.sectionTitle}>Your yarn story</h3>
 

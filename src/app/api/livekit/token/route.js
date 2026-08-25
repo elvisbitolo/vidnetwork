@@ -90,7 +90,7 @@ export async function POST(req) {
   const at = new AccessToken(apiKey, apiSecret, {
     identity,
     name: displayName,
-    ttl: "10m",
+    ttl: room.alwaysOn ? "24h" : "4h",
   });
   at.addGrant({
     room: room.slug,
@@ -106,5 +106,6 @@ export async function POST(req) {
     room: room.slug,
     kind: room.kind || "standard",
     canPublish,
+    alwaysOn: !!room.alwaysOn,
   });
 }

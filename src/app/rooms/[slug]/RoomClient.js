@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
@@ -10,6 +10,7 @@ import {
   VideoConference,
   RoomAudioRenderer,
   useParticipants,
+  useConnectionState,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
@@ -19,6 +20,25 @@ import styles from "./room.module.css";
 
 function currentTime() {
   return Date.now();
+}
+
+function ConnectionStatus() {
+  const state = useConnectionState();
+  const label =
+    state === "connected"
+      ? ""
+      : state === "connecting" || state === "reconnecting"
+      ? "Reconnecting…"
+      : state === "disconnected"
+      ? "Disconnected"
+      : "";
+  if (!label) return null;
+  return (
+    <div className={styles.connectionStatus}>
+      <span className={styles.connectionDot} data-state={state} />
+      {label}
+    </div>
+  );
 }
 
 function HostControls({ roomId, isHost }) {
@@ -160,6 +180,12 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const [recordBusy, setRecordBusy] = useState(false);
   const [recordError, setRecordError] = useState("");
   const [now, setNow] = useState(() => currentTime());
+  const [statusMsg, setStatusMsg] = useState("");
+
+  const tokenRef = useRef("");
+  const reconnectTimer = useRef(null);
+  const refreshTimer = useRef(null);
+  const reconnectCountRef = useRef(0);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(currentTime()), 1000);
@@ -181,6 +207,111 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
   }
 
+  async function fetchToken() {
+    const res = await fetch("/api/livekit/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    });
+    if (res.status === 401) {
+      router.push("/login");
+      return null;
+    }
+    if (res.status === 403) {
+      router.push("/pricing");
+      return null;
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to join room");
+    return data;
+  }
+
+  function scheduleRefresh(expiresInSeconds) {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    const refreshAt = Math.max(60, (expiresInSeconds || 3600) * 0.75) * 1000;
+    refreshTimer.current = setTimeout(async () => {
+      try {
+        const data = await fetchToken();
+        if (data) {
+          setToken(data.token);
+          tokenRef.current = data.token;
+          scheduleRefresh(expiresInSeconds);
+        }
+      } catch {
+        scheduleRefresh(expiresInSeconds);
+      }
+    }, refreshAt);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    };
+  }, []);
+
+  async function handleJoin() {
+    setBusy(true);
+    setError("");
+    try {
+      const data = await fetchToken();
+      if (!data) return;
+      setToken(data.token);
+      tokenRef.current = data.token;
+      setServerUrl(data.serverUrl);
+      setIsViewer(data.kind === "broadcast" && data.canPublish === false);
+      setJoined(true);
+      reconnectCountRef.current = 0;
+      scheduleRefresh(alwaysOn ? 86400 : 14400);
+      onAuthStateChanged(auth, (user) => {
+        if (user && roomId) {
+          addDoc(collection(db, "roomEvents"), {
+            userId: user.uid,
+            roomId,
+            roomName,
+            joinedAt: new Date(),
+          }).catch(() => {});
+        }
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const handleDisconnect = useCallback(() => {
+    if (!alwaysOn) {
+      router.push("/rooms");
+      return;
+    }
+    setStatusMsg("Connection lost. Reconnecting…");
+    const count = reconnectCountRef.current;
+    const delay = Math.min(1000 * 2 ** count, 30000);
+    reconnectTimer.current = setTimeout(async () => {
+      try {
+        const data = await fetchToken();
+        if (data) {
+          setToken(data.token);
+          tokenRef.current = data.token;
+          setServerUrl(data.serverUrl);
+          reconnectCountRef.current = count + 1;
+          setStatusMsg("");
+          scheduleRefresh(alwaysOn ? 86400 : 14400);
+        }
+      } catch {
+        reconnectCountRef.current = count + 1;
+        handleDisconnect();
+      }
+    }, delay);
+  }, [alwaysOn, router, slug]);
+
+  useEffect(() => {
+    return () => {
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    };
+  }, []);
+
   async function toggleRecording() {
     if (recordBusy) return;
     setRecordBusy(true);
@@ -198,46 +329,6 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
       setRecordError(err.message);
     } finally {
       setRecordBusy(false);
-    }
-  }
-
-  async function handleJoin() {
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch("/api/livekit/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
-      });
-      if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
-      if (res.status === 403) {
-        router.push("/pricing");
-        return;
-      }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to join room");
-      setToken(data.token);
-      setServerUrl(data.serverUrl);
-      setIsViewer(data.kind === "broadcast" && data.canPublish === false);
-      setJoined(true);
-      onAuthStateChanged(auth, (user) => {
-        if (user && roomId) {
-          addDoc(collection(db, "roomEvents"), {
-            userId: user.uid,
-            roomId,
-            roomName,
-            joinedAt: new Date(),
-          }).catch(() => {});
-        }
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -325,22 +416,33 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   return (
     <main className={styles.page}>
       <div className={styles.roomWrap} style={{ position: "relative" }}>
-        <AmbientAudio active={alwaysOn} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} />
+        <AmbientAudio active={alwaysOn} roomId={roomId} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
+        {statusMsg && (
+          <div className={styles.reconnectBanner}>
+            {statusMsg}
+          </div>
+        )}
         <LiveKitRoom
           token={token}
           serverUrl={serverUrl}
           connect={true}
           video={!isViewer}
           audio={!isViewer}
-          options={{ adaptiveStream: true, dynacast: true }}
-          onDisconnected={() => router.push("/rooms")}
+          options={{
+            adaptiveStream: true,
+            dynacast: true,
+            disconnectOnPageLeave: false,
+            expWebsocketTimeout: 15000,
+          }}
+          onDisconnected={handleDisconnect}
         >
           {isViewer && (
             <p className={styles.viewerBanner}>
               Watching as a viewer — only the host can broadcast.
             </p>
           )}
+          <ConnectionStatus />
           {(isHost || isCoHost) && <HostControls roomId={roomId} isHost={isHost} />}
           <VideoConference />
           <RoomAudioRenderer />

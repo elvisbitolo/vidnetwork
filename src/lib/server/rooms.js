@@ -108,7 +108,7 @@ export async function seedAlwaysOnRoom() {
     slug: ALWAYS_ON_SLUG,
     description: "Always open — drop in anytime for company and good vibes.",
     status: "active",
-    maxParticipants: 50,
+    maxParticipants: 200,
     groupId: "",
     spaceId: "",
     kind: "standard",

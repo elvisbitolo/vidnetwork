@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
 
 function generateAmbientWav() {
   const sampleRate = 22050;
@@ -57,10 +59,14 @@ function generateAmbientWav() {
   return "data:audio/wav;base64," + btoa(binary);
 }
 
-export default function AmbientAudio({ active, musicUrl, musicPlaying, musicFileId }) {
+export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, musicFileId }) {
   const [src, setSrc] = useState("");
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef(null);
+  const prevSrcRef = useRef("");
+  const fadeTimerRef = useRef(null);
+
+  const ambientWav = useMemo(() => (active ? generateAmbientWav() : ""), [active]);
 
   useEffect(() => {
     if (!active) return;
@@ -69,18 +75,69 @@ export default function AmbientAudio({ active, musicUrl, musicPlaying, musicFile
     } else if (musicPlaying && musicUrl) {
       setSrc(musicUrl);
     } else {
-      setSrc(generateAmbientWav());
+      setSrc(ambientWav);
     }
-  }, [active, musicUrl, musicPlaying, musicFileId]);
+  }, [active, musicUrl, musicPlaying, musicFileId, ambientWav]);
 
   useEffect(() => {
-    if (!audioRef.current || !src) return;
-    audioRef.current.load();
-    audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+    if (!roomId || !active) return;
+    const roomRef = doc(db, "rooms", roomId);
+    const unsub = onSnapshot(roomRef, (snap) => {
+      const data = snap.data();
+      if (!data) return;
+      if (data.musicPlaying && data.musicFileId) {
+        setSrc(`/api/rooms/music/stream?id=${data.musicFileId}`);
+      } else if (data.musicPlaying && data.musicUrl) {
+        setSrc(data.musicUrl);
+      } else {
+        setSrc(ambientWav);
+      }
+    }, () => {});
+    return () => unsub();
+  }, [roomId, active, ambientWav]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !src) return;
+
+    if (prevSrcRef.current && prevSrcRef.current !== src && audio.duration > 0) {
+      if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
+      let vol = audio.volume;
+      fadeTimerRef.current = setInterval(() => {
+        vol -= 0.05;
+        if (vol <= 0) {
+          clearInterval(fadeTimerRef.current);
+          audio.volume = 0;
+          audio.src = src;
+          audio.load();
+          audio.play().then(() => {
+            let fadeVol = 0;
+            const fadeInterval = setInterval(() => {
+              fadeVol += 0.05;
+              if (fadeVol >= 1) {
+                clearInterval(fadeInterval);
+                audio.volume = 1;
+              } else {
+                audio.volume = fadeVol;
+              }
+            }, 50);
+          }).catch(() => {});
+        } else {
+          audio.volume = vol;
+        }
+      }, 50);
+    } else {
+      audio.src = src;
+      audio.load();
+      audio.play().then(() => setPlaying(true)).catch(() => {});
+    }
+
+    prevSrcRef.current = src;
   }, [src]);
 
   useEffect(() => {
     return () => {
+      if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";

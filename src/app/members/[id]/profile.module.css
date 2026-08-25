@@ -86,6 +86,42 @@
   margin: 0 0 16px;
 }
 
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #e6e6ef;
+  border-radius: 999px;
+  background: #faf9ff;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.socialLink:hover {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.socialIcon {
+  font-size: 15px;
+}
+
+.socialLabel {
+  text-transform: capitalize;
+}
+
 .messageBtn {
   display: inline-flex;
   align-items: center;

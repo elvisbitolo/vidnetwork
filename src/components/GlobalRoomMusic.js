@@ -32,7 +32,7 @@ export default function GlobalRoomMusic() {
 
   useEffect(() => {
     fetchMusic();
-    pollingRef.current = setInterval(fetchMusic, 10000);
+    pollingRef.current = setInterval(fetchMusic, 5000);
 
     function onMusicChange() {
       fetchMusic();

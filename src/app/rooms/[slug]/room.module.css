@@ -302,6 +302,70 @@
   max-width: 280px;
 }
 
+.connectionStatus {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(23, 23, 28, 0.85);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+
+.connectionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 2s infinite;
+}
+
+.connectionDot[data-state="connecting"],
+.connectionDot[data-state="reconnecting"] {
+  background: #f59e0b;
+  animation: pulse 0.8s infinite;
+}
+
+.connectionDot[data-state="disconnected"] {
+  background: #ef4444;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.reconnectBanner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  padding: 14px 28px;
+  background: rgba(23, 23, 28, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 12px;
+  color: #fbbf24;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 24px 16px;

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import StickerPicker from "@/components/StickerPicker";
 import styles from "./gallery.module.css";
 
@@ -28,10 +29,13 @@ export default function GalleryGrid({ photos }) {
             aria-label={`Photo by ${photo.authorName}`}
           >
             <span className={styles.circle}>
-              <img
+              <Image
                 className={styles.img}
                 src={photo.imageUrl}
                 alt={photo.text || "Photo"}
+                width={140}
+                height={140}
+                sizes="(max-width: 520px) 90px, 140px"
                 loading="lazy"
               />
             </span>
@@ -46,7 +50,14 @@ export default function GalleryGrid({ photos }) {
               ✕
             </button>
             <div className={styles.modalImage}>
-              <img src={modal.imageUrl} alt={modal.text || "Photo"} />
+              <Image
+                src={modal.imageUrl}
+                alt={modal.text || "Photo"}
+                width={480}
+                height={400}
+                sizes="(max-width: 480px) 100vw, 480px"
+                style={{ width: "100%", height: "auto" }}
+              />
             </div>
             {modal.text && <p className={styles.modalText}>{modal.text}</p>}
             <div className={styles.modalMeta}>

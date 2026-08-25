@@ -1,8 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import LandingNav from "@/components/LandingNav";
 import LandingPricing from "@/components/LandingPricing";
 import Reveal from "@/components/Reveal";
+import ThemePicker from "@/components/ThemePicker";
 import {
   VideoIcon,
   BookIcon,
@@ -25,6 +27,8 @@ export const metadata = {
   title: "VidNetwork — Connect, Learn & Grow Together",
   description:
     "VidNetwork is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
+  keywords: ["community platform", "membership site", "live video rooms", "online courses", "gamification", "creator community", "learn together"],
+  authors: [{ name: "VidNetwork" }],
   openGraph: {
     title: "VidNetwork — Connect, Learn & Grow Together",
     description:
@@ -40,6 +44,27 @@ export const metadata = {
         alt: "VidNetwork — Connect, Learn & Grow Together",
       },
     ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VidNetwork — Connect, Learn & Grow Together",
+    description:
+      "Live communities, courses, events, gamification and real conversations — all in one place.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  alternates: {
+    canonical: "https://vidnetwork.vercel.app",
   },
 };
 
@@ -94,6 +119,21 @@ const FEATURES = [
   },
 ];
 
+const CROCHET_IMAGES = [
+  { src: "/images/crochet/model_portrait_studio_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_portrait_studio_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_garden_yarn_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_wearing_crochet_garden_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/shop_interior_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_03.jpeg", alt: "Crochet work" },
+];
+
 const ROOM_PARTICIPANTS = [
   { key: "host" },
   { key: "speaker" },
@@ -106,15 +146,62 @@ const ROOM_PARTICIPANTS = [
 export default function Home() {
   const t = useTranslations("landing");
   const tc = useTranslations("common");
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "VidNetwork",
-    url: "https://vidnetwork.vercel.app",
-    description:
-      "A paid membership community with live video rooms, courses, events, gamification and real conversations.",
-    sameAs: [],
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "VidNetwork",
+      url: "https://vidnetwork.vercel.app",
+      logo: "https://vidnetwork.vercel.app/icon-192.png",
+      description:
+        "A paid membership community with live video rooms, courses, events, gamification and real conversations.",
+      sameAs: [],
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "hello@vidnetwork.vercel.app",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "VidNetwork",
+      url: "https://vidnetwork.vercel.app",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://vidnetwork.vercel.app/search?q={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: "VidNetwork Community Membership",
+      description: "Access to live video rooms, courses, events, gamification and a community of creators.",
+      brand: {
+        "@type": "Brand",
+        name: "VidNetwork",
+      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Standard Monthly",
+          price: "9",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: "https://vidnetwork.vercel.app/pricing",
+        },
+        {
+          "@type": "Offer",
+          name: "Premium Monthly",
+          price: "19",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: "https://vidnetwork.vercel.app/pricing",
+        },
+      ],
+    },
+  ];
 
   return (
     <main className={styles.page}>
@@ -123,6 +210,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <LandingNav />
+      <ThemePicker />
 
       {/* ─── Hero ─── */}
       <section className={styles.hero}>
@@ -146,49 +234,37 @@ export default function Home() {
               <p className={styles.heroFine}>{t("freeTrial")}</p>
             </div>
             <div className={styles.heroVisual}>
-              <div className={styles.heroMockup} role="img" aria-label="VidNetwork dashboard preview">
-                <div className={styles.mockupBar}>
-                  <span className={styles.mockupDot} />
-                  <span className={styles.mockupDot} />
-                  <span className={styles.mockupDot} />
-                  <span className={styles.mockupUrl}>vidnetwork.vercel.app</span>
-                </div>
-                <div className={styles.mockupBody}>
-                  <div className={styles.mockupSidebar}>
-                    <div className={styles.mockupSidebarItem}>
-                      <span className={styles.mockupSidebarIcon} />
-                      <span className={styles.mockupSidebarLine} />
-                    </div>
-                    <div className={styles.mockupSidebarItem}>
-                      <span className={styles.mockupSidebarIcon} />
-                      <span className={styles.mockupSidebarLine} />
-                    </div>
-                    <div className={styles.mockupSidebarItem}>
-                      <span className={styles.mockupSidebarIcon} />
-                      <span className={styles.mockupSidebarLine} />
-                    </div>
-                    <div className={styles.mockupSidebarItem}>
-                      <span className={styles.mockupSidebarIcon} />
-                      <span className={styles.mockupSidebarLine} />
-                    </div>
-                    <div className={styles.mockupSidebarItem}>
-                      <span className={styles.mockupSidebarIcon} />
-                      <span className={styles.mockupSidebarLine} />
-                    </div>
+              <div className={styles.heroGallery}>
+                {CROCHET_IMAGES.slice(0, 6).map((img, i) => (
+                  <div key={i} className={styles.heroGalleryItem}>
+                    <Image src={img.src} alt={img.alt} className={styles.heroGalleryImg} width={200} height={200} sizes="(max-width: 900px) 100vw, 200px" loading="lazy" />
                   </div>
-                  <div className={styles.mockupContent}>
-                    <div className={styles.mockupPlaceholder} />
-                    <div className={`${styles.mockupPlaceholder} ${styles.mockupPlaceholderShort}`} />
-                    <div className={`${styles.mockupPlaceholder} ${styles.mockupPlaceholderMed}`} />
-                    <div className={styles.mockupFeed}>
-                      <div className={styles.mockupFeedItem} />
-                      <div className={styles.mockupFeedItem} />
-                      <div className={styles.mockupFeedItem} />
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Work Showcase ─── */}
+      <section className={styles.showcaseSection} aria-labelledby="showcase-title">
+        <div className={styles.wrap}>
+          <Reveal>
+            <div className={styles.sectionHead}>
+              <h2 id="showcase-title" className={styles.sectionTitle}>
+                {t("whatYouGetTitle")}
+              </h2>
+              <p className={styles.sectionSub}>{t("whatYouGetDesc")}</p>
+            </div>
+          </Reveal>
+          <div className={styles.showcaseGrid}>
+            {CROCHET_IMAGES.map((img, i) => (
+              <Reveal key={i}>
+                <div className={styles.showcaseItem}>
+                  <Image src={img.src} alt={img.alt} className={styles.showcaseImg} width={250} height={250} sizes="(max-width: 720px) 50vw, (max-width: 1100px) 33vw, 25vw" loading="lazy" />
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>

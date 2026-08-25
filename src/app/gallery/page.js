@@ -7,6 +7,48 @@ import GalleryGrid from "./GalleryGrid";
 
 export const dynamic = "force-dynamic";
 
+const CROCHET_IMAGES = [
+  { src: "/images/crochet/model_portrait_studio_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_portrait_studio_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_04.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_05.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_06.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_07.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_08.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_09.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_10.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_in_shop_11.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_garden_yarn_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_garden_yarn_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_04.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_05.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_06.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_07.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_08.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_pink_dress_garden_09.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_wearing_crochet_garden_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_wearing_crochet_garden_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/model_wearing_crochet_garden_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/shop_interior_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/shop_interior_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/shop_interior_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/shop_interior_04.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_01.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_02.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_03.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_04.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_05.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_06.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_07.jpeg", alt: "Crochet work" },
+  { src: "/images/crochet/product_closeup_08.jpeg", alt: "Crochet work" },
+];
+
 export default async function GalleryPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -40,6 +82,18 @@ export default async function GalleryPage() {
     .filter(Boolean)
     .slice(0, 80);
 
+  const allPhotos = [
+    ...CROCHET_IMAGES.map((img, i) => ({
+      id: `crochet-${i}`,
+      imageUrl: img.src,
+      text: img.alt,
+      authorId: "",
+      authorName: "Mamameer",
+      createdAt: 0,
+    })),
+    ...photos,
+  ];
+
   return (
     <Nav role={userDoc?.role}>
       <div className="gallery-page" style={{ maxWidth: 1080, margin: "0 auto", padding: "32px 20px 64px" }}>
@@ -49,7 +103,7 @@ export default async function GalleryPage() {
         <p style={{ fontSize: 14, color: "#9b9bab", margin: "0 0 28px" }}>
           Click any photo to see the project and its maker.
         </p>
-        <GalleryGrid photos={photos} />
+        <GalleryGrid photos={allPhotos} />
       </div>
     </Nav>
   );

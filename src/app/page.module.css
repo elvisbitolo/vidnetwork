@@ -2,6 +2,14 @@
   min-height: 100vh;
   background: #0e0e12;
   color: #f5f5f5;
+  --primary: #f6077a;
+  --primary-light: #fa81cd;
+  --primary-hover: #d1066a;
+  --accent: #019a9f;
+  --accent-light: #6dd9d1;
+  --success: #7fb704;
+  --warning: #fb7906;
+  --highlight: #faf100;
 }
 
 .wrap {
@@ -23,7 +31,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(1000px 500px at 72% -8%, rgba(99, 102, 241, 0.12), transparent 62%);
+  background: radial-gradient(1000px 500px at 72% -8%, rgba(246, 7, 122, 0.12), transparent 62%);
   pointer-events: none;
 }
 
@@ -55,9 +63,9 @@
   align-items: center;
   gap: 8px;
   padding: 7px 14px;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  background: rgba(99, 102, 241, 0.08);
-  color: #818cf8;
+  border: 1px solid rgba(246, 7, 122, 0.25);
+  background: rgba(246, 7, 122, 0.08);
+  color: #fa81cd;
   font-size: 13px;
   font-weight: 600;
   border-radius: 999px;
@@ -68,7 +76,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #818cf8;
+  background: #fa81cd;
 }
 
 .heroTitle {
@@ -118,15 +126,15 @@
 }
 
 .primary {
-  background: #6366f1;
+  background: #f6077a;
   color: #ffffff;
-  box-shadow: 0 14px 34px -14px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 14px 34px -14px rgba(246, 7, 122, 0.5);
 }
 
 .primary:hover {
-  background: #4f46e5;
+  background: #d1066a;
   transform: translateY(-1px);
-  box-shadow: 0 18px 40px -16px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 18px 40px -16px rgba(246, 7, 122, 0.6);
 }
 
 .secondary {
@@ -136,10 +144,69 @@
 }
 
 .secondary:hover {
-  border-color: #6366f1;
-  color: #818cf8;
+  border-color: #f6077a;
+  color: #fa81cd;
   transform: translateY(-1px);
   box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Hero gallery ---------- */
+
+.heroGallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 8px;
+}
+
+.heroGalleryItem {
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.heroGalleryItem:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 32px -8px rgba(99, 102, 241, 0.3);
+}
+
+.heroGalleryImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+}
+
+/* ---------- Showcase grid ---------- */
+
+.showcaseGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.showcaseItem {
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.showcaseItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 44px -22px rgba(0, 0, 0, 0.4);
+}
+
+.showcaseImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
 }
 
 /* ---------- Hero mockup ---------- */
@@ -153,7 +220,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 40px 80px -32px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 40px 80px -32px rgba(246, 7, 122, 0.2);
 }
 
 .mockupBar {
@@ -209,7 +276,7 @@
 }
 
 .mockupSidebarIcon:first-child {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(246, 7, 122, 0.15);
 }
 
 .mockupSidebarLine {
@@ -337,7 +404,7 @@
 .featureCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 18px 44px -22px rgba(0, 0, 0, 0.4);
-  border-color: rgba(99, 102, 241, 0.3);
+  border-color: rgba(246, 7, 122, 0.3);
 }
 
 .featureTop {
@@ -351,8 +418,8 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: rgba(246, 7, 122, 0.1);
+  color: #fa81cd;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -363,8 +430,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #6366f1;
-  background: rgba(99, 102, 241, 0.1);
+  color: #f6077a;
+  background: rgba(246, 7, 122, 0.1);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -392,7 +459,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 30px 70px -32px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 30px 70px -32px rgba(246, 7, 122, 0.15);
 }
 
 .showcaseHead {
@@ -451,8 +518,8 @@
 }
 
 .tileYou {
-  outline: 2px solid #6366f1;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+  outline: 2px solid #f6077a;
+  box-shadow: 0 0 0 4px rgba(246, 7, 122, 0.3);
 }
 
 .avatar {
@@ -522,7 +589,7 @@
 
 .msgMe {
   align-self: flex-end;
-  background: #6366f1;
+  background: #f6077a;
   color: #ffffff;
   border-bottom-right-radius: 3px;
 }
@@ -639,8 +706,8 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: rgba(246, 7, 122, 0.1);
+  color: #fa81cd;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -672,7 +739,7 @@
   display: block;
   width: 45%;
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: linear-gradient(90deg, #f6077a, #fa81cd);
   border-radius: 999px;
 }
 
@@ -701,8 +768,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: rgba(246, 7, 122, 0.1);
+  color: #fa81cd;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -715,19 +782,19 @@
 }
 
 .lessonDone {
-  border-color: rgba(99, 102, 241, 0.15);
+  border-color: rgba(246, 7, 122, 0.15);
 }
 
 .lessonCurrent {
-  border-color: rgba(99, 102, 241, 0.3);
-  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(246, 7, 122, 0.3);
+  background: rgba(246, 7, 122, 0.06);
 }
 
 .lessonStatus {
   margin-left: auto;
   font-size: 12px;
   font-weight: 700;
-  color: #818cf8;
+  color: #fa81cd;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -771,8 +838,8 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: rgba(99, 102, 241, 0.1);
-  color: #818cf8;
+  background: rgba(246, 7, 122, 0.1);
+  color: #fa81cd;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -818,8 +885,8 @@
 }
 
 .lbRowActive {
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: rgba(246, 7, 122, 0.08);
+  border: 1px solid rgba(246, 7, 122, 0.15);
 }
 
 .lbRank {
@@ -831,7 +898,7 @@
 }
 
 .lbRowActive .lbRank {
-  color: #818cf8;
+  color: #fa81cd;
 }
 
 .lbAvatar {
@@ -850,7 +917,7 @@
 }
 
 .lbRowActive .lbName {
-  color: #818cf8;
+  color: #fa81cd;
 }
 
 .lbPoints {
@@ -860,7 +927,7 @@
 }
 
 .lbRowActive .lbPoints {
-  color: #818cf8;
+  color: #fa81cd;
 }
 
 /* ---------- CTA ---------- */
@@ -868,12 +935,12 @@
 .ctaPanel {
   max-width: 980px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #4f46e5, #6d28d9);
+  background: linear-gradient(135deg, #f6077a, #d1066a);
   color: #ffffff;
   border-radius: 24px;
   padding: 72px 32px;
   text-align: center;
-  box-shadow: 0 34px 80px -34px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 34px 80px -34px rgba(246, 7, 122, 0.3);
 }
 
 .ctaTitle {
@@ -922,7 +989,7 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #6366f1, #6d28d9);
+  background: linear-gradient(135deg, #f6077a, #fa81cd);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -963,7 +1030,7 @@
 }
 
 .footerLink:hover {
-  color: #818cf8;
+  color: #fa81cd;
 }
 
 .footerBottom {
@@ -978,7 +1045,7 @@
 /* ---------- Focus / reduced motion ---------- */
 
 .page a:focus-visible {
-  outline: 3px solid #6366f1;
+  outline: 3px solid #f6077a;
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -1008,6 +1075,10 @@
 @media (max-width: 1100px) {
   .featureGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .showcaseGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .gamRow {
@@ -1055,6 +1126,15 @@
   .showcaseSection,
   .pricingSection {
     padding: 64px 0;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .heroGallery {
+    gap: 8px;
   }
 
   .showcaseGrid {

@@ -147,12 +147,15 @@ export default function DashboardThemePicker() {
 
       {open && (
         <div ref={panelRef} style={{
-          position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 200,
-          width: 320, maxHeight: "calc(100vh - 120px)", overflowY: "auto",
-          background: "#1a1a1f", border: "1px solid #2e2e38", borderRadius: 16,
-          padding: 18, boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+          position: "fixed", top: "auto", bottom: 0, left: 0, right: 0, zIndex: 200,
+          maxHeight: "80vh", overflowY: "auto",
+          background: "#1a1a1f", border: "1px solid #2e2e38", borderTopLeftRadius: 20, borderTopRightRadius: 20,
+          padding: 18, boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#f5f5f5", marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: "#3e3e48" }} />
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#f5f5f5", marginBottom: 14, textAlign: "center" }}>
             Customize Dashboard
           </div>
 

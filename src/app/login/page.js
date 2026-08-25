@@ -149,7 +149,7 @@ export default function LoginPage() {
             </p>
           </div>
           <div className={styles.authImage}>
-            <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+            <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
             <div className={styles.authImageOverlay}>
               <p className={styles.authImageText}>Welcome back to your creative community.</p>
             </div>
@@ -212,7 +212,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className={styles.authImage}>
-          <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+          <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
           <div className={styles.authImageOverlay}>
             <p className={styles.authImageText}>Welcome back to your creative community.</p>
           </div>

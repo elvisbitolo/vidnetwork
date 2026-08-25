@@ -101,7 +101,7 @@ export default function SignupPage() {
             </p>
           </div>
           <div className={styles.authImage}>
-            <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+            <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
             <div className={styles.authImageOverlay}>
               <p className={styles.authImageText}>Join a community of creators who share, learn, and grow together.</p>
             </div>
@@ -169,7 +169,7 @@ export default function SignupPage() {
           </p>
         </div>
         <div className={styles.authImage}>
-          <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+          <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
           <div className={styles.authImageOverlay}>
             <p className={styles.authImageText}>Join a community of creators who share, learn, and grow together.</p>
           </div>

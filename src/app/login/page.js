@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { auth } from "@/lib/firebase/client";
@@ -94,59 +95,65 @@ export default function LoginPage() {
   if (forgotPassword) {
     return (
       <main className={styles.page}>
-        <div className={styles.card}>
-          <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-          <h1 className={styles.title}>{t("resetPassword")}</h1>
-          <p className={styles.subtitle}>
-            {t("resetPasswordDesc")}
-          </p>
+        <div className={styles.authContainer}>
+          <div className={styles.authForm}>
+            <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+            <h1 className={styles.title}>{t("resetPassword")}</h1>
+            <p className={styles.subtitle}>{t("resetPasswordDesc")}</p>
 
-          {resetSent ? (
-            <p className={styles.success}>{t("resetSent", { email })}</p>
-          ) : (
-            <>
-        {error && <p className={styles.error}>{error}</p>}
-        {verifyNotice && (
-          <div className={styles.verifyBox}>
-            <p className={styles.verifyText}>{verifyNotice}</p>
-            {resent ? (
-              <p className={styles.verifyText}>{t("verificationResent")}</p>
+            {resetSent ? (
+              <p className={styles.success}>{t("resetSent", { email })}</p>
             ) : (
-              <button
-                className={styles.linkBtn}
-                onClick={resendVerification}
-                disabled={!!busy}
-              >
-                {busy === "verify" ? t("resending") : t("resendVerification")}
-              </button>
+              <>
+                {error && <p className={styles.error}>{error}</p>}
+                {verifyNotice && (
+                  <div className={styles.verifyBox}>
+                    <p className={styles.verifyText}>{verifyNotice}</p>
+                    {resent ? (
+                      <p className={styles.verifyText}>{t("verificationResent")}</p>
+                    ) : (
+                      <button
+                        className={styles.linkBtn}
+                        onClick={resendVerification}
+                        disabled={!!busy}
+                      >
+                        {busy === "verify" ? t("resending") : t("resendVerification")}
+                      </button>
+                    )}
+                  </div>
+                )}
+                <form onSubmit={handleReset}>
+                  <div className={styles.field}>
+                    <label className={styles.label} htmlFor="reset-email">{t("email")}</label>
+                    <input
+                      id="reset-email"
+                      className={styles.input}
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <button className={styles.submit} type="submit" disabled={!!busy}>
+                    {busy === "reset" ? t("resending") : t("sendResetLink")}
+                  </button>
+                </form>
+              </>
             )}
-          </div>
-        )}
-              <form onSubmit={handleReset}>
-                <div className={styles.field}>
-                  <label className={styles.label} htmlFor="reset-email">{t("email")}</label>
-                  <input
-                    id="reset-email"
-                    className={styles.input}
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <button className={styles.submit} type="submit" disabled={!!busy}>
-                  {busy === "reset" ? t("resending") : t("sendResetLink")}
-                </button>
-              </form>
-            </>
-          )}
 
-          <p className={styles.footer}>
-            <a className={styles.link} onClick={() => { setForgotPassword(false); setResetSent(false); setError(""); }} href="/login">
-              {t("backToSignIn")}
-            </a>
-          </p>
+            <p className={styles.footer}>
+              <a className={styles.link} href="/login" onClick={(e) => { e.preventDefault(); setForgotPassword(false); setResetSent(false); setError(""); }}>
+                {t("backToSignIn")}
+              </a>
+            </p>
+          </div>
+          <div className={styles.authImage}>
+            <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+            <div className={styles.authImageOverlay}>
+              <p className={styles.authImageText}>Welcome back to your creative community.</p>
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -154,54 +161,62 @@ export default function LoginPage() {
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
-        <h1 className={styles.title}>{t("welcomeBack")}</h1>
-        <p className={styles.subtitle}>{t("signInToJoin")}</p>
+      <div className={styles.authContainer}>
+        <div className={styles.authForm}>
+          <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+          <h1 className={styles.title}>{t("welcomeBack")}</h1>
+          <p className={styles.subtitle}>{t("signInToJoin")}</p>
 
-        {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error}>{error}</p>}
 
-        <button className={styles.googleButton} onClick={handleGoogle} disabled={!!busy}>
-          <GoogleIcon /> {t("continueWithGoogle")}
-        </button>
-
-        <div className={styles.divider}>{tc("or")}</div>
-
-        <form onSubmit={handleSubmit}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">{t("email")}</label>
-            <input
-              id="email"
-              className={styles.input}
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <PasswordInput
-            id="password"
-            label={t("password")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            showRules={false}
-          />
-          <button className={styles.submit} type="submit" disabled={!!busy}>
-            {busy === "email" ? t("signingIn") : t("signIn")}
+          <button className={styles.googleButton} onClick={handleGoogle} disabled={!!busy}>
+            <GoogleIcon /> {t("continueWithGoogle")}
           </button>
-        </form>
 
-        <p className={styles.forgot}>
-          <a className={styles.link} href="/login" onClick={(e) => { e.preventDefault(); setForgotPassword(true); setError(""); }}>
-            {t("forgotPassword")}
-          </a>
-        </p>
+          <div className={styles.divider}>{tc("or")}</div>
 
-        <p className={styles.footer}>
-          {t("newHere")} <a className={styles.link} href="/signup">{t("createAccountLink")}</a>
-        </p>
+          <form onSubmit={handleSubmit}>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="email">{t("email")}</label>
+              <input
+                id="email"
+                className={styles.input}
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <PasswordInput
+              id="password"
+              label={t("password")}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              showRules={false}
+            />
+            <button className={styles.submit} type="submit" disabled={!!busy}>
+              {busy === "email" ? t("signingIn") : t("signIn")}
+            </button>
+          </form>
+
+          <p className={styles.forgot}>
+            <a className={styles.link} href="/login" onClick={(e) => { e.preventDefault(); setForgotPassword(true); setError(""); }}>
+              {t("forgotPassword")}
+            </a>
+          </p>
+
+          <p className={styles.footer}>
+            {t("newHere")} <a className={styles.link} href="/signup">{t("createAccountLink")}</a>
+          </p>
+        </div>
+        <div className={styles.authImage}>
+          <Image src="/images/crochet/model_in_shop_02.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+          <div className={styles.authImageOverlay}>
+            <p className={styles.authImageText}>Welcome back to your creative community.</p>
+          </div>
+        </div>
       </div>
     </main>
   );

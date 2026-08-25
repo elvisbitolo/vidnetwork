@@ -1112,54 +1112,166 @@
 
 @media (max-width: 720px) {
   .hero {
-    padding: 64px 0 56px;
+    padding: 48px 0 40px;
+  }
+
+  .heroTitle {
+    font-size: 32px;
+    letter-spacing: -1px;
+  }
+
+  .heroSub {
+    font-size: 16px;
+  }
+
+  .heroGallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
 
   .featuresSection,
   .showcaseSection,
   .pricingSection {
-    padding: 64px 0;
+    padding: 48px 0;
+  }
+
+  .sectionTitle {
+    font-size: 24px;
+  }
+
+  .sectionSub {
+    font-size: 15px;
   }
 
   .showcaseGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .heroGallery {
-    gap: 8px;
-  }
-
-  .showcaseGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .chat {
     display: none;
   }
 
+  .showcaseBody {
+    flex-direction: column;
+  }
+
   .gamRow {
     grid-template-columns: 1fr;
+  }
+
+  .ctaPanel {
+    padding: 40px 20px;
+    border-radius: 16px;
+  }
+
+  .ctaTitle {
+    font-size: 24px;
+  }
+
+  .ctaSub {
+    font-size: 15px;
   }
 
   .footerInner {
     grid-template-columns: 1fr;
     gap: 32px;
   }
+
+  .learningPanel,
+  .gamificationPanel {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 560px) {
-  .featureGrid {
-    grid-template-columns: 1fr;
+  .hero {
+    padding: 36px 0 32px;
+  }
+
+  .heroTitle {
+    font-size: 28px;
+    letter-spacing: -0.5px;
+  }
+
+  .heroSub {
+    font-size: 14px;
   }
 
   .heroCtas {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .heroCtas .primary,
   .heroCtas .secondary {
     width: 100%;
+  }
+
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .sectionTitle {
+    font-size: 22px;
+  }
+
+  .ctaPanel {
+    padding: 32px 16px;
+  }
+
+  .ctaTitle {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero {
+    padding: 28px 0 24px;
+  }
+
+  .heroTitle {
+    font-size: 24px;
+  }
+
+  .wrap {
+    padding: 0 16px;
+  }
+
+  .heroGallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .showcaseGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .featureCard {
+    padding: 20px 16px;
+  }
+
+  .ctaPanel {
+    padding: 28px 14px;
+  }
+
+  .ctaTitle {
+    font-size: 20px;
+  }
+
+  .ctaSub {
+    font-size: 14px;
   }
 }

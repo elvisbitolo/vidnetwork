@@ -155,4 +155,9 @@
   .title {
     font-size: 26px;
   }
+
+  .item {
+    gap: 10px;
+    padding: 12px;
+  }
 }

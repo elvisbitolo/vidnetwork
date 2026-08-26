@@ -378,4 +378,16 @@
   .title {
     font-size: 20px;
   }
+
+  .hostControls {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+  }
+
+  .participantPanel {
+    top: auto;
+    bottom: 60px;
+    right: 12px;
+  }
 }

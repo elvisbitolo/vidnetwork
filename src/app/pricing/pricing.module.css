@@ -235,6 +235,12 @@
   color: #17171c;
 }
 
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .container {
     padding: 40px 16px;
@@ -246,10 +252,6 @@
 
   .card {
     padding: 24px 18px;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
   }
 
   .price {

@@ -122,6 +122,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 200px);
+  height: calc(100dvh - 200px);
 }
 
 .threadHeader {
@@ -139,7 +141,8 @@
 .threadBody {
   display: flex;
   flex-direction: column;
-  height: 60vh;
+  flex: 1;
+  min-height: 0;
 }
 
 .messages {
@@ -269,6 +272,7 @@
   left: 16px;
   z-index: 20;
   width: 288px;
+  max-width: calc(100vw - 32px);
   max-height: 220px;
   overflow-y: auto;
   display: grid;
@@ -430,7 +434,7 @@
   }
 
   .threadBody {
-    height: 65vh;
+    min-height: 0;
   }
 
   .messages {

@@ -42,6 +42,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   background: #ffffff;
   border: 1px solid #e6e6ef;
@@ -171,5 +172,10 @@
 
   .title {
     font-size: 26px;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

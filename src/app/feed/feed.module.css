@@ -45,6 +45,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 12px;
 }
@@ -129,6 +130,7 @@
 .postActions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -423,6 +425,7 @@
 .commentForm {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .commentInput {

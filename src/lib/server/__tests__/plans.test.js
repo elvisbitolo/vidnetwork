@@ -13,9 +13,9 @@ test("tierRank orders tiers", () => {
 });
 
 test("tierLabel maps tiers and defaults", () => {
-  assert.equal(tierLabel("standard"), "Standard");
-  assert.equal(tierLabel("premium"), "Premium");
-  assert.equal(tierLabel("nope"), "Standard");
+  assert.equal(tierLabel("standard"), "Community");
+  assert.equal(tierLabel("premium"), "Creator");
+  assert.equal(tierLabel("nope"), "Community");
 });
 
 test("meetsTier: no requirement or standard requirement is always met", () => {

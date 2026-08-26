@@ -257,6 +257,7 @@
   .authContainer {
     grid-template-columns: 1fr;
     max-width: 420px;
+    min-height: auto;
   }
 
   .authImage {

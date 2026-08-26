@@ -178,6 +178,7 @@ export default function Home() {
       "@type": "Product",
       name: "VidNetwork Community Membership",
       description: "Access to live video rooms, courses, events, gamification and a community of creators.",
+      image: "https://vidnetwork.vercel.app/images/crochet/product_closeup_01.jpeg",
       brand: {
         "@type": "Brand",
         name: "VidNetwork",
@@ -200,6 +201,13 @@ export default function Home() {
           url: "https://vidnetwork.vercel.app/pricing",
         },
       ],
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "US",
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 30,
+        refundType: "https://schema.org/FullRefund",
+      },
     },
   ];
 

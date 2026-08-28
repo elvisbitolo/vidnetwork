@@ -51,6 +51,7 @@ const CONNECT_ITEMS = [
   { href: "/rooms", key: "rooms" },
   { href: "/events", key: "events" },
   { href: "/challenges", key: "crochetAlong" },
+  { href: "/members", key: "members" },
 ];
 
 const LEARN_ITEMS = [
@@ -209,12 +210,6 @@ export default function Nav({ role, children }) {
               <SidebarGroup id="overview" label={t("overview")} items={OVERVIEW_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               <SidebarGroup id="connect" label={t("connect")} items={CONNECT_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               <SidebarGroup id="learn" label={t("learn")} items={LEARN_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
-
-              <div className={styles.membersLinkWrap}>
-                <Link className={styles.sidebarLink} href="/members" onClick={close}>
-                  {t("members")}
-                </Link>
-              </div>
 
               {collections.length > 0 && (
                 <SidebarGroup id="collections" label={t("collections")} open={openGroups} onToggle={toggleGroup} t={t} close={close}>

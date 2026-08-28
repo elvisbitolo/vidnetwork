@@ -6,7 +6,7 @@ re-discovery pass every time. For the full product/engineering audit and PRD, se
 
 ## What this is
 
-VidNetwork (`elvisbitolo/vidnetwork`, live at `https://vidnetwork.vercel.app`) is a
+VidNetwork (`elvisbitolo/yarnerylounge`, live at `https://yarnerylounge.vercel.app`) is a
 **membership-based community platform** built for a client (Christa Patel) who asked for a
 Mighty-Networks-style product. It is a single Next.js app: paid membership + live video
 rooms, courses, events, groups, feed, chat, notifications, recordings.

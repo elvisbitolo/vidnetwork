@@ -11,4 +11,4 @@ Disallow: /feed
 Disallow: /members
 Disallow: /recordings
 
-Sitemap: https://vidnetwork.vercel.app/sitemap.xml
+Sitemap: https://yarnerylounge.vercel.app/sitemap.xml

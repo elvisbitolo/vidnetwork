@@ -39,7 +39,7 @@ export async function GET(req, { params }) {
     ? new Date(event.endTime.toMillis ? event.endTime.toMillis() : event.endTime)
     : new Date(start.getTime() + 60 * 60 * 1000);
 
-  const uid = `${event.id}@vidnetwork.app`;
+  const uid = `${event.id}@yarnerylounge.app`;
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

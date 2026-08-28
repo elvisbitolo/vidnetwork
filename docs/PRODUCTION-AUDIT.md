@@ -1,6 +1,6 @@
 # VidNetwork — Production Audit
 
-Project: `christa-patel` (Firebase), Vercel (https://vidnetwork.vercel.app)
+Project: `christa-patel` (Firebase), Vercel (https://yarnerylounge.vercel.app)
 Audit basis: `~/Downloads/VIDNETWORK_PRODUCTION_HARDENING_PRD.md`
 Status: PHASE 1 (discovery) and PHASE 2 (plan) complete; PHASE 3 hardening in progress (see `REMEDIATION-REPORT.md`).
 

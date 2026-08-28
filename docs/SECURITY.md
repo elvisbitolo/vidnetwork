@@ -6,7 +6,7 @@ Please **do not** open a public issue for security problems.
 
 Send a private report instead:
 
-- Open a [GitHub security advisory](https://github.com/elvisbitolo/vidnetwork/security/advisories/new)
+- Open a [GitHub security advisory](https://github.com/elvisbitolo/yarnerylounge/security/advisories/new)
   on this repository, or
 - Email the repository owner directly (see the project owner in GitHub).
 

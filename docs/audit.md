@@ -1,7 +1,7 @@
 # VidNetwork — Critical Product & Engineering Audit + Improvement PRD
 
-**Repository:** `elvisbitolo/vidnetwork`  
-**Production:** `https://vidnetwork.vercel.app/`  
+**Repository:** `elvisbitolo/yarnerylounge`  
+**Production:** `https://yarnerylounge.vercel.app/`  
 **Audit date:** 2026-08-13  
 **Perspective:** External client + product owner + senior software engineer
 

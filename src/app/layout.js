@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://vidnetwork.vercel.app"),
+  metadataBase: new URL("https://yarnerylounge.vercel.app"),
   title: {
     default: "VidNetwork",
     template: "%s — VidNetwork",
@@ -50,7 +50,7 @@ export const metadata = {
     images: ["/og-image.png"],
   },
   alternates: {
-    canonical: "https://vidnetwork.vercel.app",
+    canonical: "https://yarnerylounge.vercel.app",
   },
 };
 

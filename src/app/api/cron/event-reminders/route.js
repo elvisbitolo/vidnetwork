@@ -15,7 +15,7 @@ export async function GET(req) {
 
   const now = new Date();
   const windowEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vidnetwork.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://yarnerylounge.vercel.app";
 
   const snap = await adminDb()
     .collection("events")

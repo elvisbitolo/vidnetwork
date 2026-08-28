@@ -93,7 +93,7 @@ export async function recordPromoUse(code) {
 
 export async function getOrCreateStripeCoupon(promo) {
   const stripe = getStripe();
-  const couponId = `vidnetwork-${promo.code}`;
+  const couponId = `yarnerylounge-${promo.code}`;
   const percentOff = Number(promo.percentOff) || 0;
   const amountOff = Number(promo.amountOffCents) || 0;
 

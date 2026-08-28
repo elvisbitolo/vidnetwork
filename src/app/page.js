@@ -33,7 +33,7 @@ export const metadata = {
     title: "VidNetwork — Connect, Learn & Grow Together",
     description:
       "Live communities, courses, events, gamification and real conversations — all in one place.",
-    url: "https://vidnetwork.vercel.app",
+    url: "https://yarnerylounge.vercel.app",
     siteName: "VidNetwork",
     type: "website",
     images: [
@@ -64,7 +64,7 @@ export const metadata = {
     },
   },
   alternates: {
-    canonical: "https://vidnetwork.vercel.app",
+    canonical: "https://yarnerylounge.vercel.app",
   },
 };
 
@@ -151,25 +151,25 @@ export default function Home() {
       "@context": "https://schema.org",
       "@type": "Organization",
       name: "VidNetwork",
-      url: "https://vidnetwork.vercel.app",
-      logo: "https://vidnetwork.vercel.app/icon-192.png",
+      url: "https://yarnerylounge.vercel.app",
+      logo: "https://yarnerylounge.vercel.app/icon-192.png",
       description:
         "A paid membership community with live video rooms, courses, events, gamification and real conversations.",
       sameAs: [],
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
-        email: "hello@vidnetwork.vercel.app",
+        email: "hello@yarnerylounge.vercel.app",
       },
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "VidNetwork",
-      url: "https://vidnetwork.vercel.app",
+      url: "https://yarnerylounge.vercel.app",
       potentialAction: {
         "@type": "SearchAction",
-        target: "https://vidnetwork.vercel.app/search?q={search_term_string}",
+        target: "https://yarnerylounge.vercel.app/search?q={search_term_string}",
         "query-input": "required name=search_term_string",
       },
     },
@@ -178,7 +178,7 @@ export default function Home() {
       "@type": "Product",
       name: "VidNetwork Community Membership",
       description: "Access to live video rooms, courses, events, gamification and a community of creators.",
-      image: "https://vidnetwork.vercel.app/images/crochet/product_closeup_01.jpeg",
+      image: "https://yarnerylounge.vercel.app/images/crochet/product_closeup_01.jpeg",
       brand: {
         "@type": "Brand",
         name: "VidNetwork",
@@ -190,7 +190,7 @@ export default function Home() {
           price: "9",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: "https://vidnetwork.vercel.app/pricing",
+          url: "https://yarnerylounge.vercel.app/pricing",
         },
         {
           "@type": "Offer",
@@ -198,7 +198,7 @@ export default function Home() {
           price: "19",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: "https://vidnetwork.vercel.app/pricing",
+          url: "https://yarnerylounge.vercel.app/pricing",
         },
       ],
       hasMerchantReturnPolicy: {

@@ -64,7 +64,7 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
    - "Community Premium Yearly" → price: $190/yr
 5. Copy each price ID
 6. Go to Developers → Webhooks → Add endpoint:
-   - URL: `https://vidnetwork.vercel.app/api/webhooks/stripe`
+   - URL: `https://yarnerylounge.vercel.app/api/webhooks/stripe`
    - Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `invoice.upcoming`
 7. Copy the webhook signing secret
 
@@ -86,13 +86,13 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
 |----------|----------------|
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Generate at https://vapidkeys.com or use existing keys |
 | `VAPID_PRIVATE_KEY` | Same source as above |
-| `VAPID_SUBJECT` | Set to `mailto:hello@vidnetwork.vercel.app` |
+| `VAPID_SUBJECT` | Set to `mailto:hello@yarnerylounge.vercel.app` |
 
 ### App Settings
 | Variable | Value |
 |----------|-------|
 | `CRON_SECRET` | Generate a random string (use https://randomkeygen.com) |
-| `NEXT_PUBLIC_APP_URL` | `https://vidnetwork.vercel.app` (or her custom domain) |
+| `NEXT_PUBLIC_APP_URL` | `https://yarnerylounge.vercel.app` (or her custom domain) |
 
 ---
 
@@ -152,7 +152,7 @@ After creating each price, copy the price ID (starts with `price_`) and use it i
 
 1. Go to Stripe Dashboard → Developers → Webhooks
 2. Click "Add endpoint"
-3. URL: `https://vidnetwork.vercel.app/api/webhooks/stripe`
+3. URL: `https://yarnerylounge.vercel.app/api/webhooks/stripe`
 4. Select these events:
    - `checkout.session.completed`
    - `customer.subscription.created`
@@ -235,11 +235,11 @@ STRIPE_PRICE_PREMIUM_YEARLY=
 # Push Notifications
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
-VAPID_SUBJECT=mailto:hello@vidnetwork.vercel.app
+VAPID_SUBJECT=mailto:hello@yarnerylounge.vercel.app
 
 # App
 CRON_SECRET=
-NEXT_PUBLIC_APP_URL=https://vidnetwork.vercel.app
+NEXT_PUBLIC_APP_URL=https://yarnerylounge.vercel.app
 
 # Resend
 RESEND_API_KEY=

@@ -3,7 +3,7 @@ import { getExploreData } from "@/lib/server/explore";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap() {
-  const base = "https://vidnetwork.vercel.app";
+  const base = "https://yarnerylounge.vercel.app";
 
   const staticRoutes = ["", "/explore", "/pricing", "/about", "/guidelines", "/login", "/signup"].map(
     (path) => ({

@@ -88,7 +88,7 @@ run it on yours.)
 |---|---|---|
 | **Firebase** (Firestore + Auth) | Database, auth, web push messaging | My project `christa-patel` |
 | **Stripe** | Subscriptions, payments, invoices | My Stripe account + price IDs |
-| **Vercel** | Hosting/deployment | My project `community`, live at `vidnetwork.vercel.app` |
+| **Vercel** | Hosting/deployment | My project `community`, live at `yarnerylounge.vercel.app` |
 | **LiveKit** | Live video rooms | My LiveKit keys |
 | **Web Push (VAPID)** | Browser notifications | My key pair |
 

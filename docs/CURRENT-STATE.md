@@ -2,7 +2,7 @@
 
 **What exists now, what has been verified, and what is still open.**
 
-> Repository: `elvisbitolo/vidnetwork` · Production: `https://vidnetwork.vercel.app/`
+> Repository: `elvisbitolo/yarnerylounge` · Production: `https://yarnerylounge.vercel.app/`
 > Last updated: 2026-08-15
 
 ## 1. What is built (feature-complete per scope)

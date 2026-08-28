@@ -98,7 +98,7 @@ export async function POST(req) {
         <h2 style="font-size:16px;color:#333;padding:24px 16px 8px;margin:0;">Upcoming Events</h2>
         <table style="width:100%;border-collapse:collapse;">${eventsHtml}</table>
         <div style="padding:20px 16px;text-align:center;">
-          <a href="https://vidnetwork.vercel.app/feed" style="color:#8b5cf6;font-size:14px;font-weight:600;text-decoration:none;">Visit community &rarr;</a>
+          <a href="https://yarnerylounge.vercel.app/feed" style="color:#8b5cf6;font-size:14px;font-weight:600;text-decoration:none;">Visit community &rarr;</a>
         </div>
       </div>
     </div>`;
@@ -113,7 +113,7 @@ export async function POST(req) {
   upcomingEvents.forEach((e) => {
     textParts.push(`  - ${e.title} | ${e.date} | ${e.location}`);
   });
-  textParts.push(`\nVisit: https://vidnetwork.vercel.app/feed`);
+  textParts.push(`\nVisit: https://yarnerylounge.vercel.app/feed`);
 
   const usersSnap = await adminDb().collection("users").limit(200).get();
   let sent = 0;

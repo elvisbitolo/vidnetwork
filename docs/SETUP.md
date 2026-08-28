@@ -124,7 +124,7 @@ Access rule: `subscriptions/{uid}.status === "active" && currentPeriodEnd > now`
 - [x] Phase 8e: **Broadcast + recordings** — broadcast rooms (viewer mode), LiveKit Egress → S3 recordings, `/recordings` page, LiveKit webhook finalizer
 - [x] Phase 8f: **Membership tiers + PayPal** — Standard/Premium tiers, per-tier price IDs, PayPal in checkout, `requiredTier` on courses
 - [x] Phase 8g: **Web push** — service worker + VAPID, `/api/push/subscribe`, owner announcement endpoint `/api/push/send`
-- [x] Phase 9: Deployed to Vercel (`https://vidnetwork.vercel.app`)
+- [x] Phase 9: Deployed to Vercel (`https://yarnerylounge.vercel.app`)
 - [ ] After deploy: run `firebase deploy --only firestore:rules` to ship the new rules (events/rsvps/posts/comments/profile fields + courses/groups/notifications/recordings/pushSubscriptions)
   - No composite Firestore indexes are required: every query uses a single-field filter or sort, with ordering done in application code.
 

@@ -88,7 +88,7 @@ export default function ThemePicker() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("vidnetwork-theme");
+    const saved = localStorage.getItem("yarnerylounge-theme");
     if (saved !== null) {
       const idx = parseInt(saved, 10);
       if (idx >= 0 && idx < THEMES.length) {
@@ -101,7 +101,7 @@ export default function ThemePicker() {
   const select = (idx) => {
     setActive(idx);
     applyTheme(THEMES[idx]);
-    localStorage.setItem("vidnetwork-theme", idx.toString());
+    localStorage.setItem("yarnerylounge-theme", idx.toString());
   };
 
   return (

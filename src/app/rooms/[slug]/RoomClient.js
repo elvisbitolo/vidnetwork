@@ -44,6 +44,7 @@ function ConnectionStatus() {
 
 function HostControls({ roomId, isHost }) {
   const participants = useParticipants();
+  const router = useRouter();
   const [panelOpen, setPanelOpen] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -80,6 +81,7 @@ function HostControls({ roomId, isHost }) {
       const res = await fetch(`/api/rooms/${roomId}/end`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not end the room");
+      router.push("/rooms");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -187,6 +189,8 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const reconnectTimer = useRef(null);
   const refreshTimer = useRef(null);
   const reconnectCountRef = useRef(0);
+
+  const MAX_RECONNECTS = 5;
 
   useEffect(() => {
     const timer = setInterval(() => setNow(currentTime()), 1000);
@@ -303,9 +307,14 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
       router.push("/rooms");
       return;
     }
+    if (reconnectCountRef.current >= MAX_RECONNECTS) {
+      setStatusMsg("This room is no longer active.");
+      return;
+    }
     setStatusMsg("Connection lost. Reconnecting…");
     const count = reconnectCountRef.current;
     const delay = Math.min(1000 * 2 ** count, 30000);
+    clearTimeout(reconnectTimer.current);
     reconnectTimer.current = setTimeout(async () => {
       try {
         const data = await fetchToken();
@@ -441,7 +450,16 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         {statusMsg && (
           <div className={styles.reconnectBanner}>
-            {statusMsg}
+            <span>{statusMsg}</span>
+            {statusMsg === "This room is no longer active." && (
+              <button
+                type="button"
+                className={styles.reconnectBack}
+                onClick={() => router.push("/rooms")}
+              >
+                Back to rooms
+              </button>
+            )}
           </div>
         )}
         <LiveKitRoom

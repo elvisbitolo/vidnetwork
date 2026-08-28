@@ -80,9 +80,15 @@ export async function endLiveKitRoom(slug) {
     await client.deleteRoom(slug);
   } catch (err) {
     const msg = String(err?.message || "");
-    const code = String(err?.code ?? "");
+    const code = String(err?.code ?? "").toLowerCase();
+    const status = String(err?.status ?? "");
     const alreadyGone =
-      /NOT_FOUND/i.test(msg) || /not found/i.test(msg) || code === "5" || code === "404" || code === "NotFound";
+      /\bnot found\b/i.test(msg) ||
+      /does not exist/i.test(msg) ||
+      /no room/i.test(msg) ||
+      code === "not_found" ||
+      code === "5" ||
+      status === "404";
     if (alreadyGone) return { ok: true };
     return { ok: false, error: "Could not end the room" };
   }

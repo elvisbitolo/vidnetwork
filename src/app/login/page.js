@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/dashboard");
+      window.location.assign("/account");
     } catch (err) {
       if (err.code === "email_not_verified") {
         setVerifyNotice(err.message);
@@ -65,7 +65,7 @@ export default function LoginPage() {
     try {
       await loginWithEmail(email, password);
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/dashboard");
+      window.location.assign("/account");
     } catch (err) {
       if (err.code === "email_not_verified") {
         setVerifyNotice(err.message);

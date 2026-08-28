@@ -14,9 +14,6 @@ export default async function DashboardPage() {
   const userDoc = await getUserDoc(user.uid);
   const sub = await getAccessSub(user.uid);
   if (!isActiveSub(sub)) redirect("/pricing");
-  if (userDoc && !userDoc.onboardingCompleted && userDoc.role !== "owner" && userDoc.role !== "moderator") {
-    redirect("/onboarding");
-  }
 
   recordDailyVisit(user.uid, userDoc?.name || user.name || "Member").catch(() => {});
 

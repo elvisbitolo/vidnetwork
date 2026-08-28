@@ -32,8 +32,7 @@
   "devDependencies": {
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
-    "puppeteer-core": "^25.9.0"
+    "eslint-config-next": "16.3.0"
   },
   "allowScripts": {
     "unrs-resolver@1.12.2": true,

@@ -243,6 +243,18 @@ export default function ProfileEditor({ initial }) {
     setFavoriteColors((prev) => prev.map((c, i) => (i === index ? value : c)));
   }
 
+  function colorGradient(colors) {
+    const list = Array.isArray(colors)
+      ? colors.filter((c) => typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c))
+      : [];
+    if (list.length === 0) return "#e8e8ef";
+    if (list.length === 1) return list[0];
+    const segments = list.map(
+      (c, i) => `${c} ${(i / list.length) * 100}% ${((i + 1) / list.length) * 100}%`
+    );
+    return `conic-gradient(${segments.join(", ")})`;
+  }
+
   return (
     <form className={styles.card} id="profile" onSubmit={handleSave}>
       <h2 className={styles.cardTitle}>Edit profile</h2>
@@ -462,7 +474,7 @@ export default function ProfileEditor({ initial }) {
           {favoriteColors.map((color, i) => (
             <div key={i} className={styles.colorWheel}>
               <div className={styles.wheelRing}>
-                <span className={styles.wheelFace} style={{ background: color }} />
+                <span className={styles.wheelFace} style={{ background: colorGradient(favoriteColors) }} />
                 <input
                   type="color"
                   value={color}

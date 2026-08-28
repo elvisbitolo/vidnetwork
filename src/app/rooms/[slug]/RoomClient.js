@@ -15,6 +15,7 @@ import {
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
 import AmbientAudio from "@/components/AmbientAudio";
+import RoomBackground from "@/components/RoomBackground";
 import RoomMusicPicker from "@/components/RoomMusicPicker";
 import styles from "./room.module.css";
 
@@ -335,6 +336,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   if (waiting) {
     return (
       <main className={styles.page}>
+        <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} />
         <div className={styles.container}>
           <div className={styles.prejoinWrap}>
             <BackButton fallback="/rooms" label="Back to rooms" />
@@ -368,6 +370,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   if (!joined) {
     return (
       <main className={styles.page}>
+        <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} />
         <div className={styles.container}>
           <div className={styles.prejoinWrap}>
             <BackButton fallback="/rooms" label="Back to rooms" />
@@ -375,7 +378,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
               <h1 className={styles.title}>{roomName}</h1>
               {alwaysOn ? (
                 <p className={styles.subtitle}>
-                  Always open — drop in anytime. Background music plays when you&apos;re alone.
+                  Always open — drop in anytime. A cozy lounge video plays while you&apos;re here.
                 </p>
               ) : isBroadcast ? (
                 <p className={styles.subtitle}>
@@ -415,8 +418,9 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
 
   return (
     <main className={styles.page}>
+      <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} />
       <div className={styles.roomWrap} style={{ position: "relative" }}>
-        <AmbientAudio active={alwaysOn} roomId={roomId} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} />
+        <AmbientAudio active={alwaysOn} roomId={roomId} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} hasVideoBackdrop={alwaysOn} />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         {statusMsg && (
           <div className={styles.reconnectBanner}>

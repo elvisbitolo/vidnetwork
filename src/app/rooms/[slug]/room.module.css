@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #1a1a1a;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -13,6 +13,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .prejoinWrap {
@@ -95,10 +97,16 @@
   height: 100vh;
   height: 100dvh;
   position: relative;
+  z-index: 1;
 }
 
 .roomWrap :global(.lk-room-container) {
   height: 100%;
+  background: transparent;
+}
+
+.roomWrap :global(.lk-video-conference) {
+  background: transparent;
 }
 
 .viewerBanner {

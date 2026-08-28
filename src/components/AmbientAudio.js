@@ -59,7 +59,7 @@ function generateAmbientWav() {
   return "data:audio/wav;base64," + btoa(binary);
 }
 
-export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, musicFileId }) {
+export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, musicFileId, hasVideoBackdrop }) {
   const [src, setSrc] = useState("");
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef(null);
@@ -74,10 +74,12 @@ export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, m
       setSrc(`/api/rooms/music/stream?id=${musicFileId}`);
     } else if (musicPlaying && musicUrl) {
       setSrc(musicUrl);
+    } else if (hasVideoBackdrop) {
+      setSrc("");
     } else {
       setSrc(ambientWav);
     }
-  }, [active, musicUrl, musicPlaying, musicFileId, ambientWav]);
+  }, [active, musicUrl, musicPlaying, musicFileId, ambientWav, hasVideoBackdrop]);
 
   useEffect(() => {
     if (!roomId || !active) return;
@@ -89,12 +91,14 @@ export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, m
         setSrc(`/api/rooms/music/stream?id=${data.musicFileId}`);
       } else if (data.musicPlaying && data.musicUrl) {
         setSrc(data.musicUrl);
+      } else if (hasVideoBackdrop) {
+        setSrc("");
       } else {
         setSrc(ambientWav);
       }
     }, () => {});
     return () => unsub();
-  }, [roomId, active, ambientWav]);
+  }, [roomId, active, ambientWav, hasVideoBackdrop]);
 
   useEffect(() => {
     const audio = audioRef.current;

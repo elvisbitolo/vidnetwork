@@ -76,7 +76,16 @@ export async function setLiveParticipantPublish(slug, identity, canPublish) {
 export async function endLiveKitRoom(slug) {
   const client = await getLiveKitAdmin();
   if (!client) return { ok: false, error: "LiveKit not configured" };
-  await client.deleteRoom(slug);
+  try {
+    await client.deleteRoom(slug);
+  } catch (err) {
+    const msg = String(err?.message || "");
+    const code = String(err?.code ?? "");
+    const alreadyGone =
+      /NOT_FOUND/i.test(msg) || /not found/i.test(msg) || code === "5" || code === "404" || code === "NotFound";
+    if (alreadyGone) return { ok: true };
+    return { ok: false, error: "Could not end the room" };
+  }
   return { ok: true };
 }
 

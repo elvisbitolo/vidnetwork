@@ -5,7 +5,7 @@ import styles from "./RoomBackground.module.css";
 
 const SRC = "/videos/elivs-bg.mp4";
 
-export default function RoomBackground({ show, musicActive }) {
+export default function RoomBackground({ show, musicActive, autoplaySound }) {
   const videoRef = useRef(null);
   const [soundOn, setSoundOn] = useState(false);
 
@@ -23,6 +23,14 @@ export default function RoomBackground({ show, musicActive }) {
       videoRef.current.pause();
     }
   }, [musicActive]);
+
+  useEffect(() => {
+    if (!autoplaySound || musicActive) return;
+    const video = videoRef.current;
+    if (!video || !video.muted) return;
+    video.muted = false;
+    video.play().then(() => setSoundOn(true)).catch(() => {});
+  }, [autoplaySound, musicActive]);
 
   if (!show) return null;
 

@@ -193,6 +193,23 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    html.style.overscrollBehaviorY = "none";
+    body.style.overscrollBehaviorY = "none";
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehaviorY = "";
+      body.style.overscrollBehaviorY = "";
+    };
+  }, []);
+
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
   const isStaff = role === "owner" || role === "moderator";
@@ -418,7 +435,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
 
   return (
     <main className={styles.page}>
-      <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} />
+      <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} autoplaySound={joined} />
       <div className={styles.roomWrap} style={{ position: "relative" }}>
         <AmbientAudio active={alwaysOn} roomId={roomId} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} hasVideoBackdrop={alwaysOn} />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}

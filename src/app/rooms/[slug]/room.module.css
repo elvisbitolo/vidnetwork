@@ -1,5 +1,6 @@
 .page {
-  min-height: 100vh;
+  height: calc(100dvh - 60px);
+  min-height: 0;
   background: transparent;
   display: flex;
   flex-direction: column;
@@ -94,8 +95,7 @@
 
 .roomWrap {
   flex: 1;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 0;
   position: relative;
   z-index: 1;
 }

@@ -82,6 +82,7 @@ function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) 
 export default function Nav({ role, children }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const isRoomPage = pathname?.startsWith("/rooms/");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== "undefined" && window.localStorage.getItem("sidebarCollapsed") === "1"
@@ -242,7 +243,7 @@ export default function Nav({ role, children }) {
         )}
 
         <div className={styles.content}>
-          <LiveNowBanner />
+          {!isRoomPage && <LiveNowBanner />}
           {children}
         </div>
         <ChatbotGuide />

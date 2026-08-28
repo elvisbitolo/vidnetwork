@@ -227,6 +227,11 @@
   color: var(--dash-text, #ffffff);
 }
 
+.membersLinkWrap {
+  margin-top: 6px;
+  padding: 0 8px;
+}
+
 .sidebarCollapsed {
   width: 0;
   border-right: none;

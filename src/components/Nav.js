@@ -17,42 +17,20 @@ const CHEVRON = (
   </svg>
 );
 
-function getAnalyticsLinks(role) {
+function getAdministrationLinks(role) {
   if (role === "owner") {
     return [
       { href: "/admin/analytics", key: "analytics" },
       { href: "/admin/income", key: "income" },
-    ];
-  }
-  return [];
-}
-
-function getMonetizationLinks(role) {
-  if (role === "owner") {
-    return [{ href: "/admin/promocodes", key: "promoCodes" }];
-  }
-  return [];
-}
-
-function getAutomationLinks(role) {
-  if (role === "owner") {
-    return [
-      { href: "/admin/automations", key: "automations" },
-      { href: "/admin/announcements", key: "announcements" },
-    ];
-  }
-  return [];
-}
-
-function getAdministrationLinks(role) {
-  if (role === "owner") {
-    return [
+      { href: "/admin/promocodes", key: "promoCodes" },
       { href: "/admin/rooms", key: "manageRooms" },
       { href: "/admin/courses", key: "manageCourses" },
       { href: "/admin/collections", key: "collections" },
       { href: "/admin/questions", key: "questions" },
       { href: "/admin/hosts", key: "scopedHosts" },
       { href: "/admin/moderation", key: "moderation" },
+      { href: "/admin/automations", key: "automations" },
+      { href: "/admin/announcements", key: "announcements" },
     ];
   }
   if (role === "moderator") {
@@ -72,22 +50,12 @@ const OVERVIEW_ITEMS = [
 const CONNECT_ITEMS = [
   { href: "/rooms", key: "rooms" },
   { href: "/events", key: "events" },
-  { href: "/challenges", key: "challenges" },
+  { href: "/challenges", key: "crochetAlong" },
 ];
 
 const LEARN_ITEMS = [
   { href: "/courses", key: "courses" },
   { href: "/articles", key: "articles" },
-  { href: "/recordings", key: "recordings" },
-];
-
-const COMMUNITY_ITEMS = [
-  { href: "/members", key: "members" },
-  { href: "/groups", key: "groups" },
-  { href: "/spaces", key: "spaces" },
-  { href: "/gallery", key: "gallery" },
-  { href: "/discovery", key: "discover" },
-  { href: "/leaderboard", key: "leaderboard" },
 ];
 
 function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) {
@@ -122,9 +90,6 @@ export default function Nav({ role, children }) {
   const [hasHostTools, setHasHostTools] = useState(
     () => role === "owner" || role === "moderator"
   );
-  const analyticsLinks = getAnalyticsLinks(role);
-  const monetizationLinks = getMonetizationLinks(role);
-  const automationLinks = getAutomationLinks(role);
   const administrationLinks = getAdministrationLinks(role);
   const close = () => setMobileOpen(false);
 
@@ -142,12 +107,8 @@ export default function Nav({ role, children }) {
       { id: "overview", items: OVERVIEW_ITEMS },
       { id: "connect", items: CONNECT_ITEMS },
       { id: "learn", items: LEARN_ITEMS },
-      { id: "community", items: COMMUNITY_ITEMS },
-      { id: "analytics", items: analyticsLinks },
-      { id: "monetization", items: monetizationLinks },
-      { id: "automation", items: automationLinks },
       { id: "administration", items: administrationLinks },
-      { id: "host", items: hasHostTools ? [{ href: "/host" }] : [] },
+      { id: "host", items: hasHostTools && role !== "owner" ? [{ href: "/host" }] : [] },
     ];
     const matched = allGroups
       .filter((g) => g.items.some((item) => pathname === item.href || pathname.startsWith(item.href + "/")))
@@ -159,7 +120,7 @@ export default function Nav({ role, children }) {
         return next;
       });
     }
-  }, [pathname, analyticsLinks, monetizationLinks, automationLinks, administrationLinks, hasHostTools]);
+  }, [pathname, administrationLinks, hasHostTools, role]);
 
   useEffect(() => {
     window.localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
@@ -249,6 +210,12 @@ export default function Nav({ role, children }) {
               <SidebarGroup id="connect" label={t("connect")} items={CONNECT_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               <SidebarGroup id="learn" label={t("learn")} items={LEARN_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
 
+              <div className={styles.membersLinkWrap}>
+                <Link className={styles.sidebarLink} href="/members" onClick={close}>
+                  {t("members")}
+                </Link>
+              </div>
+
               {collections.length > 0 && (
                 <SidebarGroup id="collections" label={t("collections")} open={openGroups} onToggle={toggleGroup} t={t} close={close}>
                   {collections.map((collection) => (
@@ -264,22 +231,8 @@ export default function Nav({ role, children }) {
                 </SidebarGroup>
               )}
 
-              <SidebarGroup id="community" label={t("community")} items={COMMUNITY_ITEMS} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
-
-              {hasHostTools && !analyticsLinks.length && (
+              {hasHostTools && role !== "owner" && (
                 <SidebarGroup id="host" label={t("host")} items={[{ href: "/host", key: "hostTools" }]} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
-              )}
-
-              {analyticsLinks.length > 0 && (
-                <SidebarGroup id="analytics" label={t("analytics")} items={analyticsLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
-              )}
-
-              {monetizationLinks.length > 0 && (
-                <SidebarGroup id="monetization" label={t("monetization")} items={monetizationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
-              )}
-
-              {automationLinks.length > 0 && (
-                <SidebarGroup id="automation" label={t("automation")} items={automationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
 
               {administrationLinks.length > 0 && (

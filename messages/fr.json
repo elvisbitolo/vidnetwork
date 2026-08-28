@@ -50,7 +50,8 @@
     "toggleNav": "Basculer la navigation",
     "completeProfile": "Complétez votre profil",
     "completeProfileDesc": "parlez-nous de votre activité pour personnaliser votre expérience.",
-    "setUp": "Configurer"
+    "setUp": "Configurer",
+    "crochetAlong": "Crochet ensemble"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -98,7 +99,9 @@
     "queueLoadError": "Votre file d'attente n'a pas pu se charger.",
     "contentLoadError": "Le contenu n'a pas pu se charger.",
     "byAuthor": "par {name}",
-    "likesAndComments": "{likes} mentions j'aime · {comments} commentaires"
+    "likesAndComments": "{likes} mentions j'aime · {comments} commentaires",
+    "communityHub": "Communaute",
+    "exploreCommunity": "Explorer la communaute"
   },
   "feed": {
     "title": "Fil d'actualité",
@@ -293,42 +296,32 @@
     "courses": "Cours",
     "events": "Événements",
     "community": "Communauté",
-
     "whatYouGetTitle": "Tout est dans votre tableau de bord.",
     "whatYouGetDesc": "Finis les 10 outils différents. Votre communauté, vos cours, vos événements, vos revenus — tout au même endroit.",
-
     "feature1Title": "Salons vidéo en direct",
     "feature1Desc": "Créez des salons communautaires toujours ouverts ou planifiez des événements live. Les membres rejoignent depuis n'importe quel appareil — mobile, tablette, ordinateur. Contrôles admin pour musique, enregistrement et modération.",
     "feature1Tag": "En temps réel",
-
     "feature2Title": "Fil et conversations",
     "feature2Desc": "Un fil social où les membres partagent des publications, photos, sondages et questions. Réactions emoji, commentaires enfilés, hashtags et signets intégrés.",
     "feature2Tag": "Social",
-
     "feature3Title": "Cours et apprentissage",
     "feature3Desc": "Cours vidéo structurés avec leçons, suivi de progression et badges de complétion. Les membres reprennent exactement là où ils en étaient — sur n'importe quel appareil.",
     "feature3Tag": "Éducation",
-
     "feature4Title": "Événements et calendrier",
     "feature4Desc": "Planifiez des événements, envoyez des rappels, suivez les RSVP. Les membres voient ce qui arrive et ne manquent jamais une session live.",
     "feature4Tag": "Planification",
-
     "feature5Title": "Défis et gamification",
     "feature5Desc": "Défis temporels avec suivi de progression, classements, badges, séries et points de reconnaissance. Gardez vos membres engagés et fidèles.",
     "feature5Tag": "Engagement",
-
     "feature6Title": "Groupes et espaces",
     "feature6Desc": "Créez des groupes pour des conversations ciblées, des cohortes ou des sujets d'intérêt. Les membres trouvent leur communauté.",
     "feature6Tag": "Connexion",
-
     "feature7Title": "Articles et contenu",
     "feature7Desc": "Articles longs avec édition riche, brouillons, publication et RSS. Construisez une bibliothèque de contenu au sein de votre communauté.",
     "feature7Tag": "Contenu",
-
     "feature8Title": "Monétisation et analytiques",
     "feature8Desc": "Abonnements via Stripe, codes promo, suivi des revenus. Analytiques en temps réel sur la croissance, l'engagement et les revenus.",
     "feature8Tag": "Revenus",
-
     "communityAllInOne": "Votre communauté, tout au même endroit.",
     "communityDesc": "Passez entre les conversations en direct, l'apprentissage, les événements et l'interaction communautaire sans jongler entre plusieurs plateformes.",
     "liveVideoRooms": "Salons vidéo en direct",

@@ -50,7 +50,8 @@
     "toggleNav": "Navigation umschalten",
     "completeProfile": "Vervollständigen Sie Ihr Profil",
     "completeProfileDesc": "erzählen Sie uns von Ihrem Handwerk, damit wir Ihre Erfahrung personalisieren können.",
-    "setUp": "Einrichten"
+    "setUp": "Einrichten",
+    "crochetAlong": "Crochet-Along"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -98,7 +99,9 @@
     "queueLoadError": "Ihre Warteschlange konnte nicht geladen werden.",
     "contentLoadError": "Inhalte konnten nicht geladen werden.",
     "byAuthor": "von {name}",
-    "likesAndComments": "{likes} Likes · {comments} Kommentare"
+    "likesAndComments": "{likes} Likes · {comments} Kommentare",
+    "communityHub": "Community",
+    "exploreCommunity": "Community entdecken"
   },
   "feed": {
     "title": "Feed",
@@ -292,42 +295,32 @@
     "courses": "Kurse",
     "events": "Events",
     "community": "Community",
-
     "whatYouGetTitle": "Alles in Ihrem Dashboard.",
     "whatYouGetDesc": "Keine 10 verschiedenen Tools mehr. Ihre Community, Ihre Kurse, Ihre Events, Ihre Einnahmen — alles an einem Ort.",
-
     "feature1Title": "Live-Videoräume",
     "feature1Desc": "Erstellen Sie immer offene Community-Räume oder planen Sie Live-Events. Mitglieder treten von jedem Gerät bei — Handy, Tablet, Desktop. Admin-Steuerung für Musik, Aufnahme und Moderation.",
     "feature1Tag": "Echtzeit",
-
     "feature2Title": "Feed & Gespräche",
     "feature2Desc": "Ein sozialer Feed, in dem Mitglieder Beiträge, Fotos, Umfragen und Fragen teilen. Emoji-Reaktionen, Threads, Hashtags und Lesezeichen eingebaut.",
     "feature2Tag": "Sozial",
-
     "feature3Title": "Kurse & Lernen",
     "feature3Desc": "Strukturierte Videokurse mit Lektionen, Fortschrittsverfolgung und Abschlussabzeichen. Mitglieder machen genau dort weiter, wo sie aufgehört haben — auf jedem Gerät.",
     "feature3Tag": "Bildung",
-
     "feature4Title": "Events & Kalender",
     "feature4Desc": "Planen Sie Events, senden Sie Erinnerungen, verfolgen Sie Teilnahmen. Mitglieder sehen, was kommt, und verpassen nie eine Live-Sitzung.",
     "feature4Tag": "Planung",
-
     "feature5Title": "Herausforderungen & Gamification",
     "feature5Desc": "Zeitliche Herausforderungen mit Fortschrittsverfolgung, Ranglisten, Abzeichen, Serien und Anerkennungspunkten. Halten Sie Mitglieder engagiert und treu.",
     "feature5Tag": "Engagement",
-
     "feature6Title": "Gruppen & Räume",
     "feature6Desc": "Erstellen Sie kleinere Gruppen für fokussierte Gespräche, Cohorts oder Spezialthemen. Mitglieder finden ihre Leute.",
     "feature6Tag": "Verbindung",
-
     "feature7Title": "Artikel & Inhalte",
     "feature7Desc": "Lange Artikel mit reichhaltiger Bearbeitung, Entwürfen, Veröffentlichung und RSS. Bauen Sie eine Inhaltsbibliothek in Ihrer Community auf.",
     "feature7Tag": "Inhalte",
-
     "feature8Title": "Monetisierung & Analytik",
     "feature8Desc": "Stripe-gestützte Abonnements, Promo-Codes, Einnahmenverfolgung. Echtzeit-Analytik zu Wachstum, Engagement und Umsatz.",
     "feature8Tag": "Einnahmen",
-
     "communityAllInOne": "Ihre Community, alles an einem Ort.",
     "communityDesc": "Wechseln Sie zwischen Live-Gesprächen, Lernen, Events und Community-Interaktion, ohne verschiedene Plattformen zu jonglieren.",
     "liveVideoRooms": "Live-Videoräume",

@@ -87,6 +87,43 @@ export function QuickActions({ isStaff }) {
   );
 }
 
+export function CommunityHub() {
+  const t = useTranslations("dashboard");
+  const tNav = useTranslations("nav");
+  const links = [
+    { href: "/members", key: "members", icon: "○" },
+    { href: "/groups", key: "groups", icon: "◎" },
+    { href: "/spaces", key: "spaces", icon: "▣" },
+    { href: "/gallery", key: "gallery", icon: "▦" },
+    { href: "/discovery", key: "discover", icon: "⌕" },
+    { href: "/leaderboard", key: "leaderboard", icon: "★" },
+  ];
+  return (
+    <Card title={t("communityHub")} linkLabel={t("exploreCommunity")} linkHref="/members">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(6, 1fr)",
+          gap: 10,
+        }}
+        className={styles.communityHubGrid}
+      >
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            className={styles.kpi}
+            href={link.href}
+            style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
+          >
+            <span style={{ fontSize: 18, color: "#a78bfa" }}>{link.icon}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{tNav(link.key)}</span>
+          </Link>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export function RecentActivity({ data }) {
   const t = useTranslations("dashboard");
   return (

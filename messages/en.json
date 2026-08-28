@@ -50,7 +50,8 @@
     "toggleNav": "Toggle navigation",
     "completeProfile": "Complete your profile",
     "completeProfileDesc": "tell us about your craft so we can personalize your experience.",
-    "setUp": "Set up"
+    "setUp": "Set up",
+    "crochetAlong": "Crochet Along"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -98,7 +99,9 @@
     "queueLoadError": "Couldn't load your queue.",
     "contentLoadError": "Content couldn't load.",
     "byAuthor": "by {name}",
-    "likesAndComments": "{likes} likes · {comments} comments"
+    "likesAndComments": "{likes} likes · {comments} comments",
+    "communityHub": "Community",
+    "exploreCommunity": "Explore community"
   },
   "feed": {
     "title": "Feed",
@@ -292,45 +295,34 @@
     "courses": "Courses",
     "events": "Events",
     "community": "Community",
-
     "whatYouGetTitle": "Everything inside your dashboard.",
     "whatYouGetDesc": "No more switching between 10 different tools. Your community, your courses, your events, your revenue — all in one place.",
-
     "feature1Title": "Live Video Rooms",
     "feature1Desc": "Create always-on community rooms or schedule live events. Members join from any device — mobile, tablet, desktop. Admin controls for music, recording and moderation.",
     "feature1Tag": "Real-time",
-
     "feature2Title": "Feed & Conversations",
     "feature2Desc": "A social feed where members share posts, photos, polls and questions. Emoji reactions, threaded comments, hashtags and bookmarks built in.",
     "feature2Tag": "Social",
-
     "feature3Title": "Courses & Learning",
     "feature3Desc": "Structured video courses with lessons, progress tracking and completion badges. Members pick up right where they left off — on any device.",
     "feature3Tag": "Education",
-
     "feature4Title": "Events & Calendar",
     "feature4Desc": "Schedule events, send reminders, track RSVPs. Members see what's coming up and never miss a live session.",
     "feature4Tag": "Planning",
-
     "feature5Title": "Challenges & Gamification",
     "feature5Desc": "Time-limited challenges with progress tracking, leaderboards, badges, streaks and recognition points. Keep members engaged and coming back.",
     "feature5Tag": "Engagement",
-
     "feature6Title": "Groups & Spaces",
     "feature6Desc": "Create smaller groups for focused conversations, cohorts or special interest topics. Members find their people.",
     "feature6Tag": "Connection",
-
     "feature7Title": "Articles & Content",
     "feature7Desc": "Long-form articles with rich editing, drafts, publishing and RSS. Build a content library that lives inside your community.",
     "feature7Tag": "Content",
-
     "feature8Title": "Monetization & Analytics",
     "feature8Desc": "Stripe-powered subscriptions, promo codes, income tracking. Real-time analytics on growth, engagement and revenue.",
     "feature8Tag": "Revenue",
-
     "communityAllInOne": "Your community, all in one place.",
     "communityDesc": "Move between live conversations, learning, events and community interaction without juggling separate platforms. Everything your membership needs lives on one platform.",
-
     "liveVideoRooms": "Live video rooms",
     "liveVideoRoomsDesc": "Talk face-to-face with members in real time, from any device.",
     "coursesLearning": "Courses & learning",
@@ -339,13 +331,11 @@
     "eventsCommunityDesc": "Discover upcoming events, RSVP and show up alongside the community.",
     "groupsConversations": "Groups & conversations",
     "groupsConversationsDesc": "Join smaller groups and keep the conversation going beyond the rooms.",
-
     "meetFaceToFace": "Meet face-to-face, wherever you are.",
     "meetFaceToFaceDesc": "Join live rooms, talk in real time and interact with the community — with recordings you can come back to later.",
     "communityRoom": "Community Room",
     "broadcastLive": "Broadcast live to members",
     "liveChat": "Live chat",
-
     "learnAtOwnPace": "Learn at your own pace.",
     "learnAtOwnPaceDesc": "Courses with structured video lessons. Your progress is saved, so you can pick up right where you left off — whenever it suits you.",
     "browseCourses": "Browse courses",
@@ -355,7 +345,6 @@
     "completed": "Completed",
     "current": "Current",
     "upcoming": "Upcoming",
-
     "neverMiss": "Never miss what's happening.",
     "neverMissDesc": "Discover upcoming community events, RSVP and get reminders — so you can show up for what matters.",
     "exploreEvents": "Explore events",
@@ -363,7 +352,6 @@
     "rsvpToJoin": "RSVP to join the community live",
     "rsvp": "RSVP",
     "getNotified": "Get notified when it starts",
-
     "moreThanVideoCall": "More than a video call.",
     "moreThanVideoCallDesc": "Yarnery Lounge brings together conversations, groups, members, live rooms, learning and events — one place for everything.",
     "members": "Members",
@@ -371,7 +359,6 @@
     "conversations": "Conversations",
     "learning": "Learning",
     "groups": "Groups",
-
     "simpleTransparent": "Simple, transparent membership.",
     "simpleTransparentDesc": "Start free for 14 days, then choose the plan that fits. Upgrade or cancel anytime.",
     "readyToJoin": "Ready to join the community?",

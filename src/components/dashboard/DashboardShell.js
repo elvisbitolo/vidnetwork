@@ -9,6 +9,7 @@ import AudienceChart from "./AudienceChart";
 import {
   WelcomeBanner,
   QuickActions,
+  CommunityHub,
   RecentActivity,
   UpcomingRooms,
   ContentPerformance,
@@ -208,6 +209,10 @@ export default function DashboardShell() {
         </div>
         <div data-tour="tour-actions">
           <QuickActions isStaff={isStaff} />
+        </div>
+
+        <div data-tour="tour-community">
+          <CommunityHub />
         </div>
 
         <div className={styles.kpiGrid} data-tour="tour-kpis">{kpis}</div>

@@ -300,7 +300,10 @@
 
 .colorRow {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .craftChips {
@@ -327,26 +330,63 @@
   color: #ffffff;
 }
 
-.colorSwatch {
+.colorWheel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
+  gap: 8px;
 }
 
-.colorSwatch input {
-  width: 52px;
-  height: 52px;
-  border: none;
-  border-radius: 12px;
+.wheelRing {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  padding: 5px;
+  background: conic-gradient(
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.wheelRing:hover {
+  transform: scale(1.05);
+}
+
+.wheelFace {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.wheelRing input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   padding: 0;
+  border: none;
+  border-radius: 50%;
+  opacity: 0;
   cursor: pointer;
-  background: none;
 }
 
-.colorSwatch span {
-  font-size: 12px;
+.wheelRing input:disabled {
+  cursor: not-allowed;
+}
+
+.wheelLabel {
+  font-size: 13px;
   font-weight: 600;
   color: #6b6b7b;
 }

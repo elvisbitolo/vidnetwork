@@ -460,18 +460,22 @@ export default function ProfileEditor({ initial }) {
         <label className={styles.fieldLabel}>Favorite 3 colors</label>
         <div className={styles.colorRow}>
           {favoriteColors.map((color, i) => (
-            <label key={i} className={styles.colorSwatch}>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(i, e.target.value)}
-                aria-label={`Favorite color ${i + 1}`}
-              />
-              <span>{i + 1}</span>
-            </label>
+            <div key={i} className={styles.colorWheel}>
+              <div className={styles.wheelRing}>
+                <span className={styles.wheelFace} style={{ background: color }} />
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(i, e.target.value)}
+                  aria-label={`Favorite color ${i + 1}`}
+                  disabled={busy}
+                />
+              </div>
+              <span className={styles.wheelLabel}>{i + 1}</span>
+            </div>
           ))}
         </div>
-        <p className={styles.fieldHint}>Tap a swatch to pick your favorite yarn colors.</p>
+        <p className={styles.fieldHint}>Tap a wheel to pick your favorite yarn colors.</p>
       </div>
 
       <div className={styles.field}>

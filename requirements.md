@@ -1,6 +1,6 @@
-# VidNetwork — Client Transfer Requirements
+# Yarnery Lounge — Client Transfer Requirements
 
-This document covers everything needed to transfer the VidNetwork project from the developer to the client (Mamameer / Christa Patel).
+This document covers everything needed to transfer the Yarnery Lounge project from the developer to the client (Mamameer / Christa Patel).
 
 ---
 

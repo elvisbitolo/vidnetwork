@@ -43,17 +43,17 @@ export async function POST(req) {
         const { sendEmail } = await import("@/lib/server/email");
         await sendEmail({
           to: decoded.email,
-          subject: "Welcome to VidNetwork",
+          subject: "Welcome to Yarnery Lounge",
           text:
             `Hi ${memberName},\n\n` +
-            `Welcome to VidNetwork! You're now a member of the community.\n\n` +
+            `Welcome to Yarnery Lounge! You're now a member of the community.\n\n` +
             `Here's what's inside:\n` +
             `- Live video rooms for real-time conversation\n` +
             `- Courses with lessons and progress tracking\n` +
             `- Events with RSVPs and reminders\n` +
             `- Groups, spaces, direct messages and a community feed\n\n` +
             `To pick a plan and start exploring: ${process.env.NEXT_PUBLIC_APP_URL || ""}/pricing\n\n` +
-            `We're glad you're here.\n\n— The VidNetwork Team`,
+            `We're glad you're here.\n\n— The Yarnery Lounge Team`,
         }).catch((err) => {
           logError("email.welcome_failed", { uid: decoded.uid, error: err.message });
         });

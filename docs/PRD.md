@@ -1,4 +1,4 @@
-# VidNetwork — Product Requirements (PRD)
+# Yarnery Lounge — Product Requirements (PRD)
 
 **What we want to build.** This document states goals, personas, requirements
 and the roadmap. It complements [PRODUCT.md](./PRODUCT.md) (what the product

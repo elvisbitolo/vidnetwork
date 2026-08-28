@@ -97,7 +97,7 @@ export default function LoginPage() {
       <main className={styles.page}>
         <div className={styles.authContainer}>
           <div className={styles.authForm}>
-            <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+            <p className={styles.brand}><Link href="/">Yarnery Lounge</Link></p>
             <h1 className={styles.title}>{t("resetPassword")}</h1>
             <p className={styles.subtitle}>{t("resetPasswordDesc")}</p>
 
@@ -163,7 +163,7 @@ export default function LoginPage() {
     <main className={styles.page}>
       <div className={styles.authContainer}>
         <div className={styles.authForm}>
-          <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+          <p className={styles.brand}><Link href="/">Yarnery Lounge</Link></p>
           <h1 className={styles.title}>{t("welcomeBack")}</h1>
           <p className={styles.subtitle}>{t("signInToJoin")}</p>
 

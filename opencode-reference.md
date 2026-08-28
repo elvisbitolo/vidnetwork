@@ -2,11 +2,11 @@
 
 Project reference for opencode sessions on this repo. Read this first — it saves a full
 re-discovery pass every time. For the full product/engineering audit and PRD, see
-[`docs/audit.md`](docs/audit.md) (copy of `VidNetwork_Audit_and_PRD.md`).
+[`docs/audit.md`](docs/audit.md) (copy of `Yarnery Lounge_Audit_and_PRD.md`).
 
 ## What this is
 
-VidNetwork (`elvisbitolo/yarnerylounge`, live at `https://yarnerylounge.vercel.app`) is a
+Yarnery Lounge (`elvisbitolo/yarnerylounge`, live at `https://yarnerylounge.vercel.app`) is a
 **membership-based community platform** built for a client (Christa Patel) who asked for a
 Mighty-Networks-style product. It is a single Next.js app: paid membership + live video
 rooms, courses, events, groups, feed, chat, notifications, recordings.

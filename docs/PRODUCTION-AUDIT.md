@@ -1,4 +1,4 @@
-# VidNetwork — Production Audit
+# Yarnery Lounge — Production Audit
 
 Project: `christa-patel` (Firebase), Vercel (https://yarnerylounge.vercel.app)
 Audit basis: `~/Downloads/VIDNETWORK_PRODUCTION_HARDENING_PRD.md`
@@ -49,7 +49,7 @@ Status: PHASE 1 (discovery) and PHASE 2 (plan) complete; PHASE 3 hardening in pr
 | No CI | — | Added `.github/workflows/ci.yml` (lint + test + build) |
 | No regression tests for authz / billing / capacity / like / profile-save | — | Added `posts.test.js`, `events-core.test.js`, `profile.test.js` (54 total) |
 
-## Addendum 2026-08-14 (VidNetwork evolution per IMPLEMENTATION_PRD + Mighty research)
+## Addendum 2026-08-14 (Yarnery Lounge evolution per IMPLEMENTATION_PRD + Mighty research)
 
 Added new findings from the review pass:
 

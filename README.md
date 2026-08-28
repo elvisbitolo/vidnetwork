@@ -1,6 +1,6 @@
-# VidNetwork
+# Yarnery Lounge
 
-VidNetwork is a **paid-membership community platform**: live video rooms,
+Yarnery Lounge is a **paid-membership community platform**: live video rooms,
 courses, events, groups, chat and engagement tools in one web app. It is built
 as a close equivalent of the Mighty Networks product surface for a single
 community operated by a Host.

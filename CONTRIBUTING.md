@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to VidNetwork.
+Thanks for your interest in contributing to Yarnery Lounge.
 
 > This is a **private, single-owner project** (a client product). Large
 > architectural changes should be discussed before they're written. Small,

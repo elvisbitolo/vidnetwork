@@ -1,4 +1,4 @@
-# VidNetwork — Security Matrix
+# Yarnery Lounge — Security Matrix
 
 How each security control is enforced. Server routes use the Admin SDK (bypasses rules); the rules protect direct client access.
 

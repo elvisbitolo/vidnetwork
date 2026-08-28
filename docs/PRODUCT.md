@@ -1,4 +1,4 @@
-# VidNetwork — Product Overview
+# Yarnery Lounge — Product Overview
 
 > **Tagline:** Connect, learn and grow together.
 >
@@ -8,7 +8,7 @@
 
 ## Vision
 
-VidNetwork gives one creator/organization (the **Host**) the tools to run a
+Yarnery Lounge gives one creator/organization (the **Host**) the tools to run a
 profitable paid community the way large platforms (e.g. Mighty Networks) do —
 without leaving their own stack. It is deliberately built as a **web
 application** (responsive + PWA) rather than native apps, so members join in a

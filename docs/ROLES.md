@@ -1,4 +1,4 @@
-# VidNetwork — Roles & Permissions
+# Yarnery Lounge — Roles & Permissions
 
 This document describes who can do what. Server-side authorization is the
 security boundary; client checks and Firestore rules are UX backstops only.

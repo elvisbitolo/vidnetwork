@@ -89,7 +89,7 @@ export async function POST(req) {
   const html = `
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
       <div style="background:linear-gradient(135deg,#6d5df6,#8b5cf6);padding:32px 24px;border-radius:12px 12px 0 0;">
-        <h1 style="color:#fff;font-size:22px;margin:0;">This Week at VidNetwork</h1>
+        <h1 style="color:#fff;font-size:22px;margin:0;">This Week at Yarnery Lounge</h1>
         <p style="color:rgba(255,255,255,0.85);font-size:14px;margin:8px 0 0;">Your weekly community digest</p>
       </div>
       <div style="background:#fff;padding:8px 0;border-radius:0 0 12px 12px;border:1px solid #eee;border-top:none;">
@@ -127,7 +127,7 @@ export async function POST(req) {
     try {
       await sendEmail({
         to: u.email,
-        subject: "This Week at VidNetwork",
+        subject: "This Week at Yarnery Lounge",
         text: textParts.join("\n"),
         html,
       });

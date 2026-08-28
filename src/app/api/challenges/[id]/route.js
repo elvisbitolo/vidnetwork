@@ -118,7 +118,7 @@ export async function PATCH(req, { params }) {
         userId: auth.user.uid,
         type: "system",
         actorId: "system",
-        actorName: "VidNetwork",
+        actorName: "Yarnery Lounge",
         href: `/challenges`,
         text: `You completed the "${challenge.data().title}" challenge! 🎉`,
       }).catch(() => {});

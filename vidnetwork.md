@@ -1,4 +1,4 @@
-# VidNetwork — What I Built For You & How We Hand It Over
+# Yarnery Lounge — What I Built For You & How We Hand It Over
 
 > This is my walkthrough of the system I've built for you. It explains what the platform does
 > today, how you get in as admin, what's needed to make it production-ready on your own
@@ -8,7 +8,7 @@
 
 ## 1. What I've built for you
 
-VidNetwork is a **paid membership community platform** with social features, live video rooms,
+Yarnery Lounge is a **paid membership community platform** with social features, live video rooms,
 courses, events, and monetization — modeled on how Mighty Networks works.
 
 ### What your members experience

@@ -1,4 +1,4 @@
-# VidNetwork — Critical Product & Engineering Audit + Improvement PRD
+# Yarnery Lounge — Critical Product & Engineering Audit + Improvement PRD
 
 **Repository:** `elvisbitolo/yarnerylounge`  
 **Production:** `https://yarnerylounge.vercel.app/`  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-VidNetwork is substantially more advanced than its public landing page suggests. The repository implements a membership/community product spanning:
+Yarnery Lounge is substantially more advanced than its public landing page suggests. The repository implements a membership/community product spanning:
 
 - Firebase Authentication
 - Server-side Firebase session cookies
@@ -134,7 +134,7 @@ This matters commercially because the client should not need a developer for eve
 
 ## P0 — Product positioning is too narrow
 
-The landing page makes VidNetwork look primarily like a video-room product.
+The landing page makes Yarnery Lounge look primarily like a video-room product.
 
 The actual platform is much broader.
 
@@ -824,11 +824,11 @@ Troubleshooting
 
 ---
 
-# 23. PRD — VidNetwork Production Readiness & Growth
+# 23. PRD — Yarnery Lounge Production Readiness & Growth
 
 ## Product Name
 
-**VidNetwork**
+**Yarnery Lounge**
 
 ## Product Vision
 
@@ -836,7 +836,7 @@ Build a secure, reliable membership platform where communities can combine live 
 
 ## Problem
 
-VidNetwork already contains many valuable features, but the current implementation risks becoming a collection of features rather than a cohesive, reliable product.
+Yarnery Lounge already contains many valuable features, but the current implementation risks becoming a collection of features rather than a cohesive, reliable product.
 
 The next phase should focus on:
 
@@ -1280,7 +1280,7 @@ Never trust:
 
 # 39. Definition of Production Ready
 
-VidNetwork should not be considered production-ready for serious commercial scale until:
+Yarnery Lounge should not be considered production-ready for serious commercial scale until:
 
 - [ ] Authorization is centralized.
 - [ ] Premium access is tested server-side.
@@ -1301,7 +1301,7 @@ VidNetwork should not be considered production-ready for serious commercial scal
 
 # 40. Final Recommendation
 
-**Do not turn VidNetwork into a bigger feature list yet.**
+**Do not turn Yarnery Lounge into a bigger feature list yet.**
 
 The product already has enough surface area to be commercially interesting.
 

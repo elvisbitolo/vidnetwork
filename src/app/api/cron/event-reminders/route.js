@@ -51,7 +51,7 @@ export async function GET(req) {
           userId: rsvp.userId,
           type: "event_reminder",
           actorId: "",
-          actorName: "VidNetwork",
+          actorName: "Yarnery Lounge",
           text: `"${event.title}" starts soon — don't miss it.`,
           href: joinHref,
         });

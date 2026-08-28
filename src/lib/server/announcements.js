@@ -68,7 +68,7 @@ export async function sendAnnouncement({
         userId,
         type: "announcement",
         actorId: actorId || "",
-        actorName: actorName || "VidNetwork",
+        actorName: actorName || "Yarnery Lounge",
         targetId: scopeId || "",
         href,
         text,

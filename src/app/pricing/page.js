@@ -104,7 +104,7 @@ export default function PricingPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <Link className={styles.headerBrand} href={signedIn ? "/dashboard" : "/"}>
-          VidNetwork
+          Yarnery Lounge
         </Link>
         {signedIn ? (
           <Link className={styles.headerLink} href="/dashboard">{t("backToDashboard")}</Link>

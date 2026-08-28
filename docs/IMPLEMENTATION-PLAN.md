@@ -1,4 +1,4 @@
-# VidNetwork — Implementation Plan
+# Yarnery Lounge — Implementation Plan
 
 Target: evolve the existing community + video platform per `VIDNETWORK_IMPLEMENTATION_PRD_FOR_OPENCODE.md`
 and the Mighty Networks research (see session notes). Non-destructive policy applies (PRD §4, §41).
@@ -32,7 +32,7 @@ and the Mighty Networks research (see session notes). Non-destructive policy app
 - Pricing page: navigation for signed-in users.
 
 ### Phase 5 — UX / mobile / brand polish
-- `Nav.js`: hamburger menu on small screens; brand wordmark "VidNetwork".
+- `Nav.js`: hamburger menu on small screens; brand wordmark "Yarnery Lounge".
 - Fix "Community" hardcodes in `login`/`signup`.
 - About/Guidelines: light indigo theme + media queries.
 - Feed: inline report modal; proper like/bookmark icons.

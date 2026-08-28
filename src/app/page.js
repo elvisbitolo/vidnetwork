@@ -24,30 +24,30 @@ import {
 import styles from "./page.module.css";
 
 export const metadata = {
-  title: "VidNetwork — Connect, Learn & Grow Together",
+  title: "Yarnery Lounge — Connect, Learn & Grow Together",
   description:
-    "VidNetwork is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
+    "Yarnery Lounge is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
   keywords: ["community platform", "membership site", "live video rooms", "online courses", "gamification", "creator community", "learn together"],
-  authors: [{ name: "VidNetwork" }],
+  authors: [{ name: "Yarnery Lounge" }],
   openGraph: {
-    title: "VidNetwork — Connect, Learn & Grow Together",
+    title: "Yarnery Lounge — Connect, Learn & Grow Together",
     description:
       "Live communities, courses, events, gamification and real conversations — all in one place.",
     url: "https://yarnerylounge.vercel.app",
-    siteName: "VidNetwork",
+    siteName: "Yarnery Lounge",
     type: "website",
     images: [
       {
         url: "/og-image.png",
         width: 1734,
         height: 907,
-        alt: "VidNetwork — Connect, Learn & Grow Together",
+        alt: "Yarnery Lounge — Connect, Learn & Grow Together",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "VidNetwork — Connect, Learn & Grow Together",
+    title: "Yarnery Lounge — Connect, Learn & Grow Together",
     description:
       "Live communities, courses, events, gamification and real conversations — all in one place.",
     images: ["/og-image.png"],
@@ -150,7 +150,7 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "VidNetwork",
+      name: "Yarnery Lounge",
       url: "https://yarnerylounge.vercel.app",
       logo: "https://yarnerylounge.vercel.app/icon-192.png",
       description:
@@ -165,7 +165,7 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "VidNetwork",
+      name: "Yarnery Lounge",
       url: "https://yarnerylounge.vercel.app",
       potentialAction: {
         "@type": "SearchAction",
@@ -176,12 +176,12 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "Product",
-      name: "VidNetwork Community Membership",
+      name: "Yarnery Lounge Community Membership",
       description: "Access to live video rooms, courses, events, gamification and a community of creators.",
       image: "https://yarnerylounge.vercel.app/images/crochet/product_closeup_01.jpeg",
       brand: {
         "@type": "Brand",
-        name: "VidNetwork",
+        name: "Yarnery Lounge",
       },
       offers: [
         {
@@ -233,7 +233,7 @@ export default function Home() {
               <p className={styles.heroSub}>{t("heroSub")}</p>
               <div className={styles.heroCtas}>
                 <Link className={styles.primary} href="/signup">
-                  {t("joinVidNetwork")}
+                  {t("joinYarneryLounge")}
                 </Link>
                 <Link className={styles.secondary} href="/explore">
                   {t("exploreCommunity")}
@@ -553,7 +553,7 @@ export default function Home() {
               <span className={styles.brandMark} aria-hidden="true">
                 <PlayIcon size={14} />
               </span>
-              <span className={styles.brandName}>VidNetwork</span>
+              <span className={styles.brandName}>Yarnery Lounge</span>
               <p className={styles.footerTagline}>{t("footerTagline")}</p>
             </div>
             <nav aria-label="Footer navigation" className={styles.footerCol}>
@@ -590,7 +590,7 @@ export default function Home() {
               </Link>
             </nav>
           </div>
-          <p className={styles.footerBottom}>© {new Date().getFullYear()} VidNetwork</p>
+          <p className={styles.footerBottom}>© {new Date().getFullYear()} Yarnery Lounge</p>
         </div>
       </footer>
     </main>

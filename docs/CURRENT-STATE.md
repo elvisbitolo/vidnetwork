@@ -1,4 +1,4 @@
-# VidNetwork — Current State
+# Yarnery Lounge — Current State
 
 **What exists now, what has been verified, and what is still open.**
 

@@ -93,7 +93,7 @@ async function executeAction(automation, context) {
       userId,
       type: "automation",
       actorId: "",
-      actorName: "VidNetwork",
+      actorName: "Yarnery Lounge",
       text,
       href: config.href || "/dashboard",
     });

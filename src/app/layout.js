@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata = {
   metadataBase: new URL("https://yarnerylounge.vercel.app"),
   title: {
-    default: "VidNetwork",
-    template: "%s — VidNetwork",
+    default: "Yarnery Lounge",
+    template: "%s — Yarnery Lounge",
   },
   description:
-    "VidNetwork is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
+    "Yarnery Lounge is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
   manifest: "/manifest.webmanifest",
   other: {
     "google-site-verification": "EO1A_95MmyPuFD2ULeSrZ2xzliMUJEdAWtRmclDUwPo",
@@ -34,14 +34,14 @@ export const metadata = {
     ],
   },
   openGraph: {
-    siteName: "VidNetwork",
+    siteName: "Yarnery Lounge",
     type: "website",
     images: [
       {
         url: "/og-image.png",
         width: 1734,
         height: 907,
-        alt: "VidNetwork — Connect, Learn & Grow Together",
+        alt: "Yarnery Lounge — Connect, Learn & Grow Together",
       },
     ],
   },

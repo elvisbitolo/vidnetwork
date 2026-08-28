@@ -6,7 +6,7 @@ const GUIDE_STEPS = [
   {
     id: "welcome",
     messages: [
-      { from: "bot", text: "Hey there! Welcome to VidNetwork! I'm your friendly guide, and I'll help you get settled in." },
+      { from: "bot", text: "Hey there! Welcome to Yarnery Lounge! I'm your friendly guide, and I'll help you get settled in." },
       { from: "bot", text: "Let's start by making your profile shine — it's how other members get to know you, and how we match you with people who share your craft." },
     ],
     action: { label: "Let's set up my profile", href: "/account" },
@@ -329,7 +329,7 @@ export default function ChatbotGuide() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 20 }}>🧶</span>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>VidNetwork Guide</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>Yarnery Lounge Guide</p>
             <p style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", margin: 0 }}>
               Step {step + 1} of {GUIDE_STEPS.length}
             </p>

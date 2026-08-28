@@ -1,4 +1,4 @@
-# VidNetwork — Authorization Matrix
+# Yarnery Lounge — Authorization Matrix
 
 Server-side authorization is the security boundary. Client checks / Firestore rules are UX backstops only.
 

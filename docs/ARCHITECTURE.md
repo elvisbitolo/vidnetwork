@@ -1,4 +1,4 @@
-# VidNetwork — Architecture
+# Yarnery Lounge — Architecture
 
 How the software is organized and how the main flows work.
 

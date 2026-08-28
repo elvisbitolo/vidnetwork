@@ -1,4 +1,4 @@
-# VidNetwork — Remediation Report
+# Yarnery Lounge — Remediation Report
 
 Generated during PHASE 3 (HARDEN) of `VIDNETWORK_PRODUCTION_HARDENING_PRD.md`. All changes are in the working tree (uncommitted) unless noted.
 

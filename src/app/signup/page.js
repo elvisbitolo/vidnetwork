@@ -77,7 +77,7 @@ export default function SignupPage() {
       <main className={styles.page}>
         <div className={styles.authContainer}>
           <div className={styles.authForm}>
-            <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+            <p className={styles.brand}><Link href="/">Yarnery Lounge</Link></p>
             <h1 className={styles.title}>{t("verifyEmail")}</h1>
             <div className={styles.verifyBox}>
               <p className={styles.verifyText}>
@@ -101,7 +101,7 @@ export default function SignupPage() {
             </p>
           </div>
           <div className={styles.authImage}>
-            <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+            <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join Yarnery Lounge" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
             <div className={styles.authImageOverlay}>
               <p className={styles.authImageText}>Join a community of creators who share, learn, and grow together.</p>
             </div>
@@ -115,7 +115,7 @@ export default function SignupPage() {
     <main className={styles.page}>
       <div className={styles.authContainer}>
         <div className={styles.authForm}>
-          <p className={styles.brand}><Link href="/">VidNetwork</Link></p>
+          <p className={styles.brand}><Link href="/">Yarnery Lounge</Link></p>
           <h1 className={styles.title}>{t("createAccount")}</h1>
           <p className={styles.subtitle}>{t("startConnecting")}</p>
 
@@ -169,7 +169,7 @@ export default function SignupPage() {
           </p>
         </div>
         <div className={styles.authImage}>
-          <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join VidNetwork" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+          <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Join Yarnery Lounge" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
           <div className={styles.authImageOverlay}>
             <p className={styles.authImageText}>Join a community of creators who share, learn, and grow together.</p>
           </div>

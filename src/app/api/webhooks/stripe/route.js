@@ -187,7 +187,7 @@ export async function POST(req) {
             await sendEmail({
               to: session.customer_details.email,
               subject: `Your purchase of "${label}" is complete`,
-              text: `Thanks for buying "${label}". You now have access — enjoy!\n\n— The VidNetwork Team`,
+              text: `Thanks for buying "${label}". You now have access — enjoy!\n\n— The Yarnery Lounge Team`,
             }).catch(() => {});
           }
           break;

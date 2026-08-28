@@ -5,7 +5,7 @@ import styles from "./about.module.css";
 export const metadata = {
   title: "About",
   description:
-    "Learn about VidNetwork — a paid membership community for live video rooms, courses, events and real conversations.",
+    "Learn about Yarnery Lounge — a paid membership community for live video rooms, courses, events and real conversations.",
 };
 
 export default function AboutPage() {
@@ -13,9 +13,9 @@ export default function AboutPage() {
     <main className={styles.page}>
       <LandingNav />
       <div className={styles.container}>
-        <h1 className={styles.title}>About VidNetwork</h1>
+        <h1 className={styles.title}>About Yarnery Lounge</h1>
         <p className={styles.lead}>
-          VidNetwork is a paid membership community where people connect live, learn together and
+          Yarnery Lounge is a paid membership community where people connect live, learn together and
           build real relationships — not just feeds of posts.
         </p>
 
@@ -48,7 +48,7 @@ export default function AboutPage() {
         <section className={styles.section}>
           <h2 className={styles.heading}>Why membership?</h2>
           <p>
-            Membership keeps the community focused and safe. By charging a fair price, VidNetwork
+            Membership keeps the community focused and safe. By charging a fair price, Yarnery Lounge
             stays free of ads and sponsored noise, and we can invest in moderators, high-quality
             content and reliable live infrastructure.
           </p>

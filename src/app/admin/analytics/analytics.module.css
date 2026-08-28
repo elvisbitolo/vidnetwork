@@ -52,14 +52,14 @@
 }
 
 a.statCard:hover {
-  border-color: #4f46e5;
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.1);
 }
 
 .statValue {
   font-size: 28px;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 0 0 4px;
 }
 

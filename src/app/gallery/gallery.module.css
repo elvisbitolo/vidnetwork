@@ -132,7 +132,7 @@
 .modalAuthor {
   font-size: 14px;
   font-weight: 700;
-  color: #a78bfa;
+  color: var(--secondary-light);
   text-decoration: none;
 }
 

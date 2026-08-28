@@ -240,7 +240,7 @@
 }
 
 .liveBanner {
-  background: #f6077a;
+  background: var(--primary);
 }
 
 .liveLink {
@@ -339,7 +339,7 @@
   padding: 0 4px;
   box-sizing: border-box;
   border-radius: 999px;
-  background: #dc2626;
+  background: var(--error);
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
@@ -373,7 +373,7 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6d5df6, #a78bfa);
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
   color: #ffffff;
   font-size: 13px;
   font-weight: 700;
@@ -431,7 +431,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6d5df6, #a78bfa);
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
@@ -470,7 +470,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #4f46e5;
+  color: var(--primary);
   background: #eef2ff;
   border-radius: 999px;
   padding: 2px 8px;
@@ -494,7 +494,7 @@
 
 .profileLink:hover {
   background: #f4f4f8;
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .profileMenuDivider {

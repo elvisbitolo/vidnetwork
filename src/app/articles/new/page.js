@@ -43,7 +43,7 @@ export default function NewArticlePage() {
         </h1>
 
         {error && (
-          <p style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.12)", color: "#ef4444", fontSize: 13, marginBottom: 16 }}>
+          <p style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.12)", color: "var(--error)", fontSize: 13, marginBottom: 16 }}>
             {error}
           </p>
         )}
@@ -144,7 +144,7 @@ export default function NewArticlePage() {
               padding: "12px 24px",
               borderRadius: 10,
               border: "none",
-              background: busy || !title.trim() || !content.trim() ? "rgba(167,139,250,0.3)" : "#a78bfa",
+              background: busy || !title.trim() || !content.trim() ? "rgba(167,139,250,0.3)" : "var(--secondary-light)",
               color: "#ffffff",
               fontSize: 15,
               fontWeight: 600,

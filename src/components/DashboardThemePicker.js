@@ -3,14 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 
 const PRESETS = [
-  { name: "Default", bg: "#1a1a1f", surface: "#24242a", border: "#2e2e38", text: "#f5f5f5", muted: "#8b8b9b", accent: "#a78bfa" },
-  { name: "Midnight", bg: "#0a0a12", surface: "#12121e", border: "#1e1e2e", text: "#e8e8f0", muted: "#6b6b80", accent: "#7c8cf8" },
-  { name: "Ocean", bg: "#0c1929", surface: "#132236", border: "#1c3048", text: "#e0eaf5", muted: "#6b8aaa", accent: "#38bdf8" },
-  { name: "Forest", bg: "#0f1a12", surface: "#172618", border: "#1f3420", text: "#e0f0e4", muted: "#6b9a72", accent: "#4ade80" },
-  { name: "Sunset", bg: "#1a1008", surface: "#2a1a0e", border: "#3a2818", text: "#f5e8d8", muted: "#9a8060", accent: "#fb923c" },
-  { name: "Rose", bg: "#1a0f14", surface: "#281520", border: "#381e2c", text: "#f5e0ea", muted: "#9a6880", accent: "#f472b6" },
-  { name: "Arctic", bg: "#f0f4f8", surface: "#ffffff", border: "#d8dee6", text: "#1a202c", muted: "#5a6578", accent: "#6366f1" },
-  { name: "Warm Light", bg: "#faf8f5", surface: "#ffffff", border: "#e8e2da", text: "#2c2418", muted: "#8a7a68", accent: "#d97706" },
+  { name: "Default", bg: "#12121a", surface: "#1c1c26", border: "#2a2a38", text: "#f5f5f7", muted: "#9a9ab0", accent: "#2563eb" },
+  { name: "Midnight", bg: "#0a0a14", surface: "#14141f", border: "#1f1f2e", text: "#e8e8f5", muted: "#6b6b85", accent: "#60a5fa" },
+  { name: "Ocean", bg: "#0b1622", surface: "#12202f", border: "#1a2c3f", text: "#e0eaf5", muted: "#6b8aaa", accent: "#06b6d4" },
+  { name: "Violet", bg: "#140f26", surface: "#1d1534", border: "#2a1f45", text: "#f0e8ff", muted: "#8a78b8", accent: "#7c3aed" },
+  { name: "Ink", bg: "#0e1322", surface: "#151c30", border: "#202a44", text: "#e2e8f0", muted: "#64748b", accent: "#38bdf8" },
+  { name: "Arctic", bg: "#f4f6fc", surface: "#ffffff", border: "#d8e0ec", text: "#1a2233", muted: "#5a6578", accent: "#2563eb" },
 ];
 
 function Swatch({ color, size = 28 }) {

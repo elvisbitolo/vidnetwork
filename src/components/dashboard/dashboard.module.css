@@ -60,7 +60,7 @@
 }
 
 .searchInput:focus {
-  border-color: var(--dash-accent, #6d5df6);
+  border-color: var(--dash-accent, var(--secondary));
   box-shadow: 0 0 0 3px rgba(109, 93, 246, 0.2);
 }
 
@@ -74,7 +74,7 @@
 }
 
 .welcome {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
   border-radius: 16px;
   padding: 24px 28px;
   color: #fff;
@@ -110,7 +110,7 @@
   font-size: 14px;
   font-weight: 600;
   background: #fff;
-  color: #4f46e5;
+  color: var(--primary);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -218,7 +218,7 @@
 .cardLink {
   font-size: 13px;
   font-weight: 600;
-  color: var(--dash-accent, #a78bfa);
+  color: var(--dash-accent, var(--secondary-light));
 }
 
 .cardLink:hover {
@@ -305,7 +305,7 @@
   background: var(--dash-surface, #24242a);
   font-size: 13px;
   font-weight: 600;
-  color: var(--dash-accent, #a78bfa);
+  color: var(--dash-accent, var(--secondary-light));
   cursor: pointer;
 }
 
@@ -322,7 +322,7 @@
 }
 
 .dotLive {
-  background: #ef4444;
+  background: var(--error);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
@@ -338,12 +338,12 @@
 
 .tagLive {
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: var(--error);
 }
 
 .tagUpcoming {
   background: rgba(109, 93, 246, 0.15);
-  color: var(--dash-accent, #a78bfa);
+  color: var(--dash-accent, var(--secondary-light));
 }
 
 .tagRsvp {
@@ -361,7 +361,7 @@
 
 .progressFill {
   height: 100%;
-  background: var(--dash-accent, #6d5df6);
+  background: var(--dash-accent, var(--secondary));
   border-radius: 999px;
 }
 
@@ -382,7 +382,7 @@
   height: 30px;
   border-radius: 8px;
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: var(--error);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -420,13 +420,13 @@
 }
 
 .chartBtn:hover {
-  border-color: var(--dash-accent, #6d5df6);
-  color: var(--dash-accent, #a78bfa);
+  border-color: var(--dash-accent, var(--secondary));
+  color: var(--dash-accent, var(--secondary-light));
 }
 
 .chartBtnActive {
-  background: var(--dash-accent, #6d5df6);
-  border-color: var(--dash-accent, #6d5df6);
+  background: var(--dash-accent, var(--secondary));
+  border-color: var(--dash-accent, var(--secondary));
   color: #fff;
 }
 

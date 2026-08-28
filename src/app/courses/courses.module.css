@@ -31,7 +31,7 @@
 }
 
 .link {
-  color: #4f46e5;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
 }
@@ -77,8 +77,8 @@
 }
 
 .adminLink:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .empty {
@@ -128,7 +128,7 @@
   font-size: 11px;
   font-weight: 700;
   background: #f5f3ff;
-  color: #6d28d9;
+  color: var(--secondary-hover);
   vertical-align: middle;
 }
 
@@ -142,7 +142,7 @@
 .cardMeta {
   font-size: 13px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 4px 0 0;
 }
 
@@ -203,7 +203,7 @@
 .progressPct {
   font-size: 14px;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .progressTrack {
@@ -215,7 +215,7 @@
 
 .progressFill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--primary);
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -251,7 +251,7 @@
   height: 28px;
   border-radius: 50%;
   background: #eef2ff;
-  color: #4f46e5;
+  color: var(--primary);
   font-size: 13px;
   font-weight: 800;
   flex-shrink: 0;
@@ -276,7 +276,7 @@
 }
 
 .lesson:hover .lessonTitle {
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .lessonMark {
@@ -294,7 +294,7 @@
 }
 
 .lessonDone {
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
 }
 

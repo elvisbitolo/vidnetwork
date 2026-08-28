@@ -53,7 +53,7 @@
 }
 
 .search:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .filters {
@@ -82,7 +82,7 @@
 }
 
 .locationSelect:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .locationSelect:disabled {
@@ -104,8 +104,8 @@
 }
 
 .filterActive {
-  background: #4f46e5;
-  border-color: #4f46e5;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
 }
 
@@ -139,13 +139,13 @@
 }
 
 .craftChip:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .craftActive {
-  background: #4f46e5;
-  border-color: #4f46e5;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
 }
 
@@ -233,7 +233,7 @@
   width: 92px;
   height: 92px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6d5df6, #a78bfa);
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
   color: #ffffff;
   font-size: 32px;
   font-weight: 700;
@@ -289,7 +289,7 @@
   margin: 0 0 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #a78bfa;
+  color: var(--secondary-light);
 }
 
 .tooltipBio {
@@ -326,7 +326,7 @@
   margin: 6px 0 0;
   font-size: 11px;
   font-weight: 700;
-  color: #a78bfa;
+  color: var(--secondary-light);
 }
 
 .meta {
@@ -339,7 +339,7 @@
 .headline {
   font-size: 13px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 0 0 6px;
 }
 

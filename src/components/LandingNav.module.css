@@ -34,7 +34,7 @@
   width: 28px;
   height: 28px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #4f46e5, #6d28d9);
+  background: linear-gradient(135deg, var(--primary), var(--secondary-hover));
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -56,7 +56,7 @@
 }
 
 .link:hover {
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .divider {
@@ -70,7 +70,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0 18px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border-radius: 10px;
   font-size: 14px;
@@ -79,7 +79,7 @@
 }
 
 .cta:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .burger {
@@ -143,7 +143,7 @@
   justify-content: center;
   margin-top: 12px;
   height: 44px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border-radius: 10px;
   font-size: 15px;
@@ -152,7 +152,7 @@
 
 .header a:focus-visible,
 .header button:focus-visible {
-  outline: 3px solid #4f46e5;
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
   border-radius: 6px;
 }

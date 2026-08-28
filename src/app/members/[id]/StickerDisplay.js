@@ -68,7 +68,7 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
                 right: -6,
                 fontSize: 10,
                 fontWeight: 800,
-                color: "#a78bfa",
+                color: "var(--secondary-light)",
                 background: "#1f1f1f",
                 borderRadius: 999,
                 padding: "1px 5px",

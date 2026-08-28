@@ -41,7 +41,7 @@
 .statValue {
   font-size: 22px;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 0 0 4px;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .rowMine {
-  border-color: #4f46e5;
+  border-color: var(--primary);
   background: #eef2ff;
 }
 
@@ -110,7 +110,7 @@
 }
 
 .nameLink:hover {
-  color: #4f46e5;
+  color: var(--primary);
   text-decoration: underline;
 }
 
@@ -129,7 +129,7 @@
 .points {
   font-size: 14px;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 0;
   min-width: 70px;
   text-align: right;

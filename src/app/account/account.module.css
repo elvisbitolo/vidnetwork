@@ -38,8 +38,8 @@
 }
 
 .logout:hover {
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: var(--error);
+  color: var(--error);
 }
 
 .manage {
@@ -47,8 +47,8 @@
   width: 100%;
   margin-top: 8px;
   background: #ffffff;
-  border: 1px solid #4f46e5;
-  color: #4f46e5;
+  border: 1px solid var(--primary);
+  color: var(--primary);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
@@ -57,7 +57,7 @@
 }
 
 .manage:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .toggle:hover {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .toggleOn {
@@ -172,7 +172,7 @@
 }
 
 .link {
-  color: #4f46e5;
+  color: var(--primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -198,7 +198,7 @@
 
 .progressFill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--primary);
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -252,7 +252,7 @@
 .checkCta {
   font-size: 13px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -292,7 +292,7 @@
 .sectionTitle {
   font-size: 15px;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 20px 0 14px;
   padding-top: 16px;
   border-top: 1px solid #e6e6ef;
@@ -325,8 +325,8 @@
 }
 
 .craftChipActive {
-  background: #4f46e5;
-  border-color: #4f46e5;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
 }
 
@@ -411,8 +411,8 @@
 
 .input:focus,
 .textarea:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .textarea {
@@ -462,7 +462,7 @@
   height: 64px;
   border-radius: 50%;
   object-fit: cover;
-  background: #4f46e5;
+  background: var(--primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -506,8 +506,8 @@
 
 .avatarButton:hover {
   background: #f5f5ff;
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .avatarButton:disabled {
@@ -546,7 +546,7 @@
 }
 
 .socialSelect:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .socialInput {
@@ -561,7 +561,7 @@
 }
 
 .socialInput:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .socialRemove {
@@ -604,8 +604,8 @@
 }
 
 .socialAdd:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
   background: #f5f5ff;
 }
 

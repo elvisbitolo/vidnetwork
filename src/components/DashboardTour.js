@@ -82,7 +82,7 @@ export default function DashboardTour() {
         width: r.width + pad * 2,
         height: r.height + pad * 2,
         borderRadius: 14,
-        border: "2.5px solid #a78bfa",
+        border: "2.5px solid var(--secondary-light)",
         boxShadow: "0 0 0 9999px rgba(0,0,0,0.5)",
         zIndex: 998,
         pointerEvents: "none",
@@ -202,7 +202,7 @@ export default function DashboardTour() {
           padding: 12px 20px;
           border-radius: 14px;
           border: 1px solid rgba(167,139,250,0.35);
-          background: linear-gradient(135deg, #6d5df6, #a78bfa);
+          background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
           color: #fff;
           font-size: 13px;
           font-weight: 600;
@@ -232,7 +232,7 @@ export default function DashboardTour() {
           padding: 2px 8px;
           border-radius: 6px;
           background: rgba(109,93,246,0.2);
-          color: #a78bfa;
+          color: var(--secondary-light);
           font-size: 11px;
           font-weight: 700;
           margin-bottom: 8px;
@@ -265,7 +265,7 @@ export default function DashboardTour() {
           background: rgba(255,255,255,0.12);
         }
         .tour-dotOn {
-          background: #a78bfa;
+          background: var(--secondary-light);
           width: 16px;
           border-radius: 3px;
         }
@@ -283,7 +283,7 @@ export default function DashboardTour() {
           transition: background 0.12s;
         }
         .tour-btnNext {
-          background: linear-gradient(135deg, #6d5df6, #a78bfa);
+          background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
           color: #fff;
         }
         .tour-btnSkip {

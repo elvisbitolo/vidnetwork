@@ -105,12 +105,12 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.06);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.06);
 }
 
 .cardFeatured {
-  border: 2px solid #4f46e5;
-  box-shadow: 0 14px 40px rgba(79, 70, 229, 0.14);
+  border: 2px solid var(--primary);
+  box-shadow: 0 14px 40px rgba(37, 99, 235, 0.14);
 }
 
 .cardTitle {
@@ -123,7 +123,7 @@
 .price {
   font-size: 48px;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 0 0 4px;
 }
 
@@ -159,14 +159,14 @@
   content: "✓";
   position: absolute;
   left: 0;
-  color: #4f46e5;
+  color: var(--primary);
   font-weight: 800;
 }
 
 .subscribe {
   width: 100%;
   height: 50px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -182,11 +182,11 @@
 }
 
 .subscribeFeatured:hover:not(:disabled) {
-  background: #6d28d9;
+  background: var(--secondary-hover);
 }
 
 .subscribe:hover:not(:disabled) {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .subscribe:disabled {

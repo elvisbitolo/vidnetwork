@@ -26,7 +26,7 @@
 }
 
 .toggleActive {
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
 }
 
@@ -54,8 +54,8 @@
 }
 
 .cardFeatured {
-  border: 2px solid #4f46e5;
-  box-shadow: 0 24px 60px -28px rgba(79, 70, 229, 0.45);
+  border: 2px solid var(--primary);
+  box-shadow: 0 24px 60px -28px rgba(37, 99, 235, 0.45);
 }
 
 .rec {
@@ -63,7 +63,7 @@
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
@@ -119,7 +119,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: #eef0ff;
-  color: #4f46e5;
+  color: var(--primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -135,7 +135,7 @@
   font-size: 15px;
   font-weight: 600;
   background: #ffffff;
-  color: #4f46e5;
+  color: var(--primary);
   border: 1px solid #c7d2fe;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
@@ -145,13 +145,13 @@
 }
 
 .ctaFeatured {
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .ctaFeatured:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .fine {
@@ -163,7 +163,7 @@
 
 .wrap a:focus-visible,
 .wrap button:focus-visible {
-  outline: 3px solid #4f46e5;
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
   border-radius: 8px;
 }

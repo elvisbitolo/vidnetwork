@@ -16,8 +16,8 @@
 }
 
 .back:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .arrow {

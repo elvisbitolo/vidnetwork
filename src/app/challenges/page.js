@@ -5,7 +5,7 @@ import Nav from "@/components/Nav";
 
 const STATUS_COLORS = {
   active: { bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.25)", text: "#22c55e" },
-  upcoming: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.2)", text: "#a78bfa" },
+  upcoming: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.2)", text: "var(--secondary-light)" },
   completed: { bg: "rgba(156,156,166,0.1)", border: "rgba(156,156,166,0.2)", text: "#9c9ca6" },
 };
 
@@ -85,7 +85,7 @@ export default function ChallengesPage() {
                 fontWeight: 600,
                 cursor: "pointer",
                 background: activeTab === tab ? "rgba(167,139,250,0.2)" : "rgba(255,255,255,0.06)",
-                color: activeTab === tab ? "#a78bfa" : "#9b9bab",
+                color: activeTab === tab ? "var(--secondary-light)" : "#9b9bab",
               }}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -170,7 +170,7 @@ export default function ChallengesPage() {
                       padding: "10px 20px",
                       borderRadius: 10,
                       border: "none",
-                      background: "#a78bfa",
+                      background: "var(--secondary-light)",
                       color: "#ffffff",
                       fontSize: 14,
                       fontWeight: 600,
@@ -196,7 +196,7 @@ export default function ChallengesPage() {
                       <div style={{
                         height: "100%",
                         width: `${Math.min(100, (detail.myProgress / detail.challenge.goal) * 100)}%`,
-                        background: "linear-gradient(90deg, #6d5df6, #a78bfa)",
+                        background: "linear-gradient(90deg, var(--secondary), var(--secondary-light))",
                         borderRadius: 999,
                         transition: "width 0.3s ease",
                       }} />
@@ -242,7 +242,7 @@ export default function ChallengesPage() {
                             {i + 1}
                           </span>
                           <span style={{ fontSize: 13, color: "#f5f5f5", flex: 1 }}>{p.userName}</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#a78bfa" }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--secondary-light)" }}>
                             {p.progress}/{detail.challenge.goal}
                           </span>
                         </div>

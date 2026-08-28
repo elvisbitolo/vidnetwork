@@ -78,7 +78,7 @@ export async function POST(req) {
       <tr>
         <td style="padding:8px 16px;border-bottom:1px solid #f0f0f0;font-size:14px;">
           <strong style="color:#333;">${escapeHtml(e.title)}</strong>
-          <span style="color:#8b5cf6;margin-left:8px;">${escapeHtml(e.date)}</span>
+          <span style="color:#7c3aed;margin-left:8px;">${escapeHtml(e.date)}</span>
           <span style="color:#999;margin-left:8px;">${escapeHtml(e.location)}</span>
         </td>
       </tr>`).join("");
@@ -88,7 +88,7 @@ export async function POST(req) {
 
   const html = `
     <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-      <div style="background:linear-gradient(135deg,#6d5df6,#8b5cf6);padding:32px 24px;border-radius:12px 12px 0 0;">
+      <div style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:32px 24px;border-radius:12px 12px 0 0;">
         <h1 style="color:#fff;font-size:22px;margin:0;">This Week at Yarnery Lounge</h1>
         <p style="color:rgba(255,255,255,0.85);font-size:14px;margin:8px 0 0;">Your weekly community digest</p>
       </div>
@@ -98,7 +98,7 @@ export async function POST(req) {
         <h2 style="font-size:16px;color:#333;padding:24px 16px 8px;margin:0;">Upcoming Events</h2>
         <table style="width:100%;border-collapse:collapse;">${eventsHtml}</table>
         <div style="padding:20px 16px;text-align:center;">
-          <a href="https://yarnerylounge.vercel.app/feed" style="color:#8b5cf6;font-size:14px;font-weight:600;text-decoration:none;">Visit community &rarr;</a>
+          <a href="https://yarnerylounge.vercel.app/feed" style="color:#7c3aed;font-size:14px;font-weight:600;text-decoration:none;">Visit community &rarr;</a>
         </div>
       </div>
     </div>`;

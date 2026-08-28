@@ -98,7 +98,7 @@ function LangPicker({ onNavigate }) {
                 padding: "8px 12px",
                 border: "none",
                 background: locale === lang.code ? "rgba(167,139,250,0.15)" : "transparent",
-                color: locale === lang.code ? "#a78bfa" : "#f5f5f5",
+                color: locale === lang.code ? "var(--secondary-light)" : "#f5f5f5",
                 borderRadius: 6,
                 cursor: "pointer",
                 fontSize: 14,

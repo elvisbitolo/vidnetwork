@@ -68,7 +68,7 @@ export default function SimilarMembers() {
               width: 56,
               height: 56,
               borderRadius: "50%",
-              background: m.photoURL ? "none" : "linear-gradient(135deg, #6d5df6, #a78bfa)",
+              background: m.photoURL ? "none" : "linear-gradient(135deg, var(--secondary), var(--secondary-light))",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -99,7 +99,7 @@ export default function SimilarMembers() {
             {m.headline && (
               <span style={{
                 fontSize: 11,
-                color: "#a78bfa",
+                color: "var(--secondary-light)",
                 textAlign: "center",
                 maxWidth: 100,
                 overflow: "hidden",
@@ -112,7 +112,7 @@ export default function SimilarMembers() {
             <span style={{
               fontSize: 10,
               fontWeight: 700,
-              color: "#6d5df6",
+              color: "var(--secondary)",
               background: "rgba(109,93,246,0.15)",
               padding: "2px 8px",
               borderRadius: 999,

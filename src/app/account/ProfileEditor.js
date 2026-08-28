@@ -54,7 +54,7 @@ export default function ProfileEditor({ initial }) {
   const [favoriteColors, setFavoriteColors] = useState(
     Array.isArray(initial.favoriteColors) && initial.favoriteColors.length
       ? initial.favoriteColors
-      : ["#8b5cf6", "#ec4899", "#10b981"]
+      : ["#2563eb", "#7c3aed", "#06b6d4"]
   );
   const [goToYarn, setGoToYarn] = useState(initial.goToYarn || "");
   const [favoriteHookSize, setFavoriteHookSize] = useState(initial.favoriteHookSize || "");

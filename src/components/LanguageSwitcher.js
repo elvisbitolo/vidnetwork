@@ -81,7 +81,7 @@ export default function LanguageSwitcher() {
                   padding: "8px 12px",
                   border: "none",
                   background: isActive ? "rgba(167,139,250,0.15)" : "transparent",
-                  color: isActive ? "#a78bfa" : "#f5f5f5",
+                  color: isActive ? "var(--secondary-light)" : "#f5f5f5",
                   borderRadius: 6,
                   cursor: "pointer",
                   fontSize: 14,

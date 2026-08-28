@@ -35,7 +35,7 @@ export default function ArticlesPage() {
             style={{
               padding: "10px 18px",
               borderRadius: 10,
-              background: "#a78bfa",
+              background: "var(--secondary-light)",
               color: "#ffffff",
               fontSize: 14,
               fontWeight: 600,
@@ -111,7 +111,7 @@ export default function ArticlesPage() {
                         <span key={tag} style={{
                           fontSize: 11,
                           fontWeight: 600,
-                          color: "#a78bfa",
+                          color: "var(--secondary-light)",
                           background: "rgba(167,139,250,0.1)",
                           padding: "2px 8px",
                           borderRadius: 999,

@@ -104,7 +104,7 @@ export default function StickerPicker({ toUid, toName }) {
           marginLeft: 10,
           fontSize: 13,
           fontWeight: 600,
-          color: "#a78bfa",
+          color: "var(--secondary-light)",
         }}>
           Sent {STICKERS.find((s) => s.type === sent)?.emoji} to {toName}!
         </span>
@@ -114,7 +114,7 @@ export default function StickerPicker({ toUid, toName }) {
           marginLeft: 10,
           fontSize: 13,
           fontWeight: 600,
-          color: "#ef4444",
+          color: "var(--error)",
         }}>
           {error}
         </span>

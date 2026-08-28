@@ -162,7 +162,7 @@
 
 .heroGalleryItem:hover {
   transform: scale(1.03);
-  box-shadow: 0 12px 32px -8px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 32px -8px rgba(96, 165, 250, 0.3);
 }
 
 .heroGalleryImg {
@@ -495,7 +495,7 @@
   position: relative;
   aspect-ratio: 16 / 10;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, var(--primary), #7c3aed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -503,11 +503,11 @@
 }
 
 .tile:nth-child(even) {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, var(--primary-light), #8b5cf6);
 }
 
 .tile:nth-child(3n) {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #7c3aed, var(--secondary-hover));
 }
 
 .tileYou {
@@ -520,7 +520,7 @@
   height: 42px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: #4f46e5;
+  color: var(--primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -619,7 +619,7 @@
 }
 
 .controlEnd {
-  background: #ef4444;
+  background: var(--error);
   color: #ffffff;
 }
 
@@ -630,7 +630,7 @@
   gap: 6px;
   padding: 4px 10px;
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--error);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 999px;
   font-size: 11px;
@@ -642,7 +642,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--error);
   animation: pulse 1.6s ease-in-out infinite;
 }
 

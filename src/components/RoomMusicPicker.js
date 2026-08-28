@@ -206,7 +206,7 @@ export default function RoomMusicPicker({ isStaff }) {
 
           {error && (
             <div style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", marginBottom: 14 }}>
-              <span style={{ fontSize: 12, color: "#f87171" }}>{error}</span>
+              <span style={{ fontSize: 12, color: "var(--error)" }}>{error}</span>
             </div>
           )}
 
@@ -241,7 +241,7 @@ export default function RoomMusicPicker({ isStaff }) {
               borderRadius: 10,
               border: "1px dashed rgba(167,139,250,0.4)",
               background: "rgba(109,93,246,0.08)",
-              color: "#a78bfa",
+              color: "var(--secondary-light)",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
@@ -305,7 +305,7 @@ export default function RoomMusicPicker({ isStaff }) {
                 padding: "9px 0",
                 borderRadius: 10,
                 border: "none",
-                background: (url || fileId) ? "linear-gradient(135deg, #6d5df6, #a78bfa)" : "#2e2e38",
+                background: (url || fileId) ? "linear-gradient(135deg, var(--secondary), var(--secondary-light))" : "#2e2e38",
                 color: (url || fileId) ? "#fff" : "#6b6b7b",
                 fontSize: 13,
                 fontWeight: 600,
@@ -322,7 +322,7 @@ export default function RoomMusicPicker({ isStaff }) {
                 borderRadius: 10,
                 border: playing ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(74,222,128,0.4)",
                 background: playing ? "rgba(239,68,68,0.15)" : "rgba(74,222,128,0.15)",
-                color: playing ? "#f87171" : "#4ade80",
+                color: playing ? "var(--error)" : "#4ade80",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: (url || fileId) ? "pointer" : "default",

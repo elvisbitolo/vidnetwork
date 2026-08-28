@@ -23,7 +23,7 @@
 }
 
 .link {
-  color: #4f46e5;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
 }
@@ -116,7 +116,7 @@
 .toggle {
   height: 42px;
   padding: 0 20px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -127,13 +127,13 @@
 }
 
 .toggle:hover:not(:disabled) {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .toggleActive {
   background: #ffffff;
-  border: 1px solid #4f46e5;
-  color: #4f46e5;
+  border: 1px solid var(--primary);
+  color: var(--primary);
 }
 
 .toggleActive:hover:not(:disabled) {
@@ -161,8 +161,8 @@
 }
 
 .next:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 @media (max-width: 560px) {

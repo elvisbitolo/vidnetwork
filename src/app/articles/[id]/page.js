@@ -48,7 +48,7 @@ export default function ArticlePage() {
       <Nav>
         <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px" }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#f5f5f5" }}>Article not found</h1>
-          <Link href="/articles" style={{ color: "#a78bfa", fontSize: 14, marginTop: 12, display: "inline-block" }}>
+          <Link href="/articles" style={{ color: "var(--secondary-light)", fontSize: 14, marginTop: 12, display: "inline-block" }}>
             Back to articles
           </Link>
         </div>
@@ -59,7 +59,7 @@ export default function ArticlePage() {
   return (
     <Nav>
       <article style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px 64px" }}>
-        <Link href="/articles" style={{ color: "#a78bfa", fontSize: 13, textDecoration: "none", display: "inline-block", marginBottom: 20 }}>
+        <Link href="/articles" style={{ color: "var(--secondary-light)", fontSize: 13, textDecoration: "none", display: "inline-block", marginBottom: 20 }}>
           &larr; All articles
         </Link>
 
@@ -82,7 +82,7 @@ export default function ArticlePage() {
         </h1>
 
         <div style={{ display: "flex", gap: 16, fontSize: 13, color: "#9b9bab", marginBottom: 24, flexWrap: "wrap" }}>
-          <Link href={`/members/${article.authorId}`} style={{ color: "#a78bfa", textDecoration: "none", fontWeight: 600 }}>
+          <Link href={`/members/${article.authorId}`} style={{ color: "var(--secondary-light)", textDecoration: "none", fontWeight: 600 }}>
             {article.authorName}
           </Link>
           <span>{article.readTime} min read</span>
@@ -95,7 +95,7 @@ export default function ArticlePage() {
               <span key={tag} style={{
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#a78bfa",
+                color: "var(--secondary-light)",
                 background: "rgba(167,139,250,0.1)",
                 padding: "3px 10px",
                 borderRadius: 999,

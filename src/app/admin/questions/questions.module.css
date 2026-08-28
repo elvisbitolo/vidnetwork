@@ -74,8 +74,8 @@
 .input:focus,
 .select:focus,
 .textarea:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .textarea {
@@ -85,7 +85,7 @@
 .submit {
   height: 46px;
   padding: 0 24px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -96,7 +96,7 @@
 }
 
 .submit:hover:not(:disabled) {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .submit:disabled {
@@ -118,8 +118,8 @@
 }
 
 .secondary:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .checkRow {
@@ -236,8 +236,8 @@
 }
 
 .toggle:hover {
-  border-color: #4f46e5;
-  color: #4f46e5;
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .toggleOn {
@@ -245,7 +245,7 @@
   padding: 0 14px;
   background: #eef2ff;
   border: 1px solid #c7d2fe;
-  color: #4338ca;
+  color: var(--primary-hover);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;

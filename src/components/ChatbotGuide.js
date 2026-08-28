@@ -240,7 +240,7 @@ export default function ChatbotGuide() {
     width: idle ? 40 : 52,
     height: idle ? 40 : 52,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #6d5df6, #a78bfa)",
+    background: "linear-gradient(135deg, var(--secondary), var(--secondary-light))",
     border: "none",
     cursor: "pointer",
     boxShadow: "0 4px 20px rgba(109,93,246,0.4)",
@@ -319,7 +319,7 @@ export default function ChatbotGuide() {
         onTouchStart={onDragStart}
         style={{
           padding: "14px 18px",
-          background: "linear-gradient(135deg, #6d5df6, #8b5cf6)",
+          background: "linear-gradient(135deg, var(--secondary), #8b5cf6)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -393,9 +393,9 @@ export default function ChatbotGuide() {
             display: "flex",
             gap: 4,
           }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", animation: "dotPulse 1s ease infinite" }} />
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", animation: "dotPulse 1s ease 0.2s infinite" }} />
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a78bfa", animation: "dotPulse 1s ease 0.4s infinite" }} />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--secondary-light)", animation: "dotPulse 1s ease infinite" }} />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--secondary-light)", animation: "dotPulse 1s ease 0.2s infinite" }} />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--secondary-light)", animation: "dotPulse 1s ease 0.4s infinite" }} />
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -411,7 +411,7 @@ export default function ChatbotGuide() {
               width: "100%",
               padding: "11px",
               borderRadius: 12,
-              background: "linear-gradient(135deg, #6d5df6, #a78bfa)",
+              background: "linear-gradient(135deg, var(--secondary), var(--secondary-light))",
               color: "#fff",
               fontSize: 13,
               fontWeight: 600,

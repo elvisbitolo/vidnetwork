@@ -41,7 +41,7 @@
 
 .cta {
   padding: 9px 18px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border-radius: 999px;
   font-size: 14px;
@@ -51,7 +51,7 @@
 }
 
 .cta:hover {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .hero {
@@ -103,7 +103,7 @@
 .sectionLink {
   font-size: 14px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
   text-decoration: none;
 }
 
@@ -131,7 +131,7 @@
 
 .card:hover {
   border-color: #c7cbe8;
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.08);
 }
 
 .cardBadge {
@@ -148,7 +148,7 @@
 .cardMeta {
   font-size: 13px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .cardName {
@@ -197,7 +197,7 @@
 .joinCta {
   display: inline-block;
   padding: 12px 28px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border-radius: 999px;
   font-size: 15px;
@@ -207,7 +207,7 @@
 }
 
 .joinCta:hover {
-  background: #6366f1;
+  background: var(--primary-light);
 }
 
 @media (max-width: 640px) {

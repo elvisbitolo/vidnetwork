@@ -64,7 +64,7 @@ export default function TopicsPage() {
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
                 }}
               >
-                <span style={{ fontSize: 15, fontWeight: 600, color: "#a78bfa" }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: "var(--secondary-light)" }}>
                   #{t.tag}
                 </span>
                 <span style={{

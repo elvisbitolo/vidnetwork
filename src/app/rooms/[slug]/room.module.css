@@ -62,7 +62,7 @@
 .join {
   width: 100%;
   height: 48px;
-  background: #4f46e5;
+  background: var(--primary);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -73,7 +73,7 @@
 }
 
 .join:hover:not(:disabled) {
-  background: #4338ca;
+  background: var(--primary-hover);
 }
 
 .join:disabled {
@@ -86,7 +86,7 @@
   margin-top: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primary);
 }
 
 .link:hover {
@@ -169,7 +169,7 @@
   font-size: 44px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  color: #4f46e5;
+  color: var(--primary);
   margin: 8px 0 4px;
 }
 
@@ -342,7 +342,7 @@
 }
 
 .connectionDot[data-state="disconnected"] {
-  background: #ef4444;
+  background: var(--error);
   animation: none;
 }
 

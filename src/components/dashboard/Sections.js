@@ -78,7 +78,7 @@ export function QuickActions({ isStaff }) {
             href={action.href}
             style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
           >
-            <span style={{ fontSize: 18, color: "#a78bfa" }}>{action.icon}</span>
+            <span style={{ fontSize: 18, color: "var(--secondary-light)" }}>{action.icon}</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{t(action.key)}</span>
           </Link>
         ))}
@@ -115,7 +115,7 @@ export function CommunityHub() {
             href={link.href}
             style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
           >
-            <span style={{ fontSize: 18, color: "#a78bfa" }}>{link.icon}</span>
+            <span style={{ fontSize: 18, color: "var(--secondary-light)" }}>{link.icon}</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{tNav(link.key)}</span>
           </Link>
         ))}

@@ -70,7 +70,7 @@ export default async function RoomsPage() {
           }}>
             <span style={{ fontSize: 13, color: "#f5f5f5" }}>
               Video chat hours this month:{" "}
-              <strong style={{ color: videoHours.remaining <= 2 ? "#ef4444" : "#a78bfa" }}>
+              <strong style={{ color: videoHours.remaining <= 2 ? "var(--error)" : "var(--secondary-light)" }}>
                 {videoHours.remaining}
               </strong>
               {" / "}{videoHours.total} remaining
@@ -79,7 +79,7 @@ export default async function RoomsPage() {
               <span style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: "#a78bfa",
+                color: "var(--secondary-light)",
                 background: "rgba(167,139,250,0.15)",
                 padding: "3px 10px",
                 borderRadius: 999,
@@ -97,7 +97,7 @@ export default async function RoomsPage() {
             marginBottom: 20,
           }}>
             <span style={{ fontSize: 13, color: "#f5f5f5" }}>
-              Creator membership — <strong style={{ color: "#a78bfa" }}>Unlimited</strong> video chat hours
+              Creator membership — <strong style={{ color: "var(--secondary-light)" }}>Unlimited</strong> video chat hours
             </span>
           </div>
         ) : null}
@@ -125,7 +125,7 @@ export default async function RoomsPage() {
                   background: "rgba(167,139,250,0.2)",
                   fontSize: 11,
                   fontWeight: 700,
-                  color: "#a78bfa",
+                  color: "var(--secondary-light)",
                 }}>
                   <span style={{
                     width: 6,

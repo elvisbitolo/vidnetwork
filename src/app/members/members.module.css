@@ -109,6 +109,85 @@
   color: #ffffff;
 }
 
+.craftRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.craftLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b6b7b;
+  margin-right: 4px;
+}
+
+.craftChip {
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid #d8d8e3;
+  background: #ffffff;
+  color: #6b6b7b;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.craftChip:hover {
+  border-color: #4f46e5;
+  color: #4f46e5;
+}
+
+.craftActive {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
+.craftActive:hover {
+  color: #ffffff;
+}
+
+.liveDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 3px solid #2a2a2a;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: livePulse 1.8s infinite;
+}
+
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70% { box-shadow: 0 0 0 9px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.tooltipLive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #16a34a;
+  margin: 0 0 6px;
+}
+
+.tooltipCrafts {
+  font-size: 12px;
+  color: #9b9bab;
+  margin: 0 0 6px;
+}
+
 .grid {
   display: flex;
   flex-wrap: wrap;

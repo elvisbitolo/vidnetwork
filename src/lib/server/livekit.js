@@ -39,6 +39,22 @@ export async function listLiveParticipants(slug) {
   }));
 }
 
+export async function listLiveMemberUids() {
+  const client = await getLiveKitAdmin();
+  if (!client) return new Set();
+  const uids = new Set();
+  const rooms = await client.listRooms();
+  for (const room of rooms) {
+    const participants = await client.listParticipants(room.name);
+    for (const p of participants) {
+      const identity = p.identity || "";
+      if (identity.startsWith("room-music-") || identity === "recorder") continue;
+      uids.add(identity);
+    }
+  }
+  return uids;
+}
+
 export async function removeLiveParticipant(slug, identity) {
   const client = await getLiveKitAdmin();
   if (!client) return { ok: false, error: "LiveKit not configured" };

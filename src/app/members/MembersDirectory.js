@@ -6,11 +6,26 @@ import styles from "./members.module.css";
 
 const TABS = [
   { key: "all", label: "All" },
-  { key: "online", label: "Online now" },
+  { key: "lounge", label: "In the lounge" },
+  { key: "online", label: "Online today" },
   { key: "newest", label: "Newest" },
   { key: "top", label: "Top" },
   { key: "hosts", label: "Hosts" },
 ];
+
+const CRAFTS = [
+  { value: "crochet", label: "Crochet" },
+  { value: "knitting", label: "Knitting" },
+  { value: "weaving", label: "Weaving" },
+  { value: "spinning", label: "Spinning" },
+  { value: "dyeing", label: "Dyeing" },
+  { value: "embroidery", label: "Embroidery" },
+  { value: "macrame", label: "Macrame" },
+];
+
+function craftLabel(value) {
+  return CRAFTS.find((c) => c.value === value)?.label || value;
+}
 
 function distinct(values) {
   return [...new Set(values.filter((v) => v && v.trim()))].sort((a, b) =>
@@ -48,6 +63,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
   const [tab, setTab] = useState("all");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
+  const [craft, setCraft] = useState("");
   const [hover, setHover] = useState(null);
 
   function showDetails(member, e) {
@@ -85,8 +101,10 @@ export default function MembersDirectory({ members, role, todayKey }) {
 
   const filtered = useMemo(() => {
     const pool = members.filter((member) => {
+      if (tab === "lounge" && !member.live) return false;
       if (tab === "online" && member.lastVisitDate !== todayKey) return false;
       if (tab === "hosts" && member.role !== "owner" && member.role !== "moderator") return false;
+      if (craft && !member.crafts?.includes(craft)) return false;
       if (country && member.country !== country) return false;
       if (state && member.state !== state) return false;
       if (!query) return true;
@@ -106,7 +124,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
       return [...pool].sort((a, b) => (b.points || 0) - (a.points || 0));
     }
     return [...pool].sort((a, b) => a.name.localeCompare(b.name));
-  }, [members, tab, query, country, state, todayKey]);
+  }, [members, tab, query, country, state, craft, todayKey]);
 
   return (
     <>
@@ -158,10 +176,28 @@ export default function MembersDirectory({ members, role, todayKey }) {
           ))}
         </select>
       </div>
+      <div className={styles.craftRow}>
+        <span className={styles.craftLabel}>Crafts</span>
+        <button
+          className={!craft ? `${styles.craftChip} ${styles.craftActive}` : styles.craftChip}
+          onClick={() => setCraft("")}
+        >
+          All
+        </button>
+        {CRAFTS.map((c) => (
+          <button
+            key={c.value}
+            className={craft === c.value ? `${styles.craftChip} ${styles.craftActive}` : styles.craftChip}
+            onClick={() => setCraft(craft === c.value ? "" : c.value)}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
 
       {filtered.length === 0 ? (
         <p className={styles.empty}>
-          {query || tab !== "all" || country || state
+          {query || tab !== "all" || country || state || craft
             ? "No members match this view."
             : "No members yet."}
         </p>
@@ -201,6 +237,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
                     {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
                   </span>
                 </span>
+                {member.live && <span className={styles.liveDot} />}
               </Link>
             );
           })}
@@ -210,6 +247,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
       {hover && tooltipPos && (
         <div className={styles.tooltip} style={{ left: tooltipPos.left, top: tooltipPos.top }}>
           <p className={styles.tooltipName}>{hover.member.name}</p>
+          {hover.member.live && <p className={styles.tooltipLive}>● In the lounge now</p>}
           {hover.member.headline && <p className={styles.tooltipHeadline}>{hover.member.headline}</p>}
           {hover.member.bio && <p className={styles.tooltipBio}>{hover.member.bio}</p>}
           {hover.member.location && (
@@ -230,6 +268,9 @@ export default function MembersDirectory({ members, role, todayKey }) {
                 />
               ))}
             </span>
+          )}
+          {hover.member.crafts?.length > 0 && (
+            <p className={styles.tooltipCrafts}>{hover.member.crafts.map(craftLabel).join(" · ")}</p>
           )}
           {hover.member.points > 0 && (
             <p className={styles.tooltipPoints}>{hover.member.points} interaction points</p>

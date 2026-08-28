@@ -2,6 +2,16 @@ function clean(value, max) {
   return (typeof value === "string" ? value : "").trim().slice(0, max);
 }
 
+export const CRAFT_OPTIONS = [
+  "crochet",
+  "knitting",
+  "weaving",
+  "spinning",
+  "dyeing",
+  "embroidery",
+  "macrame",
+];
+
 export function normalizeProfile(body) {
   const patch = {};
   const errors = {};
@@ -24,6 +34,16 @@ export function normalizeProfile(body) {
   }
   if ("goToYarn" in body) patch.goToYarn = clean(body.goToYarn, 80);
   if ("favoriteHookSize" in body) patch.favoriteHookSize = clean(body.favoriteHookSize, 40);
+  if ("crafts" in body) {
+    const raw = Array.isArray(body.crafts) ? body.crafts : [];
+    patch.crafts = [
+      ...new Set(
+        raw
+          .map((c) => (typeof c === "string" ? c.trim().toLowerCase() : ""))
+          .filter((c) => CRAFT_OPTIONS.includes(c))
+      ),
+    ].slice(0, CRAFT_OPTIONS.length);
+  }
   if ("proudestProject" in body) patch.proudestProject = clean(body.proudestProject, 140);
   if ("bestGiftProject" in body) patch.bestGiftProject = clean(body.bestGiftProject, 140);
   if ("photoURL" in body) {

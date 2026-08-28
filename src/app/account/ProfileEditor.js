@@ -58,6 +58,7 @@ export default function ProfileEditor({ initial }) {
   );
   const [goToYarn, setGoToYarn] = useState(initial.goToYarn || "");
   const [favoriteHookSize, setFavoriteHookSize] = useState(initial.favoriteHookSize || "");
+  const [crafts, setCrafts] = useState(Array.isArray(initial.crafts) ? initial.crafts : []);
   const [proudestProject, setProudestProject] = useState(initial.proudestProject || "");
   const [bestGiftProject, setBestGiftProject] = useState(initial.bestGiftProject || "");
   const [socialLinks, setSocialLinks] = useState(
@@ -201,6 +202,7 @@ export default function ProfileEditor({ initial }) {
     if (cleanYarn !== normalize(initial.goToYarn)) patch.goToYarn = cleanYarn;
     const cleanHook = normalize(favoriteHookSize);
     if (cleanHook !== normalize(initial.favoriteHookSize)) patch.favoriteHookSize = cleanHook;
+    if (JSON.stringify(crafts) !== JSON.stringify(initial.crafts || [])) patch.crafts = crafts;
     const cleanProud = normalize(proudestProject);
     if (cleanProud !== normalize(initial.proudestProject)) patch.proudestProject = cleanProud;
     const cleanGift = normalize(bestGiftProject);
@@ -421,6 +423,38 @@ export default function ProfileEditor({ initial }) {
       )}
 
       <h3 className={styles.sectionTitle}>Your yarn story</h3>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel}>Crafts you practice</label>
+        <div className={styles.craftChips}>
+          {[
+            { value: "crochet", label: "Crochet" },
+            { value: "knitting", label: "Knitting" },
+            { value: "weaving", label: "Weaving" },
+            { value: "spinning", label: "Spinning" },
+            { value: "dyeing", label: "Dyeing" },
+            { value: "embroidery", label: "Embroidery" },
+            { value: "macrame", label: "Macrame" },
+          ].map((c) => {
+            const selected = crafts.includes(c.value);
+            return (
+              <button
+                key={c.value}
+                type="button"
+                className={selected ? `${styles.craftChip} ${styles.craftChipActive}` : styles.craftChip}
+                onClick={() =>
+                  setCrafts((prev) =>
+                    selected ? prev.filter((v) => v !== c.value) : [...prev, c.value]
+                  )
+                }
+              >
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className={styles.fieldHint}>Pick the crafts you love so members can find you.</p>
+      </div>
 
       <div className={styles.field}>
         <label className={styles.fieldLabel}>Favorite 3 colors</label>

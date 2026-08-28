@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
+import { listLiveMemberUids } from "@/lib/server/livekit";
 import Nav from "@/components/Nav";
 import MembersDirectory from "./MembersDirectory";
 import SimilarMembers from "./SimilarMembers";
@@ -29,6 +30,8 @@ export default async function MembersPage() {
     });
   });
 
+  const liveUids = await listLiveMemberUids().catch(() => new Set());
+
   const todayKey = (() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -48,7 +51,9 @@ export default async function MembersPage() {
       bio: m.bio || "",
       photoURL: m.photoURL || "",
       favoriteColors: Array.isArray(m.favoriteColors) ? m.favoriteColors : [],
+      crafts: Array.isArray(m.crafts) ? m.crafts : [],
       role: m.role || "member",
+      live: liveUids.has(m.id),
       points: gami.get(m.id)?.points || 0,
       lastVisitDate: gami.get(m.id)?.lastVisitDate || "",
       createdAt: m.createdAt?.toMillis

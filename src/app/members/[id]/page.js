@@ -19,6 +19,16 @@ function toSerializable(value) {
   return value;
 }
 
+const CRAFT_LABELS = {
+  crochet: "Crochet",
+  knitting: "Knitting",
+  weaving: "Weaving",
+  spinning: "Spinning",
+  dyeing: "Dyeing",
+  embroidery: "Embroidery",
+  macrame: "Macrame",
+};
+
 export default async function MemberProfilePage({ params }) {
   const { id } = await params;
   const viewer = await getCurrentUser();
@@ -131,6 +141,7 @@ export default async function MemberProfilePage({ params }) {
               </div>
             )}
             {(member.favoriteColors?.length > 0 ||
+              member.crafts?.length > 0 ||
               member.goToYarn ||
               member.favoriteHookSize ||
               member.proudestProject ||
@@ -146,6 +157,18 @@ export default async function MemberProfilePage({ params }) {
                           className={styles.colorDot}
                           style={{ backgroundColor: color }}
                         />
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {Array.isArray(member.crafts) && member.crafts.length > 0 && (
+                  <div className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Crafts</span>
+                    <span className={styles.craftTags}>
+                      {member.crafts.map((craft) => (
+                        <span key={craft} className={styles.craftTag}>
+                          {CRAFT_LABELS[craft] || craft}
+                        </span>
                       ))}
                     </span>
                   </div>

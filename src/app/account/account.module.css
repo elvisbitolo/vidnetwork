@@ -303,6 +303,30 @@
   gap: 12px;
 }
 
+.craftChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.craftChip {
+  padding: 8px 14px;
+  border: 1px solid #d8d8e3;
+  background: #ffffff;
+  color: #6b6b7b;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.craftChipActive {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
 .colorSwatch {
   display: flex;
   flex-direction: column;

@@ -31,6 +31,7 @@ export default async function AccountPage({ searchParams }) {
     state: userDoc?.state || "",
     bio: userDoc?.bio || "",
     favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
+    crafts: Array.isArray(userDoc?.crafts) ? userDoc.crafts : [],
     goToYarn: userDoc?.goToYarn || "",
     favoriteHookSize: userDoc?.favoriteHookSize || "",
     proudestProject: userDoc?.proudestProject || "",

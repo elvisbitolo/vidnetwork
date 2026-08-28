@@ -5,6 +5,7 @@ import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import { getRecognitionCount, listRecognitions } from "@/lib/server/recognition";
 import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognition-core";
+import { QUIZ_QUESTIONS, QUIZ_LABELS, quizHasAnswers } from "@/lib/profile/questions";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import RecognitionForm from "./RecognitionForm";
@@ -101,6 +102,9 @@ export default async function MemberProfilePage({ params }) {
             <h1 className={styles.title}>
               {member.name}
               {member.role === "owner" && <span className={styles.ownerBadge}>Owner</span>}
+              {member.foundingMember && (
+                <span className={styles.foundingBadge}>Founding Yarnie 🧶</span>
+              )}
             </h1>
             {member.headline && <p className={styles.headline}>{member.headline}</p>}
             {member.location && <p className={styles.location}>{member.location}</p>}
@@ -145,7 +149,8 @@ export default async function MemberProfilePage({ params }) {
               member.goToYarn ||
               member.favoriteHookSize ||
               member.proudestProject ||
-              member.bestGiftProject) && (
+              member.bestGiftProject ||
+              quizHasAnswers(member)) && (
               <div className={styles.yarnProfile}>
                 {member.favoriteColors?.length > 0 && (
                   <div className={styles.yarnRow}>
@@ -196,6 +201,14 @@ export default async function MemberProfilePage({ params }) {
                     <span className={styles.yarnLabel}>Best for gifting</span>
                     <span className={styles.yarnValue}>{member.bestGiftProject}</span>
                   </p>
+                )}
+                {QUIZ_QUESTIONS.map((q) =>
+                  (member[q.field] || "").trim() ? (
+                    <p key={q.field} className={styles.yarnRow}>
+                      <span className={styles.yarnLabel}>{QUIZ_LABELS[q.field]}</span>
+                      <span className={styles.yarnValue}>{member[q.field]}</span>
+                    </p>
+                  ) : null
                 )}
               </div>
             )}

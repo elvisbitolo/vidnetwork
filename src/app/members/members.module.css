@@ -266,6 +266,15 @@
   line-height: 1;
 }
 
+.foundDot {
+  left: 4px;
+  right: auto;
+  bottom: 4px;
+  background: transparent;
+  padding: 0;
+  font-size: 11px;
+}
+
 .tooltip {
   position: fixed;
   z-index: 100;
@@ -283,6 +292,11 @@
   font-size: 15px;
   font-weight: 700;
   color: #ffffff;
+}
+
+.tooltipFounding {
+  margin-left: 6px;
+  font-size: 14px;
 }
 
 .tooltipHeadline {

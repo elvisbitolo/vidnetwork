@@ -23,7 +23,7 @@ export async function GET() {
       email: d.data().email || "",
       role: d.data().role || "member",
       suspended: d.data().suspended || false,
-      tier: sub && active ? sub.tier || "standard" : "",
+      tier: sub && active ? sub.tier || "lounge" : "",
       subStatus: active ? (sub.status === "trialing" ? "trial" : "active") : sub ? "inactive" : "none",
     };
   });

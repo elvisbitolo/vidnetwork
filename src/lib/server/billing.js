@@ -48,7 +48,7 @@ export function planFromInterval(interval) {
 }
 
 export function tierFromMetadata(sub) {
-  return sub?.metadata?.tier || "standard";
+  return sub?.metadata?.tier || "lounge";
 }
 
 export function planChange({ currentStatus, currentPriceId, requestedPriceId }) {
@@ -65,7 +65,7 @@ export function buildSubscriptionDoc({ subscription, customer, tier }) {
     providerSubscriptionId: subscription?.id || "",
     status: subscription?.status || "unknown",
     plan: planFromInterval(item?.price?.recurring?.interval),
-    tier: tier || tierFromMetadata(subscription) || "standard",
+    tier: tier || tierFromMetadata(subscription) || "lounge",
     priceId: item?.price?.id || "",
     currentPeriodStart: fromEpoch(subscription?.current_period_start),
     currentPeriodEnd: fromEpoch(subscription?.current_period_end),

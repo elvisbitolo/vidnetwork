@@ -25,6 +25,15 @@ test("normalizeProfile: optional fields are cleaned and capped", () => {
   assert.equal(patch.bio.length, 600);
 });
 
+test("normalizeProfile: quiz fields are cleaned and capped", () => {
+  const { patch } = normalizeProfile({
+    yarnType: "  Soft and squishy  ",
+    idealHookBrand: "x".repeat(300),
+  });
+  assert.equal(patch.yarnType, "Soft and squishy");
+  assert.equal(patch.idealHookBrand.length, 120);
+});
+
 test("normalizeProfile: unknown fields are ignored", () => {
   const { patch } = normalizeProfile({ name: "A", role: "owner", suspended: true });
   assert.deepEqual(Object.keys(patch).sort(), ["name"]);

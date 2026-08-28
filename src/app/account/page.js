@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
+import { tierLabel } from "@/lib/server/plans";
+import { QUIZ_QUESTIONS } from "@/lib/profile/questions";
 import { getSettings } from "@/lib/server/settings";
 import Nav from "@/components/Nav";
 import LogoutButton from "./LogoutButton";
@@ -39,6 +41,13 @@ export default async function AccountPage({ searchParams }) {
     photoURL: userDoc?.photoURL || "",
   };
 
+  const quizInitial = (() => {
+    const out = {};
+    for (const q of QUIZ_QUESTIONS) out[q.field] = (userDoc || {})[q.field] || "";
+    return out;
+  })();
+  Object.assign(initialProfile, quizInitial);
+
   return (
       <Nav role={userDoc?.role}>
       <div className={styles.container}>
@@ -65,7 +74,12 @@ export default async function AccountPage({ searchParams }) {
               </div>
               <div className={styles.row}>
                 <span className={styles.label}>Plan</span>
-                <span className={styles.value}>{sub.tier ? `${sub.tier.charAt(0).toUpperCase()}${sub.tier.slice(1)}` : "Standard"} · {sub.plan}</span>
+                <span className={styles.value}>
+                  {tierLabel(sub.tier)} · {sub.plan}
+                  {userDoc?.foundingMember && (
+                    <span className={`${styles.badge} ${styles.badgeFounding}`}>Founding Yarnie 🧶</span>
+                  )}
+                </span>
               </div>
               <ManageSubscription />
             </>

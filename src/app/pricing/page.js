@@ -10,41 +10,35 @@ import styles from "./pricing.module.css";
 
 const TIERS = [
   {
-    id: "standard",
-    name: "community",
-    price: { monthly: "$20", yearly: "$200" },
-    note: "communityNote",
-    features: [
-      "communityFeatures.joinLive",
-      "communityFeatures.videoLessons",
-      "communityFeatures.events",
-      "communityFeatures.chat",
-      "communityFeatures.gallery",
-      "communityFeatures.stickers",
-    ],
+    id: "lounge",
+    nameKey: "loungeName",
+    priceKey: "loungePrice",
+    noteKey: "loungeNote",
+    taglineKey: "loungeTagline",
+    benefitsKey: "loungeBenefits",
   },
   {
-    id: "premium",
-    name: "creator",
-    price: { monthly: "$40", yearly: "$400" },
-    note: "creatorNote",
-    features: [
-      "creatorFeatures.everythingInCommunity",
-      "creatorFeatures.hostRooms",
-      "creatorFeatures.premiumCourses",
-      "creatorFeatures.privateRooms",
-      "creatorFeatures.earlyAccess",
-      "creatorFeatures.prioritySupport",
-    ],
+    id: "plus",
+    nameKey: "plusName",
+    priceKey: "plusPrice",
+    noteKey: "plusNote",
+    taglineKey: "plusTagline",
+    benefitsKey: "plusBenefits",
+  },
+  {
+    id: "host",
+    nameKey: "hostName",
+    priceKey: "hostPrice",
+    noteKey: "hostNote",
+    taglineKey: "hostTagline",
+    benefitsKey: "hostBenefits",
     featured: true,
   },
 ];
 
 export default function PricingPage() {
   const t = useTranslations("pricing");
-  const tc = useTranslations("common");
   const router = useRouter();
-  const [billing, setBilling] = useState("monthly");
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -64,7 +58,7 @@ export default function PricingPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: billing, tier, promoCode: promo.trim() || undefined }),
+        body: JSON.stringify({ plan: "monthly", tier, promoCode: promo.trim() || undefined }),
       });
       if (res.status === 401) {
         router.push("/login");
@@ -85,11 +79,13 @@ export default function PricingPage() {
         return;
       }
       if (data.switched) {
-        const tierName = tier === "standard" ? t("community") : t("creator");
+        const tierName = t(
+          tier === "lounge" ? "loungeName" : tier === "plus" ? "plusName" : "hostName"
+        );
         setNotice(
           data.unchanged
-            ? t("alreadyOn", { tier: tierName, billing })
-            : t("updatedTo", { tier: tierName, billing })
+            ? t("alreadyOn", { tier: tierName })
+            : t("updatedTo", { tier: tierName })
         );
         return;
       }
@@ -116,19 +112,9 @@ export default function PricingPage() {
         <h1 className={styles.title}>{t("title")}</h1>
         <p className={styles.subtitle}>{t("subtitle")}</p>
 
-        <div className={styles.toggle}>
-          <button
-            className={billing === "monthly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
-            onClick={() => setBilling("monthly")}
-          >
-            {t("monthly")}
-          </button>
-          <button
-            className={billing === "yearly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
-            onClick={() => setBilling("yearly")}
-          >
-            {t("yearly")}
-          </button>
+        <div className={styles.foundingBanner}>
+          <span className={styles.foundingBadge}>{t("foundingBadge")}</span>
+          <span className={styles.foundingText}>{t("foundingLine")}</span>
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
@@ -151,14 +137,23 @@ export default function PricingPage() {
               key={tier.id}
               className={tier.featured ? `${styles.card} ${styles.cardFeatured}` : styles.card}
             >
-              <h2 className={styles.cardTitle}>{t(tier.name)}</h2>
+              <h2 className={styles.cardTitle}>{t(tier.nameKey)}</h2>
               <p className={styles.price}>
-                {tier.price[billing]} <span className={styles.interval}>{billing === "monthly" ? t("perMonth") : t("perYear")}</span>
+                {tier.id === "lounge" ? (
+                  <>
+                    <span className={styles.strike}>{t("loungePrice")}</span>{" "}
+                    <span className={styles.foundingPrice}>{t("loungeFoundingPrice")}</span>
+                  </>
+                ) : (
+                  t(tier.priceKey)
+                )}{" "}
+                <span className={styles.interval}>{t("perMonth")}</span>
               </p>
-              <p className={styles.note}>{t(tier.note)}</p>
+              <p className={styles.tagline}>{t(tier.taglineKey)}</p>
+              <p className={styles.note}>{t(tier.noteKey)}</p>
               <ul className={styles.features}>
-                {tier.features.map((feature) => (
-                  <li key={feature}>{t(feature)}</li>
+                {t(tier.benefitsKey, { returnObjects: true }).map((feature) => (
+                  <li key={feature}>{feature}</li>
                 ))}
               </ul>
 
@@ -167,7 +162,7 @@ export default function PricingPage() {
                 onClick={() => handleSubscribe(tier.id)}
                 disabled={busy !== null}
               >
-                {busy === tier.id ? t("redirecting") : signedIn ? t("subscribe", { tier: t(tier.name) }) : t("signInToSubscribe")}
+                {busy === tier.id ? t("redirecting") : signedIn ? t("subscribe", { tier: t(tier.nameKey) }) : t("signInToSubscribe")}
               </button>
               <p className={styles.finePrint}>
                 {t("finePrint")}

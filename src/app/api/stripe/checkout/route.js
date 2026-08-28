@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { getStripe } from "@/lib/server/stripe";
-import { TIERS, priceIdFor } from "@/lib/server/plans";
+import { TIERS, TIER_INFO, priceIdFor } from "@/lib/server/plans";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { planChange, buildSubscriptionDoc } from "@/lib/server/billing";
@@ -18,6 +18,30 @@ const ALLOWED_PLANS = {
 };
 
 const ACTIVE_STATUSES = ["active", "trialing", "past_due"];
+
+const FOUNDING_META_REF = () => adminDb().collection("meta").doc("founding");
+
+async function foundingSlotAvailable() {
+  const doc = await FOUNDING_META_REF().get();
+  const used = doc.exists ? Number(doc.data()?.usedCount || 0) : 0;
+  return used < TIER_INFO.lounge.founding.slots;
+}
+
+async function reserveFoundingSlot() {
+  await adminDb().runTransaction(async (tx) => {
+    const ref = FOUNDING_META_REF();
+    const snap = await tx.get(ref);
+    const used = snap.exists ? Number(snap.data()?.usedCount || 0) : 0;
+    if (used >= TIER_INFO.lounge.founding.slots) return { ok: false };
+    tx.set(
+      ref,
+      { usedCount: used + 1, updatedAt: new Date() },
+      { merge: true }
+    );
+    return { ok: true };
+  });
+  return true;
+}
 
 export async function POST(req) {
   const auth = await requireUser();
@@ -47,7 +71,7 @@ async function handleCheckout(req, auth) {
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
-  const { plan, tier = "standard", promoCode } = body || {};
+  const { plan, tier = "lounge", promoCode } = body || {};
   const planKey = ALLOWED_PLANS[plan];
   if (!planKey) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -63,14 +87,6 @@ async function handleCheckout(req, auth) {
     if (!verdict.ok) {
       return NextResponse.json({ error: verdict.reason }, { status: 400 });
     }
-  }
-
-  const priceId = priceIdFor(tier, planKey);
-  if (!priceId) {
-    return NextResponse.json(
-      { error: "Pricing not configured for this tier" },
-      { status: 500 }
-    );
   }
 
   const stripe = getStripe();
@@ -101,6 +117,36 @@ async function handleCheckout(req, auth) {
     limit: 10,
   });
   const activeSub = activeSubs.data.find((sub) => ACTIVE_STATUSES.includes(sub.status));
+
+  let priceId = priceIdFor(tier, planKey);
+  let isFounding = false;
+
+  const foundingEligible =
+    tier === "lounge" &&
+    planKey === "MONTHLY" &&
+    !activeSub &&
+    !userDoc?.foundingMember &&
+    (await foundingSlotAvailable());
+
+  if (foundingEligible) {
+    const foundingPriceId =
+      process.env.STRIPE_PRICE_LOUNGE_FOUNDING_MONTHLY ||
+      null;
+    if (foundingPriceId) {
+      priceId = foundingPriceId;
+      isFounding = true;
+    }
+  } else if (isFounding) {
+    priceId = priceIdFor(tier, planKey);
+    isFounding = false;
+  }
+
+  if (!priceId) {
+    return NextResponse.json(
+      { error: "Pricing not configured for this tier" },
+      { status: 500 }
+    );
+  }
 
   if (activeSub) {
     const currentPriceId = activeSub.items.data[0]?.price?.id;
@@ -138,7 +184,7 @@ async function handleCheckout(req, auth) {
 
     await adminDb().collection("auditLogs").add({
       actorId: auth.user.uid,
-      actorName: auth.userDoc?.name || auth.user.email || "",
+      actorName: userDoc?.name || auth.user.email || "",
       action: "billing.plan_changed",
       targetId: activeSub.id,
       metadata: { fromPrice: currentPriceId, toPrice: priceId, tier },
@@ -146,6 +192,15 @@ async function handleCheckout(req, auth) {
     });
 
     return NextResponse.json({ switched: true, tier });
+  }
+
+  if (isFounding) {
+    await reserveFoundingSlot();
+    await adminDb().collection("users").doc(auth.user.uid).update({
+      foundingMember: true,
+      foundingTier: "lounge",
+      foundingAt: new Date(),
+    });
   }
 
   const subscriptionData = isFirstSubscription
@@ -158,16 +213,22 @@ async function handleCheckout(req, auth) {
     : {};
 
   const coupon = promo ? await getOrCreateStripeCoupon(promo) : null;
+  const metadata = {
+    uid: auth.user.uid,
+    tier,
+    ...(isFounding ? { founding: "true" } : {}),
+    promoCode: promo ? promo.code : "",
+  };
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
     ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
-    metadata: { uid: auth.user.uid, tier, promoCode: promo ? promo.code : "" },
+    metadata,
     subscription_data: {
       ...subscriptionData,
-      metadata: { tier, promoCode: promo ? promo.code : "" },
+      metadata,
     },
     payment_method_collection: isFirstSubscription ? "if_required" : "always",
     payment_method_types: isFirstSubscription ? ["card"] : ["card", "paypal"],

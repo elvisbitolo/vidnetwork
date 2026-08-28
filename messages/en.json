@@ -247,41 +247,52 @@
     "googleFailed": "Google sign-in failed"
   },
   "pricing": {
-    "title": "Choose your membership",
-    "subtitle": "Pay with credit card or PayPal. Cancel anytime.",
+    "title": "Choose your Yarnery",
+    "subtitle": "A friendly place to crochet with friends, whenever you want some company.",
     "monthly": "Monthly",
-    "yearly": "Yearly",
     "perMonth": "per month",
-    "perYear": "per year",
-    "community": "Community",
-    "creator": "Creator",
-    "communityNote": "Billed per month or per year",
-    "creatorNote": "Everything in Community, plus hosting powers",
     "subscribe": "Subscribe — {tier}",
     "signInToSubscribe": "Sign in to subscribe",
     "redirecting": "Redirecting…",
     "promoPlaceholder": "Promo code (optional)",
     "finePrint": "Card or PayPal · 14-day free trial · no credit card required",
     "backToDashboard": "Back to your dashboard",
-    "alreadyOn": "You're already on {tier} ({billing}).",
-    "updatedTo": "Your membership has been updated to {tier} ({billing}).",
+    "alreadyOn": "You're already on {tier}.",
+    "updatedTo": "Your membership has been updated to {tier}.",
     "checkoutFailed": "Checkout failed, please try again",
-    "communityFeatures": {
-      "joinLive": "Join live video chat rooms (8 hrs/month)",
-      "videoLessons": "Video lessons and course library",
-      "events": "Events, calendar & reminders",
-      "chat": "Real-time chat with members",
-      "gallery": "Post photos & projects to the gallery",
-      "stickers": "Send congratulatory stickers"
-    },
-    "creatorFeatures": {
-      "everythingInCommunity": "Everything in Community",
-      "hostRooms": "Host your own video chat rooms (unlimited hours)",
-      "premiumCourses": "Premium courses & exclusive lessons",
-      "privateRooms": "Private premium group rooms",
-      "earlyAccess": "Early access to new content",
-      "prioritySupport": "Priority support"
-    }
+    "foundingBadge": "Founding Yarnie 🧶",
+    "foundingLine": "The first 100 Yarnery friends join the 24/7 Crochet Lounge for just $6.99/month and keep that Founding price as long as their membership stays active — plus a permanent Founding Yarnie 🧶 badge next to their name.",
+    "loungeName": "Yarnery Lounge",
+    "loungePrice": "$9.99",
+    "loungeFoundingPrice": "$6.99",
+    "loungeNote": "Your forever home in the 24/7 Crochet Lounge.",
+    "loungeTagline": "“I want to find my crochet people.”",
+    "loungeBenefits": [
+      "24/7 Virtual Crochet Lounge",
+      "Optional camera, mic, chat & photo sharing",
+      "Community events, polls & member badge",
+      "No pressure — quietly crochet along"
+    ],
+    "plusName": "Yarnery Plus",
+    "plusPrice": "$19.99",
+    "plusNote": "Everything in Lounge, plus exclusive Secret Yarnery extras.",
+    "plusTagline": "“I want more Secret Yarnery!”",
+    "plusBenefits": [
+      "Everything in Yarnery Lounge",
+      "Exclusive PDF crochet pattern each month",
+      "Members-only crochet session with Christa",
+      "10% Secret Yarnery pattern shop discount"
+    ],
+    "hostName": "Yarnery Host",
+    "hostPrice": "$29.99",
+    "hostNote": "Everything in Plus, plus the power to host your own rooms.",
+    "hostTagline": "“I want to bring Yarnery friends together.”",
+    "hostBenefits": [
+      "Everything in Levels 1 & 2",
+      "Host your own live video chat rooms",
+      "Schedule meetups and recurring gatherings",
+      "Special recognition as a Yarnery Host"
+    ]
   },
   "landing": {
     "liveCommunities": "Live communities · Courses · Events",

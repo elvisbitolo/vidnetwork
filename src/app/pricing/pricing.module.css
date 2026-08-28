@@ -92,9 +92,58 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   align-items: stretch;
+}
+
+.foundingBanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  margin: 0 auto 28px;
+  max-width: 640px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  border-radius: 14px;
+}
+
+.foundingBadge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  padding: 6px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.foundingText {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #34344a;
+}
+
+.strike {
+  font-size: 28px;
+  font-weight: 600;
+  color: #9b9bab;
+  text-decoration: line-through;
+  vertical-align: 8px;
+}
+
+.foundingPrice {
+  color: var(--primary-hover, #2563eb);
+}
+
+.tagline {
+  font-size: 13px;
+  font-style: italic;
+  color: #6b6b7b;
+  margin: 0 0 12px;
 }
 
 .card {
@@ -235,7 +284,7 @@
   color: #17171c;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 860px) {
   .grid {
     grid-template-columns: 1fr;
   }

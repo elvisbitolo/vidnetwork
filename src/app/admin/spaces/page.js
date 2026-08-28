@@ -155,7 +155,7 @@ export default function AdminSpacesPage() {
                 onChange={(e) => setRequiredTier(e.target.value)}
               >
                 <option value="">Any active member</option>
-                <option value="premium">Premium only</option>
+                <option value="premium">Yarnery Hosts only</option>
               </select>
             </div>
             <div className={styles.field}>
@@ -219,7 +219,7 @@ export default function AdminSpacesPage() {
                 <div>
                   <p className={styles.itemName}>{space.name}</p>
                   <p className={styles.itemMeta}>
-                    {accessLabel[space.access]} {space.requiredTier === "premium" ? "· Premium" : ""}
+                    {accessLabel[space.access]} {space.requiredTier === "premium" ? "· Hosts only" : ""}
                     {space.purchasePriceCents ? ` · $${(space.purchasePriceCents / 100).toFixed(2)}` : ""} ·{" "}
                     {space.memberCount} members ·{" "}
                     {Object.entries(space.features)

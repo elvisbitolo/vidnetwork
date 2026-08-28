@@ -247,42 +247,52 @@
     "googleFailed": "Échec de la connexion Google"
   },
   "pricing": {
-    "title": "Choisissez votre adhésion",
-    "subtitle": "Payez par carte bancaire ou PayPal. Annulez à tout moment.",
+    "title": "Choisissez votre Yarnery",
+    "subtitle": "Un lieu convivial pour crocheter avec des amis, quand vous avez envie de compagnie.",
     "monthly": "Mensuel",
-    "yearly": "Annuel",
     "perMonth": "par mois",
-    "perYear": "par an",
-    "community": "Communauté",
-    "creator": "Créateur",
-    "communityNote": "Facturé mensuellement ou annuellement",
-    "creatorNote": "Tout dans Communauté, plus les pouvoirs d'animation",
     "subscribe": "S'abonner — {tier}",
-    "signInToSubscribe": "Connectez-vous pour vous abonner",
+    "signInToSubscribe": "Se connecter pour s'abonner",
     "redirecting": "Redirection…",
-    "promoPlaceholder": "Code promo (facultatif)",
-    "freeTrial": "Carte ou PayPal · 14 jours d'essai gratuit · sans CB",
+    "promoPlaceholder": "Code promo (optionnel)",
     "finePrint": "Carte ou PayPal · 14 jours d'essai gratuit · sans CB",
-    "backToDashboard": "Retour à votre tableau de bord",
-    "alreadyOn": "Vous êtes déjà sur {tier} ({billing}).",
-    "updatedTo": "Votre adhésion a été mise à jour vers {tier} ({billing}).",
-    "checkoutFailed": "Échec du paiement, réessayez",
-    "communityFeatures": {
-      "joinLive": "Rejoignez des salons vidéo en direct (8h/mois)",
-      "videoLessons": "Leçons vidéo et bibliothèque de cours",
-      "events": "Événements, calendrier et rappels",
-      "chat": "Chat en temps réel avec les membres",
-      "gallery": "Publiez des photos et projets dans la galerie",
-      "stickers": "Envoyez des autocollants de félicitations"
-    },
-    "creatorFeatures": {
-      "everythingInCommunity": "Tout dans Communauté",
-      "hostRooms": "Animez vos propres salons vidéo (heures illimitées)",
-      "premiumCourses": "Cours premium et leçons exclusives",
-      "privateRooms": "Salons de groupe premium privés",
-      "earlyAccess": "Accès anticipé au nouveau contenu",
-      "prioritySupport": "Support prioritaire"
-    }
+    "backToDashboard": "Retour au tableau de bord",
+    "alreadyOn": "Vous êtes déjà sur {tier}.",
+    "updatedTo": "Votre adhésion a été mise à jour vers {tier}.",
+    "checkoutFailed": "Le paiement a échoué, veuillez réessayer",
+    "foundingBadge": "Founding Yarnie 🧶",
+    "foundingLine": "Les 100 premiers membres Yarnery rejoignent le salon Crochet 24/7 pour seulement 6,99 $/mois et conservent ce prix Founding tant que leur adhésion est active — plus un badge permanent Founding Yarnie 🧶 à côté de leur nom.",
+    "loungeName": "Yarnery Lounge",
+    "loungePrice": "9,99 $",
+    "loungeFoundingPrice": "6,99 $",
+    "loungeNote": "Votre maison dans le salon Crochet ouvert 24/7.",
+    "loungeTagline": "« Je veux trouver mon groupe de crochet. »",
+    "loungeBenefits": [
+      "Salon de crochet virtuel 24/7",
+      "Caméra, micro, chat et photos (en option)",
+      "Événements, sondages et badge de membre",
+      "Aucune pression — crochetez en silence si vous voulez"
+    ],
+    "plusName": "Yarnery Plus",
+    "plusPrice": "19,99 $",
+    "plusNote": "Tout le Lounge plus les extras exclusifs de Secret Yarnery.",
+    "plusTagline": "« J'en veux plus de Secret Yarnery ! »",
+    "plusBenefits": [
+      "Tout Yarnery Lounge",
+      "Un patron de crochet PDF exclusif chaque mois",
+      "Séance de crochet réservée aux membres avec Christa",
+      "10 % sur les patrons de la boutique Secret Yarnery"
+    ],
+    "hostName": "Yarnery Host",
+    "hostPrice": "29,99 $",
+    "hostNote": "Tout le Plus plus le pouvoir d'héberger vos propres salons.",
+    "hostTagline": "« Je veux réunir des amis Yarnery. »",
+    "hostBenefits": [
+      "Tout des niveaux 1 et 2",
+      "Hébergez vos propres salons vidéo",
+      "Planifiez des rencontres et des rendez-vous réguliers",
+      "Reconnaissance spéciale en tant que Yarnery Host"
+    ]
   },
   "landing": {
     "liveCommunities": "Communautés en direct · Cours · Événements",

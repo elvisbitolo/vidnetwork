@@ -45,7 +45,7 @@ export async function canJoinVideoRoom(uid, tier) {
 export async function canHostVideoRoom(uid, tier) {
   const rights = videoChatRights(tier);
   if (!rights.canHost) {
-    return { allowed: false, reason: "Only Creator members can host video rooms" };
+    return { allowed: false, reason: "Only Yarnery Host members can host video rooms" };
   }
   return { allowed: true };
 }

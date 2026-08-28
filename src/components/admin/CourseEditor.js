@@ -212,8 +212,8 @@ export default function CourseEditor({ basePath = "/admin" }) {
               value={requiredTier}
               onChange={(e) => setRequiredTier(e.target.value)}
             >
-              <option value="standard">Standard</option>
-              <option value="premium">Premium</option>
+              <option value="standard">Any member (Lounge and up)</option>
+              <option value="premium">Yarnery Hosts only</option>
             </select>
           </div>
           <div className={styles.field}>

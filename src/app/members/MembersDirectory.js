@@ -235,6 +235,9 @@ export default function MembersDirectory({ members, role, todayKey }) {
                     )}
                     {member.role === "owner" && <span className={styles.hostDot}>Owner</span>}
                     {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
+                    {member.foundingMember && (
+                      <span className={`${styles.hostDot} ${styles.foundDot}`} title="Founding Yarnie">🧶</span>
+                    )}
                   </span>
                 </span>
                 {member.live && <span className={styles.liveDot} />}
@@ -246,7 +249,12 @@ export default function MembersDirectory({ members, role, todayKey }) {
 
       {hover && tooltipPos && (
         <div className={styles.tooltip} style={{ left: tooltipPos.left, top: tooltipPos.top }}>
-          <p className={styles.tooltipName}>{hover.member.name}</p>
+          <p className={styles.tooltipName}>
+            {hover.member.name}
+            {hover.member.foundingMember && (
+              <span className={styles.tooltipFounding} title="Founding Yarnie · first 100 members">🧶</span>
+            )}
+          </p>
           {hover.member.live && <p className={styles.tooltipLive}>● In the lounge now</p>}
           {hover.member.headline && <p className={styles.tooltipHeadline}>{hover.member.headline}</p>}
           {hover.member.bio && <p className={styles.tooltipBio}>{hover.member.bio}</p>}

@@ -53,6 +53,7 @@ export default async function MembersPage() {
       favoriteColors: Array.isArray(m.favoriteColors) ? m.favoriteColors : [],
       crafts: Array.isArray(m.crafts) ? m.crafts : [],
       role: m.role || "member",
+      foundingMember: !!m.foundingMember,
       live: liveUids.has(m.id),
       points: gami.get(m.id)?.points || 0,
       lastVisitDate: gami.get(m.id)?.lastVisitDate || "",

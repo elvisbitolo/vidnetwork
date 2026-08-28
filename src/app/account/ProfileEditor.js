@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { QUIZ_QUESTIONS } from "@/lib/profile/questions";
 import styles from "./account.module.css";
 
 function normalize(value) {
@@ -61,6 +62,9 @@ export default function ProfileEditor({ initial }) {
   const [crafts, setCrafts] = useState(Array.isArray(initial.crafts) ? initial.crafts : []);
   const [proudestProject, setProudestProject] = useState(initial.proudestProject || "");
   const [bestGiftProject, setBestGiftProject] = useState(initial.bestGiftProject || "");
+  const [quiz, setQuiz] = useState(
+    QUIZ_QUESTIONS.reduce((acc, q) => ({ ...acc, [q.field]: (initial[q.field] || "").trim() }), {})
+  );
   const [socialLinks, setSocialLinks] = useState(
     Array.isArray(initial.socialLinks) && initial.socialLinks.length
       ? initial.socialLinks
@@ -207,6 +211,11 @@ export default function ProfileEditor({ initial }) {
     if (cleanProud !== normalize(initial.proudestProject)) patch.proudestProject = cleanProud;
     const cleanGift = normalize(bestGiftProject);
     if (cleanGift !== normalize(initial.bestGiftProject)) patch.bestGiftProject = cleanGift;
+
+    QUIZ_QUESTIONS.forEach((q) => {
+      const value = (quiz[q.field] || "").trim();
+      if (value !== ((initial[q.field] || "").trim())) patch[q.field] = value;
+    });
 
     const cleanSocial = socialLinks
       .filter((l) => normalize(l.url))
@@ -541,6 +550,32 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setBestGiftProject(e.target.value)}
         />
       </div>
+
+      <h3 className={styles.sectionTitle}>Crochet love quiz</h3>
+      <p className={styles.fieldHint} style={{ marginTop: -8, marginBottom: 4 }}>
+        Fun questions so other members can get to know your yarn heart.
+      </p>
+
+      {QUIZ_QUESTIONS.map((q) => (
+        <div key={q.field} className={styles.field}>
+          <label className={styles.fieldLabel}>{q.question}</label>
+          <div className={styles.craftChips}>
+            {q.options.map((option) => {
+              const selected = quiz[q.field] === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  className={selected ? `${styles.craftChip} ${styles.craftChipActive}` : styles.craftChip}
+                  onClick={() => setQuiz((prev) => ({ ...prev, [q.field]: selected ? "" : option }))}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       <button className={styles.manage} type="submit" disabled={busy}>
         {busy ? "Saving…" : "Save profile"}

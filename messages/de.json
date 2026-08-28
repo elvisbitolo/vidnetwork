@@ -247,41 +247,52 @@
     "googleFailed": "Google-Anmeldung fehlgeschlagen"
   },
   "pricing": {
-    "title": "Wählen Sie Ihre Mitgliedschaft",
-    "subtitle": "Bezahlen Sie mit Kreditkarte oder PayPal. Jederzeit kündbar.",
+    "title": "Wähle deine Yarnery",
+    "subtitle": "Ein freundlicher Ort zum Häkeln mit Freunden — wann immer du Gesellschaft magst.",
     "monthly": "Monatlich",
-    "yearly": "Jährlich",
     "perMonth": "pro Monat",
-    "perYear": "pro Jahr",
-    "community": "Community",
-    "creator": "Ersteller",
-    "communityNote": "Monatlich oder jährlich abgerechnet",
-    "creatorNote": "Alles in Community, plus Moderationsrechte",
-    "subscribe": "Abonnieren — {tier}",
-    "signInToSubscribe": "Melden Sie sich an, um zu abonnieren",
+    "subscribe": "Jetzt abonnieren — {tier}",
+    "signInToSubscribe": "Anmelden und abonnieren",
     "redirecting": "Weiterleitung…",
     "promoPlaceholder": "Gutscheincode (optional)",
     "finePrint": "Karte oder PayPal · 14 Tage kostenlose Testversion · keine Kreditkarte nötig",
-    "backToDashboard": "Zurück zu Ihrem Dashboard",
-    "alreadyOn": "Sie sind bereits auf {tier} ({billing}).",
-    "updatedTo": "Ihre Mitgliedschaft wurde auf {tier} ({billing}) aktualisiert.",
-    "checkoutFailed": "Bezahlung fehlgeschlagen, bitte versuchen Sie es erneut",
-    "communityFeatures": {
-      "joinLive": "Live-Videocalls beitreten (8 Std./Monat)",
-      "videoLessons": "Videolektionen und Kursbibliothek",
-      "events": "Events, Kalender & Erinnerungen",
-      "chat": "Echtzeit-Chat mit Mitgliedern",
-      "gallery": "Fotos & Projekte in der Galerie teilen",
-      "stickers": "Glückwunschs stickers senden"
-    },
-    "creatorFeatures": {
-      "everythingInCommunity": "Alles in Community",
-      "hostRooms": "Eigene Videocalls hosten (unbegrenzte Stunden)",
-      "premiumCourses": "Premium-Kurse & exklusive Lektionen",
-      "privateRooms": "Private Premium-Gruppenräume",
-      "earlyAccess": "Frühzeitiger Zugang zu neuen Inhalten",
-      "prioritySupport": "Bevorzugter Support"
-    }
+    "backToDashboard": "Zurück zu deinem Dashboard",
+    "alreadyOn": "Du bist bereits bei {tier}.",
+    "updatedTo": "Deine Mitgliedschaft wurde auf {tier} aktualisiert.",
+    "checkoutFailed": "Bezahlung fehlgeschlagen, bitte erneut versuchen",
+    "foundingBadge": "Founding Yarnie 🧶",
+    "foundingLine": "Die ersten 100 Yarnery-Freunde bekommen die 24/7 Crochet Lounge für nur 6,99 $/Monat und behalten diesen Founding-Preis, solange die Mitgliedschaft aktiv bleibt — plus ein dauerhaftes Founding-Yarnie-🧶-Abzeichen neben ihrem Namen.",
+    "loungeName": "Yarnery Lounge",
+    "loungePrice": "9,99 $",
+    "loungeFoundingPrice": "6,99 $",
+    "loungeNote": "Dein Zuhause in der 24/7 Crochet Lounge.",
+    "loungeTagline": "„Ich möchte meine Häkelfreunde finden.“",
+    "loungeBenefits": [
+      "24/7 virtuelle Crochet Lounge",
+      "Kamera, Mikrofon, Chat & Fotos (optional)",
+      "Community-Events, Umfragen & Mitgliedschafts-Badge",
+      "Kein Druck — einfach mit vor dich hin häkeln"
+    ],
+    "plusName": "Yarnery Plus",
+    "plusPrice": "19,99 $",
+    "plusNote": "Alles aus Lounge plus exklusive Secret-Yarnery-Extras.",
+    "plusTagline": "„Ich möchte mehr Secret Yarnery!“",
+    "plusBenefits": [
+      "Alles aus Yarnery Lounge",
+      "Exklusives PDF-Häkelmuster jeden Monat",
+      "Mitglieder-Häkelstunde mit Christa",
+      "10 % Rabatt auf Muster aus dem Secret-Yarnery-Shop"
+    ],
+    "hostName": "Yarnery Host",
+    "hostPrice": "29,99 $",
+    "hostNote": "Alles aus Plus plus die Möglichkeit, eigene Räume zu erstellen.",
+    "hostTagline": "„Ich möchte Yarnery-Freunde zusammenbringen.“",
+    "hostBenefits": [
+      "Alles aus Stufe 1 & 2",
+      "Eigene Live-Video-Häkelräume hosten",
+      "Treffen und wiederkehrende Communitys planen",
+      "Besondere Anerkennung als Yarnery Host"
+    ]
   },
   "landing": {
     "liveCommunities": "Live-Communities · Kurse · Events",

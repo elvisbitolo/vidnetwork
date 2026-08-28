@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import styles from "./LandingPricing.module.css";
@@ -8,28 +7,42 @@ import { CheckIcon } from "./LandingIcons";
 
 const TIERS = [
   {
-    id: "standard",
-    nameKey: "community",
-    priceKey: "community",
-    noteKey: "communityNote",
+    id: "lounge",
+    nameKey: "loungeName",
+    priceKey: "loungePrice",
+    noteKey: "loungeNote",
+    taglineKey: "loungeTagline",
     benefitsKeys: [
-      "communityFeatures.joinLive",
-      "communityFeatures.videoLessons",
-      "communityFeatures.events",
-      "communityFeatures.chat",
+      "loungeBenefits.0",
+      "loungeBenefits.1",
+      "loungeBenefits.2",
+      "loungeBenefits.3",
     ],
   },
   {
-    id: "premium",
-    nameKey: "creator",
-    priceKey: "creator",
-    noteKey: "creatorNote",
+    id: "plus",
+    nameKey: "plusName",
+    priceKey: "plusPrice",
+    noteKey: "plusNote",
+    taglineKey: "plusTagline",
     benefitsKeys: [
-      "creatorFeatures.everythingInCommunity",
-      "creatorFeatures.premiumCourses",
-      "creatorFeatures.privateRooms",
-      "creatorFeatures.earlyAccess",
-      "creatorFeatures.prioritySupport",
+      "plusBenefits.0",
+      "plusBenefits.1",
+      "plusBenefits.2",
+      "plusBenefits.3",
+    ],
+  },
+  {
+    id: "host",
+    nameKey: "hostName",
+    priceKey: "hostPrice",
+    noteKey: "hostNote",
+    taglineKey: "hostTagline",
+    benefitsKeys: [
+      "hostBenefits.0",
+      "hostBenefits.1",
+      "hostBenefits.2",
+      "hostBenefits.3",
     ],
     featured: true,
   },
@@ -38,25 +51,12 @@ const TIERS = [
 export default function LandingPricing() {
   const t = useTranslations("landing");
   const tp = useTranslations("pricing");
-  const [billing, setBilling] = useState("monthly");
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.toggle} role="group" aria-label="Billing interval">
-        <button
-          type="button"
-          className={billing === "monthly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
-          onClick={() => setBilling("monthly")}
-        >
-          {tp("monthly")}
-        </button>
-        <button
-          type="button"
-          className={billing === "yearly" ? `${styles.toggleBtn} ${styles.toggleActive}` : styles.toggleBtn}
-          onClick={() => setBilling("yearly")}
-        >
-          {tp("yearly")}
-        </button>
+      <div className={styles.foundingBanner}>
+        <span className={styles.foundingBadge}>{tp("foundingBadge")}</span>
+        <span className={styles.foundingText}>{tp("foundingLine")}</span>
       </div>
 
       <div className={styles.grid}>
@@ -68,9 +68,18 @@ export default function LandingPricing() {
             {tier.featured && <span className={styles.rec}>{t("mostPopular")}</span>}
             <h3 className={styles.name}>{tp(tier.nameKey)}</h3>
             <p className={styles.price}>
-              {tier.id === "standard" ? "$20" : "$40"}
-              <span className={styles.interval}> {billing === "monthly" ? tp("perMonth") : tp("perYear")}</span>
+              {tier.id === "lounge" ? (
+                <>
+                  <span className={styles.strike}>{tp("loungePrice")}</span>{" "}
+                  <span>{tp("loungeFoundingPrice")}</span>
+                </>
+              ) : (
+                tp(tier.priceKey)
+              )}
+              <span className={styles.interval}> {tp("perMonth")}</span>
             </p>
+            <p className={styles.tagline}>{tp(tier.taglineKey)}</p>
+            <p className={styles.note}>{tp(tier.noteKey)}</p>
             <ul className={styles.benefits}>
               {tier.benefitsKeys.map((key) => (
                 <li key={key} className={styles.benefit}>

@@ -38,7 +38,7 @@ async function syncSubscription(subscriptionId) {
   }
   const uid = customer.metadata.uid;
   const existing = await adminDb().collection("subscriptions").doc(uid).get();
-  const tier = subscription.metadata?.tier || existing.data()?.tier || "standard";
+  const tier = subscription.metadata?.tier || existing.data()?.tier || "lounge";
   await adminDb()
     .collection("subscriptions")
     .doc(uid)

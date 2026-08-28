@@ -1,3 +1,5 @@
+import { QUIZ_QUESTIONS } from "../profile/questions.js";
+
 function clean(value, max) {
   return (typeof value === "string" ? value : "").trim().slice(0, max);
 }
@@ -46,6 +48,9 @@ export function normalizeProfile(body) {
   }
   if ("proudestProject" in body) patch.proudestProject = clean(body.proudestProject, 140);
   if ("bestGiftProject" in body) patch.bestGiftProject = clean(body.bestGiftProject, 140);
+  QUIZ_QUESTIONS.forEach((q) => {
+    if (q.field in body) patch[q.field] = clean(body[q.field], 120);
+  });
   if ("photoURL" in body) {
     const photoURL = typeof body.photoURL === "string" ? body.photoURL.trim().slice(0, 300000) : "";
     if (photoURL === "") {

@@ -81,9 +81,9 @@ test("planFromInterval maps Stripe intervals", () => {
   assert.equal(planFromInterval("week"), null);
 });
 
-test("tierFromMetadata defaults to standard", () => {
+test("tierFromMetadata defaults to lounge", () => {
   assert.equal(tierFromMetadata({ metadata: { tier: "premium" } }), "premium");
-  assert.equal(tierFromMetadata({}), "standard");
+  assert.equal(tierFromMetadata({}), "lounge");
 });
 
 test("fromEpoch converts seconds to Date", () => {

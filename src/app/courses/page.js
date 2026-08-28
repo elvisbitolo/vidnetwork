@@ -38,7 +38,7 @@ export default async function CoursesPage() {
                 <h2 className={styles.cardTitle}>
                   {course.title}
                   {course.requiredTier === "premium" && (
-                    <span className={styles.premiumBadge}>Premium</span>
+                    <span className={styles.premiumBadge}>Host</span>
                   )}
                 </h2>
                 {course.description && <p className={styles.cardDesc}>{course.description}</p>}

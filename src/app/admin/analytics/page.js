@@ -60,7 +60,7 @@ export default function AdminAnalyticsPage() {
       ]
     : [];
 
-  const tierLabels = { standard: "Standard", premium: "Premium" };
+  const tierLabels = { lounge: "Yarnery Lounge", plus: "Yarnery Plus", host: "Yarnery Host" };
   const planLabels = { monthly: "Monthly", yearly: "Yearly" };
 
   return (

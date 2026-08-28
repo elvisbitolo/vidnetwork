@@ -149,3 +149,13 @@ a {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+.fyBadge {
+  display: inline-block;
+  font-size: 0.85em;
+  line-height: 1;
+  margin-left: 4px;
+  vertical-align: middle;
+  transform: translateY(-1px);
+  cursor: default;
+}

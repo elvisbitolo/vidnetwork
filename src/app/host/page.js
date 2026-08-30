@@ -99,7 +99,6 @@ export default function HostPage() {
                     <span style={{ fontSize: 12, color: "#9b9bab", fontWeight: 500 }}>
                       {" "}
                       · {scope.scopeType} · {scope.role}
-                      {scope.canRecord ? " · recording" : ""}
                     </span>
                   </p>
                 </div>

@@ -20,8 +20,10 @@ export async function GET() {
   return NextResponse.json({
     uid: user.uid,
     name: userDoc?.name || user.name || user.displayName || "",
+    username: userDoc?.username || "",
     email: user.email,
     role: userDoc?.role || "member",
+    roleLabel: userDoc?.roleLabel || "",
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
     country: userDoc?.country || "",
@@ -36,6 +38,9 @@ export async function GET() {
     notifications: userDoc?.notifications || "on",
     points: Number(gamification.points) || 0,
     streak: Number(gamification.streak) || 0,
+    bestStreak: Number(gamification.bestStreak) || 0,
+    lastVisitDate: gamification.lastVisitDate || "",
+    recentVisits: Array.isArray(gamification.recentVisits) ? gamification.recentVisits : [],
     createdAt: userDoc?.createdAt
       ? (userDoc.createdAt.toMillis ? userDoc.createdAt.toMillis() : new Date(userDoc.createdAt).getTime())
       : null,
@@ -59,6 +64,20 @@ export async function PATCH(req) {
   }
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+  }
+
+  if ("username" in patch && patch.username) {
+    const taken = await adminDb()
+      .collection("users")
+      .where("username", "==", patch.username)
+      .limit(2)
+      .get();
+    if (!taken.empty && taken.docs.some((d) => d.id !== user.uid)) {
+      return NextResponse.json(
+        { error: "That username is already taken", errors: { username: "That username is already taken" } },
+        { status: 400 }
+      );
+    }
   }
 
   const ref = adminDb().collection("users").doc(user.uid);

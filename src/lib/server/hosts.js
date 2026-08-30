@@ -9,7 +9,6 @@ import {
   HOST_SCOPE_TYPES,
   hostAssignmentKey,
   normalizeHostRole,
-  normalizeCanRecord,
   rightsFromAssignments,
   evaluateScopeRights,
 } from "@/lib/server/host-core";
@@ -72,7 +71,7 @@ export async function listHostAssignments({ scopeType, scopeId, userId } = {}) {
   return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
-export async function setHostAssignment({ scopeType, scopeId, userId, role, canRecord, grantedBy }) {
+export async function setHostAssignment({ scopeType, scopeId, userId, role, grantedBy }) {
   const normalizedRole = normalizeHostRole(role);
   if (!normalizedRole || !scopeType || !scopeId || !userId || !grantedBy) {
     return { ok: false, error: "Invalid host assignment" };
@@ -83,7 +82,6 @@ export async function setHostAssignment({ scopeType, scopeId, userId, role, canR
     scopeId,
     userId,
     role: normalizedRole,
-    canRecord: normalizeCanRecord(normalizedRole, canRecord),
     grantedBy,
     updatedAt: new Date(),
   };
@@ -125,7 +123,7 @@ export async function canManageScope(uid, scopeType, scopeId) {
 
 export async function getScopedHostRights(uid, scopeType, scopeId) {
   if (!uid || !scopeType || !scopeId) {
-    return { isStaff: false, isHost: false, isCoHost: false, canRecord: false, roles: [] };
+    return { isStaff: false, isHost: false, isCoHost: false, roles: [] };
   }
   const [userDoc, rights, scopeData] = await Promise.all([
     adminDb().collection("users").doc(uid).get(),

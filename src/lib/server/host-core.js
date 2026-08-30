@@ -14,11 +14,6 @@ export function normalizeHostRole(role) {
   return null;
 }
 
-export function normalizeCanRecord(role, canRecord) {
-  if (typeof canRecord === "boolean") return canRecord;
-  return normalizeHostRole(role) === "host";
-}
-
 export function resolveScopeKeys(scopeType, scopeId, scopeData = {}) {
   const keys = new Set([scopeKey(scopeType, scopeId)]);
   if (scopeType === "room") {
@@ -43,7 +38,6 @@ export function rightsFromAssignments(assignments) {
     if (!role) continue;
     rights[scopeKey(a.scopeType, a.scopeId)] = {
       role,
-      canRecord: a.canRecord === true,
     };
   }
   return rights;
@@ -51,18 +45,16 @@ export function rightsFromAssignments(assignments) {
 
 export function evaluateScopeRights(rights, scopeType, scopeId, scopeData = {}, isStaff = false) {
   if (isStaff) {
-    return { isHost: true, isCoHost: true, canRecord: true, roles: ["host"] };
+    return { isHost: true, isCoHost: true, roles: ["host"] };
   }
   const keys = resolveScopeKeys(scopeType, scopeId, scopeData);
   const roles = [];
-  let canRecord = false;
   for (const key of keys) {
     const entry = rights[key];
     if (!entry) continue;
     roles.push(entry.role);
-    if (entry.canRecord) canRecord = true;
   }
   const isHost = roles.includes("host");
   const isCoHost = isHost || roles.includes("co-host");
-  return { isHost, isCoHost, canRecord, roles: [...new Set(roles)] };
+  return { isHost, isCoHost, roles: [...new Set(roles)] };
 }

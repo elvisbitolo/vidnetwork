@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import BuyButton from "@/components/BuyButton";
 import styles from "../events.module.css";
 
 function formatDate(iso) {
@@ -71,8 +70,8 @@ export default function EventDetail({ event, uid, userName }) {
   const isLive = new Date(event.startTime).getTime() <= now;
   const atCapacity = event.capacity > 0 && attendees.count >= event.capacity;
   const isPaid = Number(event.purchasePriceCents) > 0;
-  const hasAccess = !isPaid || purchasedKeys.has(`event:${event.id}`);
-  const joinDisabled = busy || (atCapacity && !attendees.mine) || !hasAccess;
+  const purchased = purchasedKeys.has(`event:${event.id}`);
+  const joinDisabled = busy || (atCapacity && !attendees.mine);
 
   return (
     <section className={styles.eventCard}>
@@ -94,7 +93,7 @@ export default function EventDetail({ event, uid, userName }) {
         {isPaid && (
           <p className={styles.priceTag}>
             Ticket ${(Number(event.purchasePriceCents) / 100).toFixed(2)}
-            {hasAccess && " · purchased"}
+            {purchased && " · purchased"}
           </p>
         )}
         {event.description && <p className={styles.eventDesc}>{event.description}</p>}
@@ -119,17 +118,13 @@ export default function EventDetail({ event, uid, userName }) {
         )}
         {error && <p className={styles.error}>{error}</p>}
         <div className={styles.actions}>
-          {isPaid && !hasAccess ? (
-            <BuyButton targetType="event" targetId={event.id} priceCents={event.purchasePriceCents} />
-          ) : (
-            <button
-              className={attendees.mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
-              onClick={handleRsvp}
-              disabled={joinDisabled}
-            >
-              {busy ? "Saving…" : attendees.mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
-            </button>
-          )}
+          <button
+            className={attendees.mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+            onClick={handleRsvp}
+            disabled={joinDisabled}
+          >
+            {busy ? "Saving…" : attendees.mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+          </button>
           <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
             Add to calendar
           </a>

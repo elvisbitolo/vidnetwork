@@ -190,7 +190,7 @@ export default function Home() {
           price: "9",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: "https://yarnerylounge.vercel.app/pricing",
+          url: "https://yarnerylounge.vercel.app/signup",
         },
         {
           "@type": "Offer",
@@ -198,7 +198,7 @@ export default function Home() {
           price: "19",
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
-          url: "https://yarnerylounge.vercel.app/pricing",
+          url: "https://yarnerylounge.vercel.app/signup",
         },
       ],
       hasMerchantReturnPolicy: {
@@ -570,8 +570,8 @@ export default function Home() {
               <Link className={styles.footerLink} href="/groups">
                 {t("community")}
               </Link>
-              <Link className={styles.footerLink} href="/pricing">
-                {t("pricing")}
+              <Link className={styles.footerLink} href="/signup">
+                {t("signup")}
               </Link>
               <Link className={styles.footerLink} href="/about">
                 {t("about")}

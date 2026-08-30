@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import BuyButton from "@/components/BuyButton";
 import styles from "./spaces.module.css";
 
 const FEATURE_ICONS = {
@@ -83,11 +82,7 @@ export default function SpacesBoard({ spaces, uid }) {
                 )}
               </div>
               {space.purchasePriceCents > 0 && !space.purchased ? (
-                <BuyButton
-                  targetType="space"
-                  targetId={space.id}
-                  priceCents={space.purchasePriceCents}
-                />
+                <span className={styles.join} title="Access included with your membership">Included</span>
               ) : (
                 <button
                   className={space.joined ? `${styles.join} ${styles.joinActive}` : styles.join}

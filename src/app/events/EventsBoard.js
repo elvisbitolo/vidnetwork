@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
-import BuyButton from "@/components/BuyButton";
 import styles from "./events.module.css";
 
 function getNow() {
@@ -112,8 +111,8 @@ export default function EventsBoard({ events, uid, userName }) {
     const isLive = new Date(event.startTime).getTime() <= now;
     const atCapacity = event.capacity > 0 && count >= event.capacity;
     const isPaid = Number(event.purchasePriceCents) > 0;
-    const hasAccess = !isPaid || purchasedKeys.has(`event:${event.id}`);
-    const joinDisabled = !!busyId || (atCapacity && !mine) || !hasAccess;
+    const purchased = purchasedKeys.has(`event:${event.id}`);
+    const joinDisabled = !!busyId || (atCapacity && !mine);
 
     return (
       <div key={key} className={styles.eventCard}>
@@ -140,7 +139,7 @@ export default function EventsBoard({ events, uid, userName }) {
           {isPaid && (
             <p className={styles.priceTag}>
               Ticket ${(Number(event.purchasePriceCents) / 100).toFixed(2)}
-              {hasAccess && " · purchased"}
+              {purchased && " · purchased"}
             </p>
           )}
           {event.description && <p className={styles.eventDesc}>{event.description}</p>}
@@ -166,17 +165,13 @@ export default function EventsBoard({ events, uid, userName }) {
             <p className={styles.capacityFull}>This event is full.</p>
           )}
           <div className={styles.actions}>
-            {isPaid && !hasAccess ? (
-              <BuyButton targetType="event" targetId={event.id} priceCents={event.purchasePriceCents} />
-            ) : (
-              <button
-                className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
-                onClick={() => handleRsvp(event.id, event.occurrenceId)}
-                disabled={joinDisabled}
-              >
-                {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
-              </button>
-            )}
+            <button
+              className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+              onClick={() => handleRsvp(event.id, event.occurrenceId)}
+              disabled={joinDisabled}
+            >
+              {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+            </button>
             <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
               Add to calendar
             </a>

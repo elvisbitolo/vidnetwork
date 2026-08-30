@@ -51,7 +51,32 @@ export default function DashboardThemePicker() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [panelPos, setPanelPos] = useState(null);
   const panelRef = useRef(null);
+  const lastRect = useRef(null);
+
+  function clampPanel(rect) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const maxH = vw < 1024 ? Math.min(vh * 0.52, 440) : Math.min(vh * 0.7, 560);
+    const width = Math.min(340, vw - 24);
+    let left = rect.right - width;
+    left = Math.max(8, Math.min(left, vw - width - 8));
+    let top = rect.bottom + 10;
+    if (top + maxH > vh - 8) top = Math.max(8, rect.top - maxH - 10);
+    return { left, top };
+  }
+
+  function togglePanel(e) {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    lastRect.current = rect;
+    setPanelPos(clampPanel(rect));
+    setOpen(true);
+  }
 
   useEffect(() => {
     fetch("/api/dashboard/theme")
@@ -80,6 +105,15 @@ export default function DashboardThemePicker() {
     if (theme.muted) r.style.setProperty("--dash-muted", theme.muted);
     if (theme.accent) r.style.setProperty("--dash-accent", theme.accent);
   }, [theme]);
+
+  useEffect(() => {
+    if (!open || !lastRect.current) return;
+    function onResize() {
+      setPanelPos(clampPanel(lastRect.current));
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -120,11 +154,15 @@ export default function DashboardThemePicker() {
 
   if (loading || !theme) return null;
 
+  const compact = typeof window !== "undefined" && window.innerWidth < 1024;
+  const panelMaxHeight = compact ? "min(52vh, 440px)" : "min(70vh, 560px)";
+
   return (
     <div style={{ position: "relative" }}>
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={togglePanel}
         title="Customize theme"
+        aria-expanded={open}
         style={{
           width: 36, height: 36, borderRadius: 10, border: "1px solid #2e2e38",
           background: "#24242a", color: "#a0a0ac", cursor: "pointer",
@@ -143,16 +181,14 @@ export default function DashboardThemePicker() {
         </svg>
       </button>
 
-      {open && (
+      {open && panelPos && (
         <div ref={panelRef} style={{
-          position: "fixed", top: "auto", bottom: 0, left: 0, right: 0, zIndex: 200,
-          maxHeight: "80vh", overflowY: "auto",
-          background: "#1a1a1f", border: "1px solid #2e2e38", borderTopLeftRadius: 20, borderTopRightRadius: 20,
-          padding: 18, boxShadow: "0 -8px 40px rgba(0,0,0,0.6)",
+          position: "fixed", left: panelPos.left, top: panelPos.top, zIndex: 200,
+          width: "min(340px, calc(100vw - 24px))",
+          maxHeight: panelMaxHeight, overflowY: "auto",
+          background: "#1a1a1f", border: "1px solid #2e2e38", borderRadius: 16,
+          padding: 18, boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
         }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <div style={{ width: 40, height: 4, borderRadius: 2, background: "#3e3e48" }} />
-          </div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#f5f5f5", marginBottom: 14, textAlign: "center" }}>
             Customize Dashboard
           </div>

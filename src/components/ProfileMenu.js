@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/lib/client-auth";
+import { roleBadgeLabel } from "@/lib/profile/roles";
 import styles from "./Nav.module.css";
 
 function initials(name) {
@@ -13,12 +14,6 @@ function initials(name) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
-}
-
-function roleLabel(role) {
-  if (role === "owner") return "Owner";
-  if (role === "moderator") return "Moderator";
-  return "Member";
 }
 
 export default function ProfileMenu() {
@@ -105,9 +100,9 @@ export default function ProfileMenu() {
             <div style={{ minWidth: 0 }}>
               <p className={styles.profileNameMenu}>{name}</p>
               <p className={styles.profileEmail}>
-                {profile?.email || ""}
+                {profile?.username ? `@${profile.username}` : profile?.email || ""}
                 {isStaff ? (
-                  <span className={styles.roleBadge}>{roleLabel(profile.role)}</span>
+                  <span className={styles.roleBadge}>{roleBadgeLabel(profile.role, profile.roleLabel)}</span>
                 ) : null}
               </p>
             </div>

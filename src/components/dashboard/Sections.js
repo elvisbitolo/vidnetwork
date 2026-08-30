@@ -58,7 +58,6 @@ export function QuickActions({ isStaff }) {
   const t = useTranslations("dashboard");
   const actions = [
     { key: "startLive", href: "/rooms", icon: "●" },
-    { key: "uploadVideo", href: "/recordings", icon: "▲" },
     { key: "createRoom", href: isStaff ? "/admin/rooms" : "/rooms", icon: "+" },
     { key: "createPost", href: "/feed", icon: "✎" },
   ];

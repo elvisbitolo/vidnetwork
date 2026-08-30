@@ -8,7 +8,6 @@ import {
   requireGroupMember,
   guardJson,
 } from "@/lib/server/authorize";
-import { meetsTier } from "@/lib/server/plans";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { getScopedHostRights } from "@/lib/server/hosts";
 
@@ -59,9 +58,6 @@ export async function POST(req) {
       const membership = await isSpaceMember(room.spaceId, auth.user.uid);
       if (!membership) {
         return NextResponse.json({ error: "Join the space first" }, { status: 403 });
-      }
-      if (space.requiredTier && !meetsTier(auth.sub?.tier || "standard", space.requiredTier)) {
-        return NextResponse.json({ error: "Premium membership required" }, { status: 403 });
       }
     }
   }

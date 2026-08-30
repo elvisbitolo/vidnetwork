@@ -8,8 +8,8 @@ import { getSpace } from "@/lib/server/spaces";
 import { listConversations } from "@/lib/server/chat";
 import { listNotifications } from "@/lib/server/notifications";
 import { getLeaderboard, getGamification } from "@/lib/server/gamification";
-import { getStripe } from "@/lib/server/stripe";
 import { getUserMemberships } from "@/lib/server/dashboard";
+import { getPerkTier } from "@/lib/server/perks";
 import { listLiveParticipants } from "@/lib/server/livekit";
 import {
   toMillis,
@@ -94,19 +94,6 @@ export async function getDashboardStats(uid, userDoc) {
           .get(),
       ]);
       let priceMap = {};
-      try {
-        const stripe = getStripe();
-        const prices = await stripe.prices.list({ limit: 100, active: true });
-        priceMap = {};
-        prices.data.forEach((price) => {
-          priceMap[price.id] = {
-            unitAmountCents: price.unit_amount || 0,
-            interval: price.recurring?.interval,
-          };
-        });
-      } catch {
-        priceMap = {};
-      }
       const subs = subsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const subsSummary = summarizeSubscriptions(subs, priceMap, now);
 
@@ -461,6 +448,7 @@ export async function getDashboardCommandData(uid, userDoc) {
   const memberships = await getUserMemberships(uid);
   const isStaff = canModerate(userDoc);
   const gamification = await getGamification(uid, userDoc?.name || "Member");
+  const perkTier = await getPerkTier(uid);
 
   const user = {
     uid,
@@ -470,6 +458,12 @@ export async function getDashboardCommandData(uid, userDoc) {
     photoURL: userDoc?.photoURL || "",
     points: Number(gamification.points) || 0,
     streak: Number(gamification.streak) || 0,
+    membership: {
+      tier: perkTier.tier,
+      isStaff: perkTier.isStaff,
+      isPlus: perkTier.isPlus,
+      isHost: perkTier.isHost,
+    },
   };
 
   const [stats, activity, upcomingRooms, messages, content, notifications, needsAttention, onboarding, leaderboard] =

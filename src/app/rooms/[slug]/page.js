@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getRoomBySlug } from "@/lib/server/rooms";
 import { getUpcomingRoomStart } from "@/lib/server/events";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getScopedHostRights } from "@/lib/server/hosts";
 import Nav from "@/components/Nav";
 import RoomClient from "./RoomClient";
@@ -30,21 +29,6 @@ export default async function RoomPage({ params }) {
     );
   }
 
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) {
-    return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Membership required</h1>
-          <p className={styles.subtitle}>
-            An active membership is required to join video rooms.
-          </p>
-          <Link className={styles.link} href="/pricing">View plans</Link>
-        </div>
-      </main>
-    );
-  }
-
   const opensAt = await getUpcomingRoomStart(slug);
   const rights = await getScopedHostRights(user.uid, "room", room.id);
 
@@ -60,7 +44,6 @@ export default async function RoomPage({ params }) {
         opensAt={opensAt}
         isHost={rights.isHost}
         isCoHost={rights.isCoHost}
-        canRecord={rights.canRecord && !room.alwaysOn}
         alwaysOn={!!room.alwaysOn}
         musicUrl={room.musicUrl || ""}
         musicPlaying={!!room.musicPlaying}

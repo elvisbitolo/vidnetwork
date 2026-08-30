@@ -17,8 +17,6 @@ export default function AdminRoomsPage() {
   const [kind, setKind] = useState("standard");
   const [publicPreview, setPublicPreview] = useState(false);
   const [opensAt, setOpensAt] = useState("");
-  const [recordingAllowed, setRecordingAllowed] = useState(true);
-  const [replayVisibility, setReplayVisibility] = useState("members");
   const [hostId, setHostId] = useState("");
   const [coHostIds, setCoHostIds] = useState([]);
   const [members, setMembers] = useState([]);
@@ -76,8 +74,6 @@ export default function AdminRoomsPage() {
         kind,
         publicPreview,
         opensAt: opensAt ? new Date(opensAt).toISOString() : null,
-        recordingAllowed,
-        replayVisibility,
       }),
     });
     const data = await res.json();
@@ -95,7 +91,6 @@ export default function AdminRoomsPage() {
         scopeId: room.id,
         userId: hostId,
         role: "host",
-        canRecord: true,
       });
     }
     for (const userId of coHostIds) {
@@ -104,7 +99,6 @@ export default function AdminRoomsPage() {
         scopeId: room.id,
         userId,
         role: "co-host",
-        canRecord: false,
       });
     }
     for (const payload of assignments) {
@@ -123,8 +117,6 @@ export default function AdminRoomsPage() {
     setKind("standard");
     setPublicPreview(false);
     setOpensAt("");
-    setRecordingAllowed(true);
-    setReplayVisibility("members");
     setHostId("");
     setCoHostIds([]);
     await loadRooms();
@@ -245,32 +237,6 @@ export default function AdminRoomsPage() {
             </small>
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Recording</label>
-            <label className={styles.checkCard}>
-              <input
-                type="checkbox"
-                checked={recordingAllowed}
-                onChange={(e) => setRecordingAllowed(e.target.checked)}
-              />
-              <span className={styles.checkText}>
-                <strong>Allow recording in this room</strong>
-                <small>Hosts can start and stop recordings when enabled.</small>
-              </span>
-            </label>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="replay">Replay visibility</label>
-            <select
-              id="replay"
-              className={styles.input}
-              value={replayVisibility}
-              onChange={(e) => setReplayVisibility(e.target.value)}
-            >
-              <option value="members">Members only</option>
-              <option value="owner">Hosts only</option>
-            </select>
-          </div>
-          <div className={styles.field}>
             <label className={styles.label} htmlFor="host">Host</label>
             <select
               id="host"
@@ -344,8 +310,6 @@ export default function AdminRoomsPage() {
                     {room.opensAt
                       ? ` · opens ${new Date(room.opensAt.toMillis ? room.opensAt.toMillis() : room.opensAt).toLocaleString()}`
                       : " · open now"}
-                    · recording {room.recordingAllowed === false ? "off" : "on"}
-                    · replay {room.replayVisibility === "owner" ? "hosts only" : "members"}
                   </p>
                 </div>
                 <div className={styles.itemActions}>

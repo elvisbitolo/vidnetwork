@@ -1,6 +1,6 @@
 export const TIERS = ["lounge", "plus", "host"];
 
-const LEGACY_ALIASES = {
+export const LEGACY_ALIASES = {
   standard: "lounge",
   community: "lounge",
   premium: "host",

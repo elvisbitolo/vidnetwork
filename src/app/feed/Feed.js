@@ -363,19 +363,24 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
     } else {
       q = query(base, orderBy("createdAt", "desc"), limit(100));
     }
-    const unsubPosts = onSnapshot(q, (snap) =>
-      setPosts(
-        snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => {
-            const ap = a.pinned ? 1 : 0;
-            const bp = b.pinned ? 1 : 0;
-            if (ap !== bp) return bp - ap;
-            const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
-            const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
-            return bt - at;
-          })
-      )
+    const unsubPosts = onSnapshot(
+      q,
+      (snap) =>
+        setPosts(
+          snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => {
+              const ap = a.pinned ? 1 : 0;
+              const bp = b.pinned ? 1 : 0;
+              if (ap !== bp) return bp - ap;
+              const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
+              const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
+              return bt - at;
+            })
+        ),
+      (err) => {
+        console.error("Feed read failed", err);
+      }
     );
     return () => {
       unsubAuth();
@@ -464,7 +469,11 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
   }
 
   async function handleDelete(postId) {
-    await deleteDoc(doc(db, "posts", postId));
+    const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Failed to delete post");
+    }
   }
 
   async function handlePin(postId) {

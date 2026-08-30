@@ -1,15 +1,12 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { getLeaderboard } from "@/lib/server/gamification";
-import { getStripe } from "@/lib/server/stripe";
 import { getCourse } from "@/lib/server/courses";
 import { getEvent } from "@/lib/server/events";
 import { getSpace } from "@/lib/server/spaces";
-import { isActiveSub } from "@/lib/server/billing";
 import {
   startOfDay,
   visitKey,
   toMillis,
-  monthlyRateCents,
   summarizeSubscriptions,
   summarizePurchases,
   rankTopPosts,
@@ -141,20 +138,7 @@ export async function getAnalytics() {
 
   const subs = subscriptionsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  let priceMap = {};
-  try {
-    const stripe = getStripe();
-    const prices = await stripe.prices.list({ limit: 100, active: true });
-    priceMap = {};
-    prices.data.forEach((price) => {
-      priceMap[price.id] = {
-        unitAmountCents: price.unit_amount || 0,
-        interval: price.recurring?.interval,
-      };
-    });
-  } catch {
-    priceMap = {};
-  }
+  const priceMap = {};
 
   const purchasesWithPrice = await Promise.all(
     purchasesSnap.docs.map(async (doc) => {
@@ -213,147 +197,5 @@ export async function getAnalytics() {
     },
     topContent: topPosts,
     topMembers,
-  };
-}
-
-const TYPE_LABEL = { course: "Course", event: "Event", space: "Space" };
-
-function offerKey(targetType, targetId) {
-  return `${targetType}:${targetId}`;
-}
-
-export async function getIncomeData() {
-  const now = Date.now();
-  const [
-    subscriptionsSnap,
-    purchasesSnap,
-    promosSnap,
-    usersSnap,
-  ] = await Promise.all([
-    adminDb().collection("subscriptions").get(),
-    adminDb().collection("purchases").get(),
-    adminDb().collection("promoCodes").get(),
-    adminDb().collection("users").get(),
-  ]);
-
-  let priceMap = {};
-  try {
-    const stripe = getStripe();
-    const prices = await stripe.prices.list({ limit: 100, active: true });
-    priceMap = {};
-    prices.data.forEach((price) => {
-      priceMap[price.id] = {
-        unitAmountCents: price.unit_amount || 0,
-        interval: price.recurring?.interval,
-      };
-    });
-  } catch {
-    priceMap = {};
-  }
-
-  const subs = subscriptionsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const summary = summarizeSubscriptions(subs, priceMap, now);
-
-  const tierBreakdown = {};
-  for (const sub of subs) {
-    if (!isActiveSub(sub, now)) continue;
-    const tier = sub.tier || "standard";
-    const mrr = monthlyRateCents(priceMap[sub.priceId]);
-    tierBreakdown[tier] = tierBreakdown[tier] || { count: 0, mrrCents: 0 };
-    tierBreakdown[tier].count += 1;
-    tierBreakdown[tier].mrrCents += mrr;
-  }
-
-  const usersById = {};
-  usersSnap.docs.forEach((doc) => {
-    const data = doc.data();
-    usersById[doc.id] = data.name || data.displayName || data.email || doc.id;
-  });
-
-  const offers = {};
-  const recent = [];
-  const withPrice = await Promise.all(
-    purchasesSnap.docs.map(async (doc) => {
-      const data = doc.data();
-      const loader =
-        data.targetType === "course"
-          ? getCourse
-          : data.targetType === "event"
-            ? getEvent
-            : getSpace;
-      let item = null;
-      try {
-        item = await loader(data.targetId);
-      } catch {
-        item = null;
-      }
-      const priceCents = Number(item?.purchasePriceCents) || 0;
-      const key = offerKey(data.targetType, data.targetId);
-      offers[key] = offers[key] || {
-        targetType: data.targetType,
-        targetId: data.targetId,
-        title: item?.title || item?.name || (data.targetType === "course" ? "Course" : data.targetType === "event" ? "Event" : "Space"),
-        count: 0,
-        revenueCents: 0,
-      };
-      offers[key].count += 1;
-      offers[key].revenueCents += priceCents;
-      return {
-        targetType: data.targetType,
-        targetId: data.targetId,
-        title: offers[key].title,
-        priceCents,
-        purchasedAt: toMillis(data.purchasedAt),
-        memberName: usersById[data.uid] || "Member",
-        promoCode: data.promoCode || "",
-      };
-    })
-  );
-
-  const offersList = Object.values(offers).sort((a, b) => b.revenueCents - a.revenueCents);
-  const oneTimeRevenueCents = withPrice.reduce((sum, p) => sum + p.priceCents, 0);
-  const promoRevenueShare = withPrice
-    .filter((p) => p.promoCode)
-    .reduce((sum, p) => sum + p.priceCents, 0);
-
-  recent.push(
-    ...withPrice
-      .filter((p) => p.purchasedAt > 0)
-      .sort((a, b) => b.purchasedAt - a.purchasedAt)
-      .slice(0, 10)
-  );
-
-  const promos = promosSnap.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      code: data.code,
-      uses: Number(data.uses) || 0,
-      maxUses: Number(data.maxUses) || 0,
-      percentOff: Number(data.percentOff) || 0,
-      amountOffCents: Number(data.amountOffCents) || 0,
-      active: data.active !== false,
-    };
-  });
-
-  return {
-    recurring: {
-      mrrCents: summary.estimatedMonthlyCents,
-      activeSubscribers: summary.active,
-      cancelAtPeriodEnd: summary.cancelAtPeriodEnd,
-      tierBreakdown: Object.entries(tierBreakdown).map(([tier, value]) => ({
-        tier,
-        count: value.count,
-        mrrCents: value.mrrCents,
-      })),
-    },
-    oneTime: {
-      revenueCents: oneTimeRevenueCents,
-      promoRevenueCents: promoRevenueShare,
-      offers: offersList,
-      recent,
-    },
-    promos,
-    labelForType: TYPE_LABEL,
   };
 }

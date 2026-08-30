@@ -8,7 +8,6 @@ import { sendEmail } from "@/lib/server/email";
 import { awardPoints, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { applyRsvpCounts } from "@/lib/server/events-core";
-import { hasPurchased } from "@/lib/server/purchases";
 import { runAutomations } from "@/lib/server/automations";
 
 export async function POST(req) {
@@ -38,9 +37,6 @@ export async function POST(req) {
     const eventData = eventSnap.data();
     if (!eventData) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
-    }
-    if (Number(eventData.purchasePriceCents) > 0 && !(await hasPurchased(user.uid, "event", eventId))) {
-      return NextResponse.json({ error: "Buy this event to RSVP" }, { status: 403 });
     }
   }
 

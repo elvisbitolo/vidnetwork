@@ -1,4 +1,6 @@
 import { QUIZ_QUESTIONS } from "../profile/questions.js";
+import { isValidCountry } from "../profile/countries.js";
+import { buildSocialUrl } from "../profile/social.js";
 
 function clean(value, max) {
   return (typeof value === "string" ? value : "").trim().slice(0, max);
@@ -14,6 +16,57 @@ export const CRAFT_OPTIONS = [
   "macrame",
 ];
 
+export const CROCHET_TECHNIQUES = [
+  "amigurumi",
+  "blankets & afghans",
+  "garments & sweaters",
+  "shawls & wraps",
+  "granny squares",
+  "doilies & lace",
+  "filet crochet",
+  "Tunisian crochet",
+  "waffle, puff & bobble stitches",
+  "basket weave & braided cables",
+  "chunky & oversized makes",
+  "gradient & self-striping yarns",
+  "wearables",
+  "home decor",
+  "toys & gifts",
+  "freeform / art",
+];
+
+export const CROCHET_MOTIVATIONS = [
+  "relaxation & stress relief",
+  "gifts for loved ones",
+  "making my own clothes",
+  "home decor",
+  "charity / community projects",
+  "selling my makes",
+  "learning & mastering skills",
+  "meeting other makers",
+];
+
+const USERNAME_RE = /^[a-z0-9._-]{3,24}$/;
+
+function normalizeChoices(raw, allowed, max = allowed.length) {
+  if (!Array.isArray(raw)) raw = raw ? [raw] : [];
+  return [...new Set(
+    raw.map((v) => (typeof v === "string" ? v.trim().slice(0, 120) : "")).filter(Boolean)
+  )].slice(0, Math.min(max, allowed.length));
+}
+
+function normalizeSocial(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .slice(0, 8)
+    .map((link) => {
+      const platform = clean(typeof link.platform === "string" ? link.platform : "other", 30) || "other";
+      const handle = clean(typeof link.handle === "string" ? link.handle : "", 120);
+      return { platform, handle };
+    })
+    .filter((link) => link.handle.length > 0);
+}
+
 export function normalizeProfile(body) {
   const patch = {};
   const errors = {};
@@ -23,9 +76,28 @@ export function normalizeProfile(body) {
     if (!name) errors.name = "Name is required";
     else patch.name = name;
   }
+  if ("username" in body) {
+    const username = clean(body.username, 24).toLowerCase();
+    if (!username) {
+      errors.username = "Username is required";
+    } else if (!USERNAME_RE.test(username)) {
+      errors.username = "Usernames are 3–24 characters, using letters, numbers, dots, underscores or dashes";
+    } else {
+      patch.username = username;
+    }
+  }
   if ("headline" in body) patch.headline = clean(body.headline, 120);
   if ("location" in body) patch.location = clean(body.location, 80);
-  if ("country" in body) patch.country = clean(body.country, 60);
+  if ("country" in body) {
+    const country = clean(body.country, 60);
+    if (!country) {
+      patch.country = "";
+    } else if (!isValidCountry(country)) {
+      errors.country = "Please pick a country from the list";
+    } else {
+      patch.country = country;
+    }
+  }
   if ("state" in body) patch.state = clean(body.state, 60);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
   if ("favoriteColors" in body) {
@@ -46,10 +118,28 @@ export function normalizeProfile(body) {
       ),
     ].slice(0, CRAFT_OPTIONS.length);
   }
+  if ("yearsExperience" in body) patch.yearsExperience = clean(body.yearsExperience, 40);
+  if ("favoriteYarnBrand" in body) patch.favoriteYarnBrand = clean(body.favoriteYarnBrand, 80);
+  if ("crochetTechniques" in body) {
+    const chosen = normalizeChoices(body.crochetTechniques, CROCHET_TECHNIQUES);
+    patch.crochetTechniques = chosen.filter((t) => CROCHET_TECHNIQUES.includes(t));
+  }
+  if ("crochetMotivation" in body) {
+    const chosen = normalizeChoices(body.crochetMotivation, CROCHET_MOTIVATIONS);
+    patch.crochetMotivation = chosen.filter((m) => CROCHET_MOTIVATIONS.includes(m));
+  }
+  if ("learningNext" in body) patch.learningNext = clean(body.learningNext, 160);
   if ("proudestProject" in body) patch.proudestProject = clean(body.proudestProject, 140);
   if ("bestGiftProject" in body) patch.bestGiftProject = clean(body.bestGiftProject, 140);
   QUIZ_QUESTIONS.forEach((q) => {
-    if (q.field in body) patch[q.field] = clean(body[q.field], 120);
+    if (!(q.field in body)) return;
+    if (q.multiple) {
+      patch[q.field] = normalizeChoices(body[q.field], q.options, q.options.length).filter((v) =>
+        q.options.includes(v)
+      );
+    } else {
+      patch[q.field] = clean(body[q.field], 120);
+    }
   });
   if ("photoURL" in body) {
     const photoURL = typeof body.photoURL === "string" ? body.photoURL.trim().slice(0, 300000) : "";
@@ -69,14 +159,16 @@ export function normalizeProfile(body) {
     }
   }
   if ("socialLinks" in body) {
-    const raw = Array.isArray(body.socialLinks) ? body.socialLinks : [];
-    patch.socialLinks = raw
-      .slice(0, 8)
-      .map((link) => ({
-        platform: clean(typeof link.platform === "string" ? link.platform : "other", 30) || "other",
-        url: clean(typeof link.url === "string" ? link.url : "", 300),
-      }))
-      .filter((link) => link.url.length > 0);
+    const links = normalizeSocial(body.socialLinks);
+    if (links.length > 0) {
+      patch.socialLinks = links.map((link) => ({
+        platform: link.platform,
+        handle: link.handle,
+        url: buildSocialUrl(link.platform, link.handle),
+      }));
+    } else {
+      patch.socialLinks = [];
+    }
   }
 
   return { patch, errors };

@@ -5,7 +5,6 @@ import { getCourse, getCourseFull, getProgress } from "@/lib/server/courses";
 import { listSpaces } from "@/lib/server/spaces";
 import { listConversations } from "@/lib/server/chat";
 import { listNotifications } from "@/lib/server/notifications";
-import { meetsTier } from "@/lib/server/plans";
 import { getLeaderboard } from "@/lib/server/gamification";
 
 function toMillis(value) {
@@ -92,7 +91,7 @@ export async function getContinueLearning(uid, tier, limit = 3) {
   for (const doc of progressSnap.docs) {
     const progress = doc.data();
     const course = await getCourse(progress.courseId);
-    if (!course || course.status !== "published" || !meetsTier(tier, course.requiredTier)) continue;
+    if (!course || course.status !== "published") continue;
     const full = await getCourseFull(course.id);
     let total = 0;
     for (const mod of full.modules) {
@@ -120,8 +119,7 @@ export async function getRecommendedSpaces(uid, tier, memberships, limit = 3) {
     .filter(
       (space) =>
         !memberships.spaceIds.has(space.id) &&
-        space.access !== "invite" &&
-        meetsTier(tier, space.requiredTier)
+        space.access !== "invite"
     )
     .slice(0, limit)
     .map((space) => ({

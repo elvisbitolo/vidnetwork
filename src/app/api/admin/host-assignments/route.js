@@ -6,7 +6,7 @@ import {
   setHostAssignment,
   scopeExists,
 } from "@/lib/server/hosts";
-import { HOST_SCOPE_TYPES, normalizeHostRole, normalizeCanRecord } from "@/lib/server/host-core";
+import { HOST_SCOPE_TYPES, normalizeHostRole } from "@/lib/server/host-core";
 import { logAudit } from "@/lib/server/audit";
 
 export async function GET(req) {
@@ -31,7 +31,7 @@ export async function POST(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { scopeType, scopeId, userId, role, canRecord } = await req.json();
+  const { scopeType, scopeId, userId, role } = await req.json();
 
   if (!HOST_SCOPE_TYPES.includes(scopeType) || !scopeId || !userId) {
     return NextResponse.json({ error: "Scope, target, and member are required" }, { status: 400 });
@@ -53,7 +53,6 @@ export async function POST(req) {
     scopeId,
     userId,
     role: normalizedRole,
-    canRecord: normalizeCanRecord(normalizedRole, canRecord),
     grantedBy: auth.user.uid,
   });
   if (!result.ok) {

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { recordDailyVisit } from "@/lib/server/gamification";
 import Nav from "@/components/Nav";
 import Feed from "./Feed";
@@ -13,8 +12,6 @@ export default async function FeedPage() {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   recordDailyVisit(user.uid, userDoc?.name || user.name || "Member").catch(() => {});
 

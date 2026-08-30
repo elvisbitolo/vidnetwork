@@ -1,7 +1,6 @@
 import { redirect } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
-import { isActiveSub, getAccessSub } from "@/lib/server/subscription";
 import Nav from "@/components/Nav";
 import GalleryGrid from "./GalleryGrid";
 
@@ -53,8 +52,6 @@ export default async function GalleryPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const snap = await adminDb()
     .collection("posts")

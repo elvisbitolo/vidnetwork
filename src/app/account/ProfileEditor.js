@@ -1,14 +1,59 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { QUIZ_QUESTIONS } from "@/lib/profile/questions";
+import { COUNTRIES, countryByCode } from "@/lib/profile/countries";
+import {
+  SOCIAL_PLATFORMS,
+  platformInfo,
+  buildSocialUrl,
+  extractHandle,
+} from "@/lib/profile/social";
+import {
+  CRAFT_OPTIONS,
+  CROCHET_TECHNIQUES,
+  CROCHET_MOTIVATIONS,
+} from "@/lib/server/profile";
 import styles from "./account.module.css";
+
+const QUESTIONS_PER_PAGE = 3;
+const QUIZ_PAGE_COUNT = Math.ceil(QUIZ_QUESTIONS.length / QUESTIONS_PER_PAGE);
 
 function normalize(value) {
   return (value || "").trim();
 }
 
-const LIMITS = { name: 60, headline: 120, location: 80, country: 60, state: 60, bio: 600, yarn: 80, hook: 40, project: 140 };
+const LIMITS = {
+  name: 60,
+  headline: 120,
+  location: 80,
+  country: 60,
+  bio: 600,
+  yarn: 80,
+  hook: 40,
+  yarnBrand: 80,
+  learning: 160,
+  project: 140,
+};
+
+const YEARS_OPTIONS = [
+  "Less than a year",
+  "1–2 years",
+  "3–5 years",
+  "6–10 years",
+  "10+ years",
+  "It's my whole personality",
+];
+
+const PALETTE_PRESETS = [
+  { name: "Sunset Glow", colors: ["#ff6f61", "#ffb37b", "#ff8fab"] },
+  { name: "Ocean Waves", colors: ["#14b8a6", "#06b6d4", "#0ea5e9"] },
+  { name: "Earthy Vibes", colors: ["#708238", "#a3b18a", "#c67c5a"] },
+  { name: "Pastel Dream", colors: ["#c4b5fd", "#a5f3fc", "#fde68a"] },
+  { name: "Jewel Tones", colors: ["#059669", "#1d4ed8", "#be123c"] },
+  { name: "Blush & Rose", colors: ["#ff7a9e", "#ff9a9e", "#fbc4c4"] },
+];
 
 function initials(name) {
   return (name || "?")
@@ -45,12 +90,25 @@ function resizeImage(file, maxSize = 256) {
   });
 }
 
+function toHandledLinks(links) {
+  if (!Array.isArray(links) || links.length === 0) return [];
+  return links
+    .map((l) => {
+      const platform = l.platform || "other";
+      const handle =
+        typeof l.handle === "string"
+          ? l.handle
+          : extractHandle(platform, typeof l.url === "string" ? l.url : "");
+      return { platform, handle };
+    })
+    .filter((l) => l.handle);
+}
+
 export default function ProfileEditor({ initial }) {
   const [name, setName] = useState(initial.name || "");
   const [headline, setHeadline] = useState(initial.headline || "");
   const [location, setLocation] = useState(initial.location || "");
   const [country, setCountry] = useState(initial.country || "");
-  const [state, setState] = useState(initial.state || "");
   const [bio, setBio] = useState(initial.bio || "");
   const [favoriteColors, setFavoriteColors] = useState(
     Array.isArray(initial.favoriteColors) && initial.favoriteColors.length
@@ -60,21 +118,42 @@ export default function ProfileEditor({ initial }) {
   const [goToYarn, setGoToYarn] = useState(initial.goToYarn || "");
   const [favoriteHookSize, setFavoriteHookSize] = useState(initial.favoriteHookSize || "");
   const [crafts, setCrafts] = useState(Array.isArray(initial.crafts) ? initial.crafts : []);
+  const [yearsExperience, setYearsExperience] = useState(initial.yearsExperience || "");
+  const [favoriteYarnBrand, setFavoriteYarnBrand] = useState(initial.favoriteYarnBrand || "");
+  const [crochetTechniques, setCrochetTechniques] = useState(
+    Array.isArray(initial.crochetTechniques) ? initial.crochetTechniques : []
+  );
+  const [crochetMotivation, setCrochetMotivation] = useState(
+    Array.isArray(initial.crochetMotivation) ? initial.crochetMotivation : []
+  );
+  const [learningNext, setLearningNext] = useState(initial.learningNext || "");
   const [proudestProject, setProudestProject] = useState(initial.proudestProject || "");
   const [bestGiftProject, setBestGiftProject] = useState(initial.bestGiftProject || "");
-  const [quiz, setQuiz] = useState(
-    QUIZ_QUESTIONS.reduce((acc, q) => ({ ...acc, [q.field]: (initial[q.field] || "").trim() }), {})
-  );
-  const [socialLinks, setSocialLinks] = useState(
-    Array.isArray(initial.socialLinks) && initial.socialLinks.length
-      ? initial.socialLinks
-      : [{ platform: "website", url: "" }]
-  );
+  const [quiz, setQuiz] = useState(() => {
+    const init = {};
+    for (const q of QUIZ_QUESTIONS) {
+      const raw = initial[q.field];
+      init[q.field] = q.multiple
+        ? Array.isArray(raw)
+          ? raw.filter(Boolean)
+          : raw
+            ? [raw]
+            : []
+        : String(raw || "").trim();
+    }
+    return init;
+  });
+  const [socialLinks, setSocialLinks] = useState(() => {
+    const handled = toHandledLinks(initial.socialLinks);
+    return handled.length > 0 ? handled : [{ platform: "website", handle: "" }];
+  });
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
+  const [quizPage, setQuizPage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef(null);
 
@@ -133,6 +212,43 @@ export default function ProfileEditor({ initial }) {
     }
   }
 
+  async function detectLocation() {
+    setError("");
+    setNotice("");
+    setLocating(true);
+    try {
+      if (!navigator.geolocation) {
+        throw new Error("Location isn't available on this device.");
+      }
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+      );
+      if (!res.ok) throw new Error("Couldn't look up your location.");
+      const data = await res.json();
+      const match = countryByCode(data.countryCode);
+      if (match) setCountry(match.name);
+      const city = data.city || data.locality || data.principalSubdivision || "";
+      if (city) setLocation(city);
+      if (match || city) {
+        setNotice("Location detected — review it before saving.");
+      } else {
+        setNotice("We couldn't work out your exact country — pick it from the list instead.");
+      }
+    } catch (err) {
+      setError(err.message || "Couldn't detect your location.");
+    } finally {
+      setLocating(false);
+    }
+  }
+
+  function toggleChoice(list, value, setter) {
+    setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     setError("");
@@ -153,15 +269,7 @@ export default function ProfileEditor({ initial }) {
       return;
     }
     if (normalize(location).length > LIMITS.location) {
-      setError(`Location must be ${LIMITS.location} characters or fewer.`);
-      return;
-    }
-    if (normalize(country).length > LIMITS.country) {
-      setError(`Country must be ${LIMITS.country} characters or fewer.`);
-      return;
-    }
-    if (normalize(state).length > LIMITS.state) {
-      setError(`State must be ${LIMITS.state} characters or fewer.`);
+      setError(`City / area must be ${LIMITS.location} characters or fewer.`);
       return;
     }
     if (normalize(bio).length > LIMITS.bio) {
@@ -174,6 +282,14 @@ export default function ProfileEditor({ initial }) {
     }
     if (normalize(favoriteHookSize).length > LIMITS.hook) {
       setError(`Favorite hook size must be ${LIMITS.hook} characters or fewer.`);
+      return;
+    }
+    if (normalize(favoriteYarnBrand).length > LIMITS.yarnBrand) {
+      setError(`Favorite yarn brand must be ${LIMITS.yarnBrand} characters or fewer.`);
+      return;
+    }
+    if (normalize(learningNext).length > LIMITS.learning) {
+      setError(`What you want to learn must be ${LIMITS.learning} characters or fewer.`);
       return;
     }
     if (normalize(proudestProject).length > LIMITS.project) {
@@ -193,8 +309,6 @@ export default function ProfileEditor({ initial }) {
     if (cleanLocation !== normalize(initial.location)) patch.location = cleanLocation;
     const cleanCountry = normalize(country);
     if (cleanCountry !== normalize(initial.country)) patch.country = cleanCountry;
-    const cleanState = normalize(state);
-    if (cleanState !== normalize(initial.state)) patch.state = cleanState;
     const cleanBio = normalize(bio);
     if (cleanBio !== normalize(initial.bio)) patch.bio = cleanBio;
 
@@ -207,20 +321,49 @@ export default function ProfileEditor({ initial }) {
     const cleanHook = normalize(favoriteHookSize);
     if (cleanHook !== normalize(initial.favoriteHookSize)) patch.favoriteHookSize = cleanHook;
     if (JSON.stringify(crafts) !== JSON.stringify(initial.crafts || [])) patch.crafts = crafts;
+
+    const cleanYears = normalize(yearsExperience);
+    if (cleanYears !== normalize(initial.yearsExperience)) patch.yearsExperience = cleanYears;
+    const cleanBrand = normalize(favoriteYarnBrand);
+    if (cleanBrand !== normalize(initial.favoriteYarnBrand)) patch.favoriteYarnBrand = cleanBrand;
+    if (JSON.stringify(crochetTechniques) !== JSON.stringify(initial.crochetTechniques || [])) {
+      patch.crochetTechniques = crochetTechniques;
+    }
+    if (JSON.stringify(crochetMotivation) !== JSON.stringify(initial.crochetMotivation || [])) {
+      patch.crochetMotivation = crochetMotivation;
+    }
+    const cleanLearning = normalize(learningNext);
+    if (cleanLearning !== normalize(initial.learningNext)) patch.learningNext = cleanLearning;
+
     const cleanProud = normalize(proudestProject);
     if (cleanProud !== normalize(initial.proudestProject)) patch.proudestProject = cleanProud;
     const cleanGift = normalize(bestGiftProject);
     if (cleanGift !== normalize(initial.bestGiftProject)) patch.bestGiftProject = cleanGift;
 
-    QUIZ_QUESTIONS.forEach((q) => {
-      const value = (quiz[q.field] || "").trim();
-      if (value !== ((initial[q.field] || "").trim())) patch[q.field] = value;
-    });
+    for (const q of QUIZ_QUESTIONS) {
+      const current = quiz[q.field];
+      const prev = initial[q.field];
+      const normCur = q.multiple
+        ? Array.isArray(current)
+          ? current
+          : current
+            ? [current]
+            : []
+        : String(current || "").trim();
+      const normPrev = q.multiple
+        ? Array.isArray(prev)
+          ? prev
+          : prev
+            ? [prev]
+            : []
+        : String(prev || "").trim();
+      if (JSON.stringify(normCur) !== JSON.stringify(normPrev)) patch[q.field] = normCur;
+    }
 
     const cleanSocial = socialLinks
-      .filter((l) => normalize(l.url))
-      .map((l) => ({ platform: normalize(l.platform) || "other", url: normalize(l.url) }));
-    if (JSON.stringify(cleanSocial) !== JSON.stringify(initial.socialLinks || [])) {
+      .filter((l) => normalize(l.handle))
+      .map((l) => ({ platform: normalize(l.platform) || "other", handle: normalize(l.handle) }));
+    if (JSON.stringify(cleanSocial) !== JSON.stringify(toHandledLinks(initial.socialLinks))) {
       patch.socialLinks = cleanSocial;
     }
 
@@ -267,6 +410,14 @@ export default function ProfileEditor({ initial }) {
   return (
     <form className={styles.card} id="profile" onSubmit={handleSave}>
       <h2 className={styles.cardTitle}>Edit profile</h2>
+      <div className={styles.identityLine}>
+        <p className={styles.usernamePill}>
+          {initial.username ? `@${initial.username}` : "You don't have a username yet"}
+        </p>
+        <Link className={styles.identityLink} href="/account/settings">
+          {initial.username ? "Change" : "Choose one"}
+        </Link>
+      </div>
       {error && <p className={styles.formError}>{error}</p>}
       {saved && <p className={styles.formSaved}>Profile saved.</p>}
       {notice && <p className={styles.formNotice}>{notice}</p>}
@@ -312,6 +463,7 @@ export default function ProfileEditor({ initial }) {
           />
         </div>
       </div>
+
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-name">Name</label>
         <input
@@ -324,6 +476,7 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setName(e.target.value)}
         />
       </div>
+
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-headline">Headline</label>
         <input
@@ -336,6 +489,7 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setHeadline(e.target.value)}
         />
       </div>
+
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-location">City / area</label>
         <input
@@ -348,32 +502,35 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setLocation(e.target.value)}
         />
       </div>
-      <div className={styles.fieldRow}>
-        <div className={styles.field}>
-          <label className={styles.fieldLabel} htmlFor="profile-state">State / region</label>
-          <input
-            id="profile-state"
-            className={styles.input}
-            type="text"
-            maxLength={LIMITS.state}
-            placeholder="e.g. Texas"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-          />
-        </div>
-        <div className={styles.field}>
-          <label className={styles.fieldLabel} htmlFor="profile-country">Country</label>
-          <input
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-country">Country</label>
+        <div className={styles.countryRow}>
+          <select
             id="profile-country"
-            className={styles.input}
-            type="text"
-            maxLength={LIMITS.country}
-            placeholder="e.g. United States"
+            className={`${styles.input} ${styles.selectInput}`}
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-          />
+          >
+            <option value="">Select your country</option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className={styles.locationButton}
+            disabled={locating}
+            onClick={detectLocation}
+          >
+            {locating ? "Locating…" : "Use my location"}
+          </button>
         </div>
+        <p className={styles.fieldHint}>
+          We use your country so members can find community near you.
+        </p>
       </div>
+
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-bio">About you</label>
         <textarea
@@ -387,57 +544,118 @@ export default function ProfileEditor({ initial }) {
         />
       </div>
 
+      <h3 className={styles.sectionTitle}>Signature colours</h3>
+      <p className={styles.fieldHint} style={{ marginTop: -6, marginBottom: 12 }}>
+        Pick a 2026 trend palette or mix your own — your colours show beside your name across the lounge.
+      </p>
+      <div className={styles.palettePresets}>
+        {PALETTE_PRESETS.map((p) => {
+          const active = JSON.stringify(favoriteColors) === JSON.stringify(p.colors);
+          return (
+            <button
+              key={p.name}
+              type="button"
+              className={
+                active ? `${styles.paletteBtn} ${styles.paletteBtnActive}` : styles.paletteBtn
+              }
+              onClick={() => setFavoriteColors(p.colors)}
+            >
+              <span className={styles.paletteDots}>
+                {p.colors.map((c) => (
+                  <span key={c} className={styles.paletteDot} style={{ background: c }} />
+                ))}
+              </span>
+              <span>{p.name}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className={styles.colorRow}>
+        {favoriteColors.slice(0, 3).map((color, i) => (
+          <div key={i} className={styles.colorWheel}>
+            <div
+              className={styles.wheelRing}
+              style={{
+                background: `conic-gradient(${color}, #ffffff 25%, ${color} 50%, #ffffff 75%, ${color})`,
+              }}
+            >
+              <div className={styles.wheelFace} />
+              <input
+                type="color"
+                value={color}
+                aria-label={`Colour ${i + 1}`}
+                onChange={(e) => setColor(i, e.target.value)}
+              />
+            </div>
+            <span className={styles.wheelLabel}>Colour {i + 1}</span>
+          </div>
+        ))}
+        <div className={styles.colorWheel}>
+          <div className={styles.palettePreview} style={{ background: colorGradient(favoriteColors) }} />
+          <span className={styles.wheelLabel}>Preview</span>
+        </div>
+      </div>
+
       <h3 className={styles.sectionTitle}>Social links</h3>
       <p className={styles.fieldHint} style={{ marginTop: -8, marginBottom: 12 }}>
-        Add your other social profiles so members can connect with you.
+        Add your other social profiles so members can connect with you — just your username is enough.
       </p>
-      {socialLinks.map((link, i) => (
-        <div key={i} className={styles.socialRow}>
-          <select
-            className={styles.socialSelect}
-            value={link.platform}
-            onChange={(e) => {
-              setSocialLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, platform: e.target.value } : l)));
-            }}
-          >
-            <option value="website">Website</option>
-            <option value="instagram">Instagram</option>
-            <option value="tiktok">TikTok</option>
-            <option value="youtube">YouTube</option>
-            <option value="facebook">Facebook</option>
-            <option value="twitter">X / Twitter</option>
-            <option value="etsy">Etsy</option>
-            <option value="pinterest">Pinterest</option>
-            <option value="ravelry">Ravelry</option>
-            <option value="other">Other</option>
-          </select>
-          <input
-            className={styles.socialInput}
-            type="url"
-            placeholder="https://…"
-            maxLength={300}
-            value={link.url}
-            onChange={(e) => {
-              setSocialLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)));
-            }}
-          />
-          {socialLinks.length > 1 && (
-            <button
-              type="button"
-              className={styles.socialRemove}
-              onClick={() => setSocialLinks((prev) => prev.filter((_, idx) => idx !== i))}
-              aria-label="Remove link"
-            >
-              ×
-            </button>
-          )}
-        </div>
-      ))}
+      {socialLinks.map((link, i) => {
+        const info = platformInfo(link.platform);
+        const preview = normalize(link.handle)
+          ? buildSocialUrl(link.platform, link.handle)
+          : "";
+        return (
+          <div key={i} className={styles.socialBlock}>
+            <div className={styles.socialRow}>
+              <select
+                className={styles.socialSelect}
+                value={link.platform}
+                onChange={(e) => {
+                  const platform = e.target.value;
+                  setSocialLinks((prev) =>
+                    prev.map((l, idx) => (idx === i ? { platform, handle: l.handle } : l))
+                  );
+                }}
+              >
+                {SOCIAL_PLATFORMS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+              <input
+                className={styles.socialInput}
+                type="text"
+                placeholder={info.placeholder}
+                maxLength={120}
+                value={link.handle}
+                onChange={(e) => {
+                  setSocialLinks((prev) =>
+                    prev.map((l, idx) => (idx === i ? { ...l, handle: e.target.value } : l))
+                  );
+                }}
+              />
+              {socialLinks.length > 1 && (
+                <button
+                  type="button"
+                  className={styles.socialRemove}
+                  onClick={() => setSocialLinks((prev) => prev.filter((_, idx) => idx !== i))}
+                  aria-label="Remove link"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            <p className={styles.socialPreview}>
+              {preview ? `→ ${preview}` : info.hint}
+            </p>
+          </div>
+        );
+      })}
       {socialLinks.length < 8 && (
         <button
           type="button"
           className={styles.socialAdd}
-          onClick={() => setSocialLinks((prev) => [...prev, { platform: "website", url: "" }])}
+          onClick={() => setSocialLinks((prev) => [...prev, { platform: "website", handle: "" }])}
         >
           + Add another link
         </button>
@@ -446,31 +664,23 @@ export default function ProfileEditor({ initial }) {
       <h3 className={styles.sectionTitle}>Your yarn story</h3>
 
       <div className={styles.field}>
-        <label className={styles.fieldLabel}>Crafts you practice</label>
-        <div className={styles.craftChips}>
-          {[
-            { value: "crochet", label: "Crochet" },
-            { value: "knitting", label: "Knitting" },
-            { value: "weaving", label: "Weaving" },
-            { value: "spinning", label: "Spinning" },
-            { value: "dyeing", label: "Dyeing" },
-            { value: "embroidery", label: "Embroidery" },
-            { value: "macrame", label: "Macrame" },
-          ].map((c) => {
-            const selected = crafts.includes(c.value);
+        <div className={styles.fieldLabel}>Crafts you practice</div>
+        <div className={styles.quizOptions}>
+          {CRAFT_OPTIONS.map((value) => {
+            const label = value.charAt(0).toUpperCase() + value.slice(1);
+            const selected = crafts.includes(value);
             return (
-              <button
-                key={c.value}
-                type="button"
-                className={selected ? `${styles.craftChip} ${styles.craftChipActive}` : styles.craftChip}
-                onClick={() =>
-                  setCrafts((prev) =>
-                    selected ? prev.filter((v) => v !== c.value) : [...prev, c.value]
-                  )
-                }
+              <label
+                key={value}
+                className={selected ? `${styles.quizOption} ${styles.quizOptionOn}` : styles.quizOption}
               >
-                {c.label}
-              </button>
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleChoice(crafts, value, setCrafts)}
+                />
+                <span>{label}</span>
+              </label>
             );
           })}
         </div>
@@ -478,25 +688,81 @@ export default function ProfileEditor({ initial }) {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.fieldLabel}>Favorite 3 colors</label>
-        <div className={styles.colorRow}>
-          {favoriteColors.map((color, i) => (
-            <div key={i} className={styles.colorWheel}>
-              <div className={styles.wheelRing}>
-                <span className={styles.wheelFace} style={{ background: colorGradient(favoriteColors) }} />
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(i, e.target.value)}
-                  aria-label={`Favorite color ${i + 1}`}
-                  disabled={busy}
-                />
-              </div>
-              <span className={styles.wheelLabel}>{i + 1}</span>
-            </div>
+        <div className={styles.fieldLabel}>Crocheting for</div>
+        <div className={styles.quizOptions}>
+          {YEARS_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={
+                yearsExperience === option
+                  ? `${styles.quizOption} ${styles.quizOptionOn}`
+                  : styles.quizOption
+              }
+              onClick={() => setYearsExperience((prev) => (prev === option ? "" : option))}
+            >
+              <span className={styles.quizRadio}>{yearsExperience === option ? "●" : "○"}</span>
+              <span>{option}</span>
+            </button>
           ))}
         </div>
-        <p className={styles.fieldHint}>Tap a wheel to pick your favorite yarn colors.</p>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-brand">Favorite yarn brand</label>
+        <input
+          id="profile-brand"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.yarnBrand}
+          placeholder="e.g. Lion Brand, Malabrigo…"
+          value={favoriteYarnBrand}
+          onChange={(e) => setFavoriteYarnBrand(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <div className={styles.fieldLabel}>Crochet techniques you love</div>
+        <div className={styles.quizOptions}>
+          {CROCHET_TECHNIQUES.map((value) => {
+            const selected = crochetTechniques.includes(value);
+            return (
+              <label
+                key={value}
+                className={selected ? `${styles.quizOption} ${styles.quizOptionOn}` : styles.quizOption}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleChoice(crochetTechniques, value, setCrochetTechniques)}
+                />
+                <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className={styles.field}>
+        <div className={styles.fieldLabel}>Why you crochet</div>
+        <div className={styles.quizOptions}>
+          {CROCHET_MOTIVATIONS.map((value) => {
+            const selected = crochetMotivation.includes(value);
+            return (
+              <label
+                key={value}
+                className={selected ? `${styles.quizOption} ${styles.quizOptionOn}` : styles.quizOption}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => toggleChoice(crochetMotivation, value, setCrochetMotivation)}
+                />
+                <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       <div className={styles.field}>
@@ -522,6 +788,21 @@ export default function ProfileEditor({ initial }) {
           placeholder="e.g. 5.0mm (H)"
           value={favoriteHookSize}
           onChange={(e) => setFavoriteHookSize(e.target.value)}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.fieldLabel} htmlFor="profile-learning">
+          What do you want to learn next?
+        </label>
+        <input
+          id="profile-learning"
+          className={styles.input}
+          type="text"
+          maxLength={LIMITS.learning}
+          placeholder="e.g. Tunisian crochet, mosaic patterns, granny square sweaters…"
+          value={learningNext}
+          onChange={(e) => setLearningNext(e.target.value)}
         />
       </div>
 
@@ -553,29 +834,84 @@ export default function ProfileEditor({ initial }) {
 
       <h3 className={styles.sectionTitle}>Crochet love quiz</h3>
       <p className={styles.fieldHint} style={{ marginTop: -8, marginBottom: 4 }}>
-        Fun questions so other members can get to know your yarn heart.
+        Fun questions so other members can get to know your yarn heart. Tick the ones that fit.
       </p>
 
-      {QUIZ_QUESTIONS.map((q) => (
-        <div key={q.field} className={styles.field}>
-          <label className={styles.fieldLabel}>{q.question}</label>
-          <div className={styles.craftChips}>
-            {q.options.map((option) => {
-              const selected = quiz[q.field] === option;
-              return (
+      {QUIZ_QUESTIONS.slice(quizPage * QUESTIONS_PER_PAGE, quizPage * QUESTIONS_PER_PAGE + QUESTIONS_PER_PAGE).map((q) => (
+        <fieldset key={q.field} className={styles.field}>
+          <legend className={styles.fieldLabel}>
+            {q.question}
+            {q.multiple && <span className={styles.quizMulti}> (select all that apply)</span>}
+          </legend>
+          <div className={styles.quizOptions}>
+            {q.options.map((option) =>
+              q.multiple ? (
+                <label
+                  key={option}
+                  className={
+                    quiz[q.field].includes(option)
+                      ? `${styles.quizOption} ${styles.quizOptionOn}`
+                      : styles.quizOption
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={quiz[q.field].includes(option)}
+                    onChange={() =>
+                      setQuiz((prev) => {
+                        const current = Array.isArray(prev[q.field]) ? prev[q.field] : [];
+                        const next = quiz[q.field].includes(option)
+                          ? current.filter((x) => x !== option)
+                          : [...current, option];
+                        return { ...prev, [q.field]: next };
+                      })
+                    }
+                  />
+                  <span>{option}</span>
+                </label>
+              ) : (
                 <button
                   key={option}
                   type="button"
-                  className={selected ? `${styles.craftChip} ${styles.craftChipActive}` : styles.craftChip}
-                  onClick={() => setQuiz((prev) => ({ ...prev, [q.field]: selected ? "" : option }))}
+                  className={
+                    quiz[q.field] === option
+                      ? `${styles.quizOption} ${styles.quizOptionOn}`
+                      : styles.quizOption
+                  }
+                  onClick={() =>
+                    setQuiz((prev) => ({ ...prev, [q.field]: quiz[q.field] === option ? "" : option }))
+                  }
                 >
-                  {option}
+                  <span className={styles.quizRadio}>{quiz[q.field] === option ? "●" : "○"}</span>
+                  <span>{option}</span>
                 </button>
-              );
-            })}
+              )
+            )}
           </div>
-        </div>
+        </fieldset>
       ))}
+
+      <nav className={styles.quizNav} aria-label="Quiz pages">
+        <button
+          type="button"
+          className={styles.quizNavBtn}
+          disabled={quizPage === 0}
+          onClick={() => setQuizPage((p) => Math.max(0, p - 1))}
+        >
+          ‹ Back
+        </button>
+        <span className={styles.quizCounter}>
+          {quizPage + 1} of {QUIZ_PAGE_COUNT}
+        </span>
+        <button
+          type="button"
+          className={styles.quizNavBtn}
+          disabled={quizPage === QUIZ_PAGE_COUNT - 1}
+          onClick={() => setQuizPage((p) => Math.min(QUIZ_PAGE_COUNT - 1, p + 1))}
+        >
+          Next ›
+        </button>
+      </nav>
 
       <button className={styles.manage} type="submit" disabled={busy}>
         {busy ? "Saving…" : "Save profile"}

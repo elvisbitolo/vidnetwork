@@ -1,9 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
-import { getCourse, getLesson, getNextLessonId, getProgress, canAccessCourse, lessonBelongsToCourse } from "@/lib/server/courses";
-import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
+import { getCourse, getLesson, getNextLessonId, getProgress, lessonBelongsToCourse } from "@/lib/server/courses";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import LessonView from "./LessonView";
@@ -17,8 +15,6 @@ export default async function LessonPage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const course = await getCourse(courseId);
   const lesson = await getLesson(lessonId);
@@ -44,37 +40,6 @@ export default async function LessonPage({ params }) {
   }
 
   const isOwner = userDoc?.role === "owner";
-  const tier = sub.tier || "standard";
-  if (!isOwner && !canAccessCourse(course, tier)) {
-    return (
-        <Nav role={userDoc?.role}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Membership upgrade required</h1>
-          <p className={styles.lockedText}>
-            This course requires the Premium membership tier. Upgrade to unlock it.
-          </p>
-          <Link className={styles.link} href="/pricing">See membership options</Link>
-        </div>
-</Nav>
-    );
-  }
-
-  if (!isOwner) {
-    const purchasedKeys = await getPurchasedKeys(user.uid);
-    if (!canAccessPaid("course", course, purchasedKeys)) {
-      return (
-          <Nav role={userDoc?.role}>
-          <div className={styles.container}>
-            <h1 className={styles.title}>Purchase required</h1>
-            <p className={styles.lockedText}>
-              This course is sold separately. Buy it to unlock the lessons.
-            </p>
-            <Link className={styles.link} href={`/courses/${courseId}`}>Back to course</Link>
-          </div>
-</Nav>
-      );
-    }
-  }
 
   const releaseAt = lesson.releaseAt ? new Date(lesson.releaseAt.toMillis ? lesson.releaseAt.toMillis() : lesson.releaseAt) : null;
   // eslint-disable-next-line react-hooks/purity

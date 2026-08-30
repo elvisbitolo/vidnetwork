@@ -48,7 +48,7 @@ export async function listLiveMemberUids() {
     const participants = await client.listParticipants(room.name);
     for (const p of participants) {
       const identity = p.identity || "";
-      if (identity.startsWith("room-music-") || identity === "recorder") continue;
+      if (identity.startsWith("room-music-")) continue;
       uids.add(identity);
     }
   }

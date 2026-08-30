@@ -2,6 +2,7 @@ export const QUIZ_QUESTIONS = [
   {
     field: "yarnType",
     question: "What's your yarn type?",
+    multiple: true,
     options: [
       "Soft and squishy",
       "Natural and sophisticated",
@@ -12,7 +13,8 @@ export const QUIZ_QUESTIONS = [
   },
   {
     field: "crochetLoveLanguage",
-    question: "What's your crochet love language?",
+    question: "What are your crochet love languages?",
+    multiple: true,
     options: [
       "Buying yarn",
       "Receiving yarn",
@@ -50,7 +52,8 @@ export const QUIZ_QUESTIONS = [
   },
   {
     field: "yarnAttraction",
-    question: "What's more attractive?",
+    question: "What do you find more attractive?",
+    multiple: true,
     options: ["Gorgeous color", "Incredible softness", "A really good price"],
   },
   {
@@ -81,11 +84,61 @@ export const QUIZ_QUESTIONS = [
       "Both — I start 10, finish 1",
     ],
   },
+  {
+    field: "stitchPreferences",
+    question: "Which stitches make your heart sing?",
+    multiple: true,
+    options: [
+      "Single crochet",
+      "Half double",
+      "Granny clusters",
+      "Shells and fans",
+      "Cables and textures",
+      "I just follow the pattern!",
+    ],
+  },
+  {
+    field: "crochetScene",
+    question: "Where do you crochet most?",
+    options: [
+      "On the couch",
+      "In bed",
+      "On the train / bus",
+      "At cafés",
+      "While watching TV",
+      "In every meeting I'm in",
+    ],
+  },
+  {
+    field: "projectsThisYear",
+    question: "How many projects have you finished this year?",
+    options: [
+      "None yet — I'm collecting WIPs",
+      "1–3",
+      "4–10",
+      "A dozen or more",
+      "I've lost count",
+    ],
+  },
+  {
+    field: "trends",
+    question: "Which 2026 crochet trends are you most excited to try?",
+    multiple: true,
+    options: [
+      "Filet & lace",
+      "Tunisian crochet",
+      "Textured stitches (waffle, puff, bobble)",
+      "Granny square reinvention",
+      "Chunky & oversized makes",
+      "Amigurumi menagerie",
+      "Gradient & self-striping yarns",
+    ],
+  },
 ];
 
 export const QUIZ_LABELS = {
   yarnType: "Yarn type",
-  crochetLoveLanguage: "Crochet love language",
+  crochetLoveLanguage: "Crochet love languages",
   idealFirstDate: "Ideal first date",
   crochetKnittingOpinion: "Crochet vs. knitting",
   idealHookBrand: "Ideal hook-up",
@@ -94,16 +147,35 @@ export const QUIZ_LABELS = {
   luxuryVsBargain: "Luxury or bargain",
   longestUFO: "Longest UFO relationship",
   weekendProject: "Project style",
+  stitchPreferences: "Favourite stitches",
+  crochetScene: "Where I crochet",
+  projectsThisYear: "Projects this year",
+  trends: "2026 trends I'm excited about",
 };
 
+function quizValue(member, field) {
+  const value = member?.[field];
+  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
+  return String(value || "").trim();
+}
+
 export function quizHasAnswers(member) {
-  return QUIZ_QUESTIONS.some((q) => (member?.[q.field] || "").trim());
+  return QUIZ_QUESTIONS.some((q) => {
+    const value = quizValue(member, q.field);
+    return Array.isArray(value) ? value.length > 0 : Boolean(value);
+  });
 }
 
 export function quizAnswers(member) {
   if (!member) return {};
   return QUIZ_QUESTIONS.reduce((acc, q) => {
-    acc[q.field] = (member[q.field] || "").trim();
+    acc[q.field] = quizValue(member, q.field);
     return acc;
   }, {});
+}
+
+export function quizAnswerLabel(q, member) {
+  const value = quizValue(member, q.field);
+  if (Array.isArray(value)) return value.join(" · ");
+  return value;
 }

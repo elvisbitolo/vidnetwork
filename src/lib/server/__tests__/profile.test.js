@@ -27,10 +27,10 @@ test("normalizeProfile: optional fields are cleaned and capped", () => {
 
 test("normalizeProfile: quiz fields are cleaned and capped", () => {
   const { patch } = normalizeProfile({
-    yarnType: "  Soft and squishy  ",
+    yarnType: ["  Soft and squishy  ", "  Not an option  "],
     idealHookBrand: "x".repeat(300),
   });
-  assert.equal(patch.yarnType, "Soft and squishy");
+  assert.deepEqual(patch.yarnType, ["Soft and squishy"]);
   assert.equal(patch.idealHookBrand.length, 120);
 });
 

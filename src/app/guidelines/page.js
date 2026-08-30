@@ -18,7 +18,7 @@ const SECTIONS = [
   },
   {
     heading: "Protect privacy",
-    body: "Do not share other members' personal information. Recordings of live rooms are for members only — never redistribute them outside the community.",
+    body: "Do not share other members' personal information. Be respectful of others' privacy in live rooms.",
   },
   {
     heading: "No harmful content",

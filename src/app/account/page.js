@@ -1,103 +1,99 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
-import { tierLabel } from "@/lib/server/plans";
-import { QUIZ_QUESTIONS } from "@/lib/profile/questions";
-import { getSettings } from "@/lib/server/settings";
 import Nav from "@/components/Nav";
+import { loadAccount } from "./account-data";
+import AccountTabs from "./AccountTabs";
 import LogoutButton from "./LogoutButton";
-import ManageSubscription from "./ManageSubscription";
-import ProfileEditor from "./ProfileEditor";
 import WelcomeChecklist from "./WelcomeChecklist";
-import EmailNotifications from "./EmailNotifications";
+import StreakCard from "./StreakCard";
+import { tierLabel } from "@/lib/server/plans";
 import styles from "./account.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountPage({ searchParams }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+function initials(name) {
+  return (name || "?")
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
-  const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  const active = isActiveSub(sub);
-  const settings = await getSettings();
-  const { checkout } = await searchParams;
+export default async function AccountPage() {
+  const data = await loadAccount();
+  if (!data) redirect("/login");
+  const { user, userDoc, sub, settings, gamification } = data;
 
-  const initialProfile = {
-    name: userDoc?.name || user.name || "",
-    headline: userDoc?.headline || "",
-    location: userDoc?.location || "",
-    country: userDoc?.country || "",
-    state: userDoc?.state || "",
-    bio: userDoc?.bio || "",
-    favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
-    crafts: Array.isArray(userDoc?.crafts) ? userDoc.crafts : [],
-    goToYarn: userDoc?.goToYarn || "",
-    favoriteHookSize: userDoc?.favoriteHookSize || "",
-    proudestProject: userDoc?.proudestProject || "",
-    bestGiftProject: userDoc?.bestGiftProject || "",
-    photoURL: userDoc?.photoURL || "",
-  };
+  const memberSince = userDoc?.createdAt
+    ? userDoc.createdAt.toMillis
+      ? userDoc.createdAt.toMillis()
+      : new Date(userDoc.createdAt).getTime()
+    : null;
 
-  const quizInitial = (() => {
-    const out = {};
-    for (const q of QUIZ_QUESTIONS) out[q.field] = (userDoc || {})[q.field] || "";
-    return out;
-  })();
-  Object.assign(initialProfile, quizInitial);
+  const photoURL = userDoc?.photoURL || user.picture || "";
 
   return (
-      <Nav role={userDoc?.role}>
+    <Nav role={userDoc?.role}>
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Your account</h1>
+        <header className={styles.header}>
+          <div className={styles.identity}>
+            <span className={styles.profileAvatar}>
+              {photoURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photoURL} alt="" />
+              ) : (
+                initials(userDoc?.name || user.name)
+              )}
+            </span>
+            <div>
+              <h1 className={styles.title}>{userDoc?.name || user.name}</h1>
+              <p className={styles.headerSub}>
+                {userDoc?.username
+                  ? `@${userDoc.username}`
+                  : "Pick a username in Settings so members know you by name"}
+              </p>
+            </div>
+          </div>
           <LogoutButton />
-        </div>
+        </header>
 
-        {checkout === "success" && (
-          <p className={styles.banner}>Welcome! Your membership is active.</p>
-        )}
+        <AccountTabs />
 
-        <WelcomeChecklist uid={user.uid} initialProfile={initialProfile} steps={settings.welcomeChecklist} />
+        <StreakCard gamification={gamification} />
+
+        <WelcomeChecklist
+          uid={user.uid}
+          initialProfile={{ name: userDoc?.name || user.name || "", headline: userDoc?.headline || "", location: userDoc?.location || "" }}
+          steps={settings?.welcomeChecklist}
+        />
 
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>Membership</h2>
-          {active ? (
-            <>
-              <div className={styles.row}>
-                <span className={styles.label}>Status</span>
-                <span className={styles.value}>
-                  <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>
-                </span>
-              </div>
-              <div className={styles.row}>
-                <span className={styles.label}>Plan</span>
-                <span className={styles.value}>
-                  {tierLabel(sub.tier)} · {sub.plan}
-                  {userDoc?.foundingMember && (
-                    <span className={`${styles.badge} ${styles.badgeFounding}`}>Founding Yarnie 🧶</span>
-                  )}
-                </span>
-              </div>
-              <ManageSubscription />
-            </>
-          ) : (
-            <p className={styles.value}>
-              No active membership.{" "}
-              <Link className={styles.link} href="/pricing">View plans</Link>
-            </p>
+          <div className={styles.row}>
+            <span className={styles.label}>Status</span>
+            <span className={styles.value}>
+              <span className={`${styles.badge} ${styles.badgeActive}`}>Active</span>
+            </span>
+          </div>
+          <div className={styles.row}>
+            <span className={styles.label}>Plan</span>
+            <span className={styles.value}>
+              {tierLabel(sub ? sub.tier : "free")} · {sub ? sub.plan : "Community"}
+              {userDoc?.foundingMember && (
+                <span className={`${styles.badge} ${styles.badgeFounding}`}>Founding Yarnie 🧶</span>
+              )}
+            </span>
+          </div>
+          {memberSince && (
+            <div className={styles.row}>
+              <span className={styles.label}>Member since</span>
+              <span className={styles.value}>
+                {new Date(memberSince).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+              </span>
+            </div>
           )}
         </section>
-
-        <ProfileEditor uid={user.uid} initial={initialProfile} />
-
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>Notifications</h2>
-          <EmailNotifications enabled={userDoc?.notifications} />
-        </section>
       </div>
-</Nav>
+    </Nav>
   );
 }

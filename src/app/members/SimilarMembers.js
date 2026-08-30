@@ -1,11 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { composeLayout } from "./avatarLayout";
+import styles from "./members.module.css";
+
+const MINI_CANVAS = { width: 560, height: 200 };
+const MINI_MAX = 14;
 
 export default function SimilarMembers() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const frameRef = useRef(null);
+  const [frameWidth, setFrameWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = frameRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setFrameWidth(width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     fetch("/api/members/similar")
@@ -17,9 +35,28 @@ export default function SimilarMembers() {
       .finally(() => setLoading(false));
   }, []);
 
+  const placed = useMemo(
+    () =>
+      composeLayout(
+        members.slice(0, MINI_MAX).map((m) => ({ id: m.id, points: 0 })),
+        {
+          width: MINI_CANVAS.width,
+          height: MINI_CANVAS.height,
+          minSize: 46,
+          maxSize: 46,
+          margin: 40,
+          jitter: 16,
+        }
+      ),
+    [members]
+  );
+
+  const scale = frameWidth > 0 ? frameWidth / MINI_CANVAS.width : 0;
+  const frameHeight = Math.round(MINI_CANVAS.height * Math.max(scale, 1));
+
   if (loading) {
     return (
-      <div style={{ padding: "20px 0", color: "#9b9bab", fontSize: 13 }}>
+      <div className={styles.similarLoading}>
         Finding members like you...
       </div>
     );
@@ -28,100 +65,62 @@ export default function SimilarMembers() {
   if (members.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: 28 }}>
-      <h2 style={{
-        fontSize: 18,
-        fontWeight: 800,
-        color: "#f5f5f5",
-        margin: "0 0 14px",
-      }}>
-        Members like you
-      </h2>
-      <div style={{
-        display: "flex",
-        gap: 14,
-        overflowX: "auto",
-        paddingBottom: 8,
-        scrollbarWidth: "thin",
-      }}>
-        {members.map((m) => (
-          <Link
-            key={m.id}
-            href={`/members/${m.id}`}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 8,
-              minWidth: 120,
-              textDecoration: "none",
-              padding: "14px 12px",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 14,
-              transition: "background 0.15s ease",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(167,139,250,0.1)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-          >
-            <span style={{
-              width: 56,
-              height: 56,
-              borderRadius: "50%",
-              background: m.photoURL ? "none" : "linear-gradient(135deg, var(--secondary), var(--secondary-light))",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#ffffff",
-              overflow: "hidden",
-              flexShrink: 0,
-            }}>
-              {m.photoURL ? (
-                <img src={m.photoURL} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                (m.name || "?").slice(0, 1).toUpperCase()
-              )}
-            </span>
-            <span style={{
-              fontSize: 13,
-              fontWeight: 600,
-              color: "#f5f5f5",
-              textAlign: "center",
-              maxWidth: 100,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}>
-              {m.name}
-            </span>
-            {m.headline && (
-              <span style={{
-                fontSize: 11,
-                color: "var(--secondary-light)",
-                textAlign: "center",
-                maxWidth: 100,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}>
-                {m.headline}
-              </span>
-            )}
-            <span style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: "var(--secondary)",
-              background: "rgba(109,93,246,0.15)",
-              padding: "2px 8px",
-              borderRadius: 999,
-            }}>
-              {m.score}% match
-            </span>
-          </Link>
-        ))}
+    <section className={styles.similarSection}>
+      <h2 className={styles.similarTitle}>Members like you</h2>
+      <div className={styles.similarCanvas}>
+        <div
+          className={styles.canvasFrame}
+          ref={frameRef}
+          style={{ height: frameHeight }}
+        >
+          <span className={styles.canvasGlow} aria-hidden="true" />
+          {scale > 0 && (
+            <div
+              className={styles.canvasLayer}
+              style={{
+                width: MINI_CANVAS.width,
+                height: MINI_CANVAS.height,
+                transform: `scale(${scale})`,
+              }}
+            >
+              {placed.map((slot, idx) => {
+                const member = members.find((m) => m.id === slot.id);
+                if (!member) return null;
+                return (
+                  <Link
+                    key={member.id}
+                    href={`/members/${member.id}`}
+                    className={styles.avatarPos}
+                    style={{
+                      left: slot.left,
+                      top: slot.top,
+                      width: slot.size,
+                      height: slot.size,
+                      zIndex: 10 + idx,
+                    }}
+                    title={`${member.name} · ${member.score}% match`}
+                    aria-label={`View ${member.name}`}
+                  >
+                    <span className={styles.ring}>
+                      <span className={styles.circle}>
+                        {member.photoURL ? (
+                          <img
+                            className={styles.circleImage}
+                            src={member.photoURL}
+                            alt={member.name}
+                          />
+                        ) : (
+                          (member.name || "?").slice(0, 1).toUpperCase()
+                        )}
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

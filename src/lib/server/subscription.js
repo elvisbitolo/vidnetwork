@@ -1,6 +1,14 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { isActiveSub as isActiveSubLogic } from "@/lib/server/billing";
 
+const FREE_ACCESS_SUB = {
+  provider: "free",
+  status: "active",
+  tier: "lounge",
+  plan: "monthly",
+  isFreeAccess: true,
+};
+
 export async function getSubscription(uid) {
   const doc = await adminDb().collection("subscriptions").doc(uid).get();
   return doc.exists ? doc.data() : null;
@@ -14,9 +22,14 @@ export async function getAccessSub(uid) {
   const doc = await adminDb().collection("users").doc(uid).get();
   const userDoc = doc.exists ? { id: doc.id, ...doc.data() } : null;
   if (isStaff(userDoc)) {
-    return { status: "active", tier: "premium" };
+    return { status: "active", tier: "host", isStaffAccess: true };
   }
-  return getSubscription(uid);
+
+  const sub = await getSubscription(uid);
+  if (sub && isActiveSubLogic(sub)) {
+    return sub;
+  }
+  return FREE_ACCESS_SUB;
 }
 
 export function isActiveSub(sub) {
@@ -24,7 +37,7 @@ export function isActiveSub(sub) {
 }
 
 export async function getTier(uid) {
-  const sub = await getSubscription(uid);
+  const sub = await getAccessSub(uid);
   if (!isActiveSubLogic(sub)) return null;
-  return sub.tier || "standard";
+  return sub.tier || "lounge";
 }

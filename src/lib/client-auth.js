@@ -26,22 +26,36 @@ async function createSession(idToken, name) {
     }
     throw new Error(data.error || "Could not create session");
   }
+  if (res.status === 409) {
+    const data = await res.json().catch(() => ({}));
+    const err = new Error(data.error || "No account found");
+    err.code = data.error === "no_account" ? "no_account" : "session_failed";
+    throw err;
+  }
   if (!res.ok) throw new Error("Failed to create session");
-  return res.json();
+  const data = await res.json();
+  return { user: null, data };
 }
 
 export async function loginWithGoogle() {
   const cred = await signInWithPopup(auth, new GoogleAuthProvider());
   const idToken = await getIdToken(cred.user);
-  await createSession(idToken);
-  return cred.user;
+  const { data } = await createSession(idToken);
+  return { user: cred.user, data };
+}
+
+export async function signupWithGoogle() {
+  const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+  const idToken = await getIdToken(cred.user);
+  const { data } = await createSession(idToken, cred.user.displayName || "");
+  return { user: cred.user, data };
 }
 
 export async function loginWithEmail(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
   const idToken = await getIdToken(cred.user);
   await createSession(idToken);
-  return cred.user;
+  return { user: cred.user };
 }
 
 export async function signupWithEmail(name, email, password) {
@@ -49,7 +63,7 @@ export async function signupWithEmail(name, email, password) {
   await updateProfile(cred.user, { displayName: name });
   const idToken = await getIdToken(cred.user);
   await createSession(idToken, name);
-  return cred.user;
+  return { user: cred.user };
 }
 
 export async function logout() {

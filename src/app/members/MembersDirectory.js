@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { roleBadgeLabel } from "@/lib/profile/roles";
+import { composeLayout } from "./avatarLayout";
 import styles from "./members.module.css";
 
 const TABS = [
@@ -22,6 +24,12 @@ const CRAFTS = [
   { value: "embroidery", label: "Embroidery" },
   { value: "macrame", label: "Macrame" },
 ];
+
+const PRESETS = {
+  desktop: { width: 960, height: 560 },
+  tablet: { width: 720, height: 540 },
+  mobile: { width: 480, height: 700 },
+};
 
 function craftLabel(value) {
   return CRAFTS.find((c) => c.value === value)?.label || value;
@@ -47,16 +55,26 @@ function initialsOf(member) {
   return (member.name || "?").slice(0, 1).toUpperCase();
 }
 
-function circleSize(points) {
-  const base = 64;
-  const maxBonus = 40;
-  const step = 20;
-  const bonus = Math.min(Math.floor((points || 0) / step) * 4, maxBonus);
-  return base + bonus;
+function useViewportKey() {
+  const [key, setKey] = useState("desktop");
+  useEffect(() => {
+    const queries = [
+      { key: "mobile", mql: window.matchMedia("(max-width: 640px)") },
+      { key: "tablet", mql: window.matchMedia("(min-width: 641px) and (max-width: 1023px)") },
+      { key: "desktop", mql: window.matchMedia("(min-width: 1024px)") },
+    ];
+    const apply = () =>
+      setKey((queries.find((q) => q.mql.matches) || queries[queries.length - 1]).key);
+    apply();
+    queries.forEach((q) => q.mql.addEventListener("change", apply));
+    return () => queries.forEach((q) => q.mql.removeEventListener("change", apply));
+  }, []);
+  return key;
 }
 
-const TOOLTIP_W = 280;
-const TOOLTIP_H = 200;
+const TOOLTIP_W = 300;
+const TOOLTIP_H = 320;
+const HIDE_DELAY = 220;
 
 export default function MembersDirectory({ members, role, todayKey }) {
   const [search, setSearch] = useState("");
@@ -65,14 +83,39 @@ export default function MembersDirectory({ members, role, todayKey }) {
   const [state, setState] = useState("");
   const [craft, setCraft] = useState("");
   const [hover, setHover] = useState(null);
+  const hideTimer = useRef(null);
+
+  const viewportKey = useViewportKey();
+  const frameRef = useRef(null);
+  const [frameWidth, setFrameWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = frameRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setFrameWidth(width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const preset = PRESETS[viewportKey];
+  const scale = frameWidth > 0 ? frameWidth / preset.width : 0;
 
   function showDetails(member, e) {
+    clearTimeout(hideTimer.current);
     const rect = e.currentTarget.getBoundingClientRect();
     setHover({ member, rect });
   }
 
-  function hideDetails() {
-    setHover(null);
+  function scheduleHide() {
+    clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setHover(null), HIDE_DELAY);
+  }
+
+  function keepOpen() {
+    clearTimeout(hideTimer.current);
   }
 
   const tooltipPos = (() => {
@@ -125,6 +168,27 @@ export default function MembersDirectory({ members, role, todayKey }) {
     }
     return [...pool].sort((a, b) => a.name.localeCompare(b.name));
   }, [members, tab, query, country, state, craft, todayKey]);
+
+  const DENSE_BASE = 20;
+  const DENSE_STEP = Math.round((14 * 960) / preset.width);
+  const virtualHeight =
+    preset.height +
+    Math.max(0, filtered.length - DENSE_BASE) * DENSE_STEP;
+  const frameHeight = Math.round(virtualHeight * Math.max(scale, 1));
+
+  const placed = useMemo(
+    () =>
+      composeLayout(filtered, {
+        width: preset.width,
+        height: virtualHeight,
+      }),
+    [filtered, preset, virtualHeight]
+  );
+
+  const memberById = useMemo(
+    () => new Map(filtered.map((m) => [m.id, m])),
+    [filtered]
+  );
 
   return (
     <>
@@ -202,60 +266,102 @@ export default function MembersDirectory({ members, role, todayKey }) {
             : "No members yet."}
         </p>
       ) : (
-        <div className={styles.grid}>
-          {filtered.map((member) => {
-            const ring = colorStrip(member.favoriteColors);
-            return (
-              <Link
-                key={member.id}
-                href={`/members/${member.id}`}
-                className={styles.avatarCell}
-                onMouseEnter={(e) => showDetails(member, e)}
-                onMouseLeave={hideDetails}
-                onFocus={(e) => showDetails(member, e)}
-                onBlur={hideDetails}
-                aria-label={`View ${member.name}`}
-              >
-                <span
-                  className={ring ? `${styles.ring} ${styles.ringActive}` : styles.ring}
-                  style={ring ? { background: ring, padding: 3 } : undefined}
-                >
-                  <span
-                    className={styles.circle}
-                    style={{ width: circleSize(member.points), height: circleSize(member.points), fontSize: circleSize(member.points) * 0.35 }}
+        <div className={styles.canvasFrame} ref={frameRef} style={{ height: frameHeight }}>
+          <span className={styles.canvasGlow} aria-hidden="true" />
+          {scale > 0 && (
+            <div
+              className={styles.canvasLayer}
+              style={{ width: preset.width, height: preset.height, transform: `scale(${scale})` }}
+            >
+              {placed.map((slot) => {
+                const member = memberById.get(slot.id);
+                if (!member) return null;
+                const ring = colorStrip(member.favoriteColors);
+                return (
+                  <Link
+                    key={member.id}
+                    href={`/members/${member.id}`}
+                    className={styles.avatarPos}
+                    style={{
+                      left: slot.left,
+                      top: slot.top,
+                      width: slot.size,
+                      height: slot.size,
+                      zIndex: slot.z,
+                    }}
+                    onMouseEnter={(e) => showDetails(member, e)}
+                    onMouseLeave={scheduleHide}
+                    onFocus={(e) => showDetails(member, e)}
+                    onBlur={scheduleHide}
+                    aria-label={`View ${member.name}`}
                   >
-                    {member.photoURL ? (
-                      <img
-                        className={styles.circleImage}
-                        src={member.photoURL}
-                        alt={member.name}
-                      />
-                    ) : (
-                      initialsOf(member)
-                    )}
-                    {member.role === "owner" && <span className={styles.hostDot}>Owner</span>}
-                    {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
-                    {member.foundingMember && (
-                      <span className={`${styles.hostDot} ${styles.foundDot}`} title="Founding Yarnie">🧶</span>
-                    )}
-                  </span>
-                </span>
-                {member.live && <span className={styles.liveDot} />}
-              </Link>
-            );
-          })}
+                    <span
+                      className={ring ? `${styles.ring} ${styles.ringActive}` : styles.ring}
+                      style={ring ? { background: ring, padding: 3 } : undefined}
+                    >
+                      <span
+                        className={styles.circle}
+                        style={{ fontSize: slot.size * 0.32 }}
+                      >
+                        {member.photoURL ? (
+                          <img
+                            className={styles.circleImage}
+                            src={member.photoURL}
+                            alt={member.name}
+                          />
+                        ) : (
+                          initialsOf(member)
+                        )}
+                        {member.role === "owner" && (
+                          <span className={styles.hostDot}>{roleBadgeLabel(member.role, member.roleLabel)}</span>
+                        )}
+                        {member.role === "moderator" && <span className={styles.hostDot}>Mod</span>}
+                        {member.foundingMember && (
+                          <span className={`${styles.hostDot} ${styles.foundDot}`} title="Founding Yarnie">🧶</span>
+                        )}
+                      </span>
+                    </span>
+                    {member.live && <span className={styles.liveDot} />}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
       {hover && tooltipPos && (
-        <div className={styles.tooltip} style={{ left: tooltipPos.left, top: tooltipPos.top }}>
-          <p className={styles.tooltipName}>
-            {hover.member.name}
-            {hover.member.foundingMember && (
-              <span className={styles.tooltipFounding} title="Founding Yarnie · first 100 members">🧶</span>
-            )}
-          </p>
-          {hover.member.live && <p className={styles.tooltipLive}>● In the lounge now</p>}
+        <div
+          className={styles.tooltip}
+          style={{ left: tooltipPos.left, top: tooltipPos.top }}
+          onMouseEnter={keepOpen}
+          onMouseLeave={scheduleHide}
+        >
+          <div className={styles.tooltipTop}>
+            <span className={styles.tooltipAvatar}>
+              {hover.member.photoURL ? (
+                <img
+                  className={styles.tooltipAvatarImg}
+                  src={hover.member.photoURL}
+                  alt=""
+                />
+              ) : (
+                initialsOf(hover.member)
+              )}
+            </span>
+            <div className={styles.tooltipMeta}>
+              <p className={styles.tooltipName}>
+                {hover.member.name}
+                {hover.member.foundingMember && (
+                  <span className={styles.tooltipFounding} title="Founding Yarnie · first 100 members">🧶</span>
+                )}
+              </p>
+              <p className={styles.tooltipUsername}>
+                @{hover.member.username || "member"}
+              </p>
+            </div>
+            {hover.member.live && <span className={styles.tooltipLiveBadge}>● Live</span>}
+          </div>
           {hover.member.headline && <p className={styles.tooltipHeadline}>{hover.member.headline}</p>}
           {hover.member.bio && <p className={styles.tooltipBio}>{hover.member.bio}</p>}
           {hover.member.location && (
@@ -265,6 +371,9 @@ export default function MembersDirectory({ members, role, todayKey }) {
             <p className={styles.tooltipLocation}>
               {[hover.member.state, hover.member.country].filter(Boolean).join(", ")}
             </p>
+          )}
+          {hover.member.crafts?.length > 0 && (
+            <p className={styles.tooltipCrafts}>{hover.member.crafts.map(craftLabel).join(" · ")}</p>
           )}
           {hover.member.favoriteColors?.length > 0 && (
             <span className={styles.tooltipDots}>
@@ -277,12 +386,22 @@ export default function MembersDirectory({ members, role, todayKey }) {
               ))}
             </span>
           )}
-          {hover.member.crafts?.length > 0 && (
-            <p className={styles.tooltipCrafts}>{hover.member.crafts.map(craftLabel).join(" · ")}</p>
-          )}
-          {hover.member.points > 0 && (
-            <p className={styles.tooltipPoints}>{hover.member.points} interaction points</p>
-          )}
+          <div className={styles.tooltipActions}>
+            <Link
+              className={styles.tooltipAction}
+              href={`/chat?with=${hover.member.id}`}
+              onClick={() => setHover(null)}
+            >
+              💬 Message
+            </Link>
+            <Link
+              className={`${styles.tooltipAction} ${styles.tooltipActionPrimary}`}
+              href={`/members/${hover.member.id}`}
+              onClick={() => setHover(null)}
+            >
+              View profile
+            </Link>
+          </div>
         </div>
       )}
     </>

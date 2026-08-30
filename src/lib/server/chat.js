@@ -267,13 +267,21 @@ export async function listMessages(conversationId, limitCount = 200) {
     .limit(limitCount)
     .get();
   return snap.docs
-    .map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toMillis
-        ? doc.data().createdAt.toMillis()
-        : new Date(doc.data().createdAt || 0).getTime(),
-    }))
+    .map((doc) => {
+      const data = doc.data();
+      const readBy = {};
+      for (const [uid, ts] of Object.entries(data.readBy || {})) {
+        readBy[uid] = ts?.toMillis?.() ?? (Number(ts) || 0);
+      }
+      return {
+        id: doc.id,
+        ...data,
+        readBy,
+        createdAt: data.createdAt?.toMillis
+          ? data.createdAt.toMillis()
+          : new Date(data.createdAt || 0).getTime(),
+      };
+    })
     .reverse();
 }
 

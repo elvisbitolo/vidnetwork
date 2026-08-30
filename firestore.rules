@@ -25,17 +25,8 @@ service cloud.firestore {
       return isSignedIn() && (!me().exists || me().data.suspended != true);
     }
 
-    function subTier() {
-      let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
-      return sub != null && sub.tier != null ? sub.tier : 'standard';
-    }
-
     function isActiveSub() {
-      let sub = get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data;
-      return isNotSuspended()
-        && sub != null
-        && (sub.status in ['active', 'trialing', 'past_due'])
-        && (sub.currentPeriodEnd == null || sub.currentPeriodEnd > request.time);
+      return isNotSuspended();
     }
 
     function isSpaceMember(spaceId) {
@@ -55,18 +46,12 @@ service cloud.firestore {
           && isGroupMember(post.groupId));
     }
 
-    function meetsTier(requiredTier) {
-      return requiredTier == null || requiredTier == '' || requiredTier == 'standard'
-        || subTier() == 'premium';
-    }
-
     function canReadCourse(courseId) {
       let course = get(/databases/$(database)/documents/courses/$(courseId)).data;
       return isOwner()
         || (isActiveSub()
           && course != null
-          && course.status == 'published'
-          && meetsTier(course.requiredTier));
+          && course.status == 'published');
     }
 
     match /users/{uid} {
@@ -210,10 +195,6 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    match /recordings/{id} {
-      allow read, create, update, delete: if false;
-    }
-
     match /pushSubscriptions/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
       allow create, update, delete: if false;
@@ -235,14 +216,6 @@ service cloud.firestore {
     match /reports/{reportId} {
       allow read: if isSignedIn() && isModerator();
       allow create, update, delete: if false;
-    }
-
-    match /stripeEvents/{eventId} {
-      allow read, create, update, delete: if false;
-    }
-
-    match /promoCodes/{id} {
-      allow read, create, update, delete: if false;
     }
 
     match /collections/{id} {

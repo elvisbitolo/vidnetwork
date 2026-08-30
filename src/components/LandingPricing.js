@@ -92,9 +92,9 @@ export default function LandingPricing() {
             </ul>
             <Link
               className={tier.featured ? `${styles.cta} ${styles.ctaFeatured}` : styles.cta}
-              href="/pricing"
+              href="/signup"
             >
-              {tp("subscribe", { tier: tp(tier.nameKey) })}
+              {tp("joinNow")}
             </Link>
           </div>
         ))}

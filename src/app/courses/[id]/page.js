@@ -1,12 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
-import { getCourseFull, getProgress, canAccessCourse } from "@/lib/server/courses";
-import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
+import { getCourseFull, getProgress } from "@/lib/server/courses";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
-import BuyButton from "@/components/BuyButton";
 import styles from "../courses.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +14,6 @@ export default async function CoursePage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const { course, modules, lessons } = (await getCourseFull(id)) || {};
   if (!course || (course.status !== "published" && userDoc?.role !== "owner")) {
@@ -34,48 +29,6 @@ export default async function CoursePage({ params }) {
   }
 
   const isOwner = userDoc?.role === "owner";
-  const tier = sub.tier || "standard";
-  const needsHigherTier = !isOwner && !canAccessCourse(course, tier);
-
-  const purchasedKeys = await getPurchasedKeys(user.uid);
-  const needsPurchase = !isOwner && !canAccessPaid("course", course, purchasedKeys);
-
-  if (needsHigherTier) {
-    return (
-        <Nav role={userDoc?.role}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>Membership upgrade required</h1>
-          <p className={styles.subtitle}>
-            This course requires the Premium membership tier. Upgrade to unlock it.
-          </p>
-          <Link className={styles.link} href="/pricing">See membership options</Link>
-        </div>
-</Nav>
-    );
-  }
-
-  if (needsPurchase) {
-    return (
-        <Nav role={userDoc?.role}>
-        <div className={styles.container}>
-          <BackButton fallback="/courses" label="All courses" />
-          <div className={styles.courseHeader}>
-            <h1 className={styles.title}>{course.title}</h1>
-            {course.description && <p className={styles.subtitle}>{course.description}</p>}
-          </div>
-          <div className={styles.paywall}>
-            <h2 className={styles.paywallTitle}>
-              {course.title} is sold separately
-            </h2>
-            <p className={styles.paywallText}>
-              Buy one-time access to all lessons in this course. Your purchase never expires.
-            </p>
-            <BuyButton targetType="course" targetId={course.id} priceCents={course.purchasePriceCents} />
-          </div>
-        </div>
-</Nav>
-    );
-  }
 
   const progress = await getProgress(id, user.uid);
   const completed = new Set(progress.completedLessons || []);

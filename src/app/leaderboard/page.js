@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getGamification, getLeaderboard, BADGES } from "@/lib/server/gamification";
 import { getRecognitionLeaderboard } from "@/lib/server/recognition";
 import Nav from "@/components/Nav";
@@ -14,8 +13,6 @@ export default async function LeaderboardPage() {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const name = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
   const [mine, leaderboard, recognized] = await Promise.all([

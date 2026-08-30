@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Nav from "@/components/Nav";
+import { roleBadgeLabel } from "@/lib/profile/roles";
 import styles from "../rooms/admin.module.css";
 
 export default function AdminMembersPage() {
@@ -104,8 +105,10 @@ export default function AdminMembersPage() {
                 <div>
                   <p className={styles.itemName}>
                     {member.name || "Unnamed"}
-                    {member.role === "owner" && (
-                      <span style={{ fontSize: 12, color: "#9b9bab", fontWeight: 500 }}> (owner)</span>
+                    {["owner", "moderator"].includes(member.role) && (
+                      <span style={{ fontSize: 12, color: "#9b9bab", fontWeight: 500 }}>
+                        {" "}({roleBadgeLabel(member.role, member.roleLabel).toLowerCase()})
+                      </span>
                     )}
                   </p>
                   <p className={styles.itemMeta}>

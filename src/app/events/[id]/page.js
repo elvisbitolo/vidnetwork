@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getEvent, expandEvents } from "@/lib/server/events";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
@@ -26,8 +25,6 @@ export default async function EventPage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const event = await getEvent(id);
   if (!event) {

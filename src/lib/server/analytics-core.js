@@ -1,4 +1,5 @@
 import { isActiveSub } from "./billing.js";
+import { LEGACY_ALIASES } from "./plans.js";
 
 export function toMillis(value) {
   if (value == null) return 0;
@@ -6,6 +7,11 @@ export function toMillis(value) {
   if (value instanceof Date) return value.getTime();
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
+}
+
+export function normalizeTier(tier) {
+  if (!tier) return "lounge";
+  return LEGACY_ALIASES[tier] || tier;
 }
 
 export function startOfDay(offset = 0) {
@@ -38,7 +44,7 @@ export function summarizeSubscriptions(subs, priceMap = {}, now = Date.now()) {
   let estimatedMonthlyCents = 0;
   for (const sub of subs) {
     const status = sub.status || "unknown";
-    const tier = sub.tier || "standard";
+    const tier = normalizeTier(sub.tier);
     const plan = sub.plan || "unknown";
     byStatus[status] = (byStatus[status] || 0) + 1;
     byTier[tier] = (byTier[tier] || 0) + 1;

@@ -36,7 +36,7 @@ export async function getRoomBySlug(slug) {
   return { id: doc.id, ...doc.data() };
 }
 
-export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview, createdBy, opensAt, recordingAllowed, replayVisibility }) {
+export async function createRoom({ name, description, maxParticipants, groupId, spaceId, kind, publicPreview, createdBy, opensAt }) {
   const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`;
   const ref = adminDb().collection("rooms").doc();
   await ref.set({
@@ -50,8 +50,6 @@ export async function createRoom({ name, description, maxParticipants, groupId, 
     kind: kind === "broadcast" ? "broadcast" : "standard",
     publicPreview: !!publicPreview,
     opensAt: opensAt || null,
-    recordingAllowed: recordingAllowed !== false,
-    replayVisibility: replayVisibility === "owner" ? "owner" : "members",
     createdBy,
     createdAt: new Date(),
   });
@@ -114,8 +112,6 @@ export async function seedAlwaysOnRoom() {
     kind: "standard",
     publicPreview: true,
     opensAt: null,
-    recordingAllowed: false,
-    replayVisibility: "members",
     alwaysOn: true,
     createdBy: "system",
     createdAt: new Date(),

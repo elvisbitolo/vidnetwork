@@ -44,8 +44,13 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/account");
+      window.location.assign("/dashboard");
     } catch (err) {
+      if (err.code === "no_account") {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
+        window.location.assign("/signup");
+        return;
+      }
       if (err.code === "email_not_verified") {
         setVerifyNotice(err.message);
         setResent(false);
@@ -65,8 +70,13 @@ export default function LoginPage() {
     try {
       await loginWithEmail(email, password);
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
-      window.location.assign("/account");
+      window.location.assign("/dashboard");
     } catch (err) {
+      if (err.code === "auth/user-not-found") {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
+        window.location.assign("/signup");
+        return;
+      }
       if (err.code === "email_not_verified") {
         setVerifyNotice(err.message);
         setResent(false);

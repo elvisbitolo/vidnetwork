@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
-import { meetsTier } from "@/lib/server/plans";
 import {
   getSpace,
   isSpaceMember,
@@ -11,7 +10,6 @@ import {
 } from "@/lib/server/spaces";
 import { syncSpaceChatParticipants } from "@/lib/server/chat";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
-import { hasPurchased } from "@/lib/server/purchases";
 
 export async function POST(req, { params }) {
   const { id: spaceId } = await params;
@@ -55,12 +53,6 @@ export async function POST(req, { params }) {
   if (!isOwner) {
     if (space.access === "invite") {
       return NextResponse.json({ error: "This space is invite only" }, { status: 403 });
-    }
-    if (space.requiredTier && !meetsTier(sub.tier || "standard", space.requiredTier)) {
-      return NextResponse.json({ error: "Premium membership required" }, { status: 403 });
-    }
-    if (Number(space.purchasePriceCents) > 0 && !(await hasPurchased(user.uid, "space", spaceId))) {
-      return NextResponse.json({ error: "Buy this space to join" }, { status: 403 });
     }
   }
 

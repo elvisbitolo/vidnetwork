@@ -38,7 +38,6 @@ export default function AdminHostsPage() {
       : "")
   );
   const [hostRole, setHostRole] = useState("host");
-  const [canRecord, setCanRecord] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const loadScopes = useCallback(async () => {
@@ -110,7 +109,7 @@ export default function AdminHostsPage() {
       const res = await fetch("/api/admin/host-assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scopeType, scopeId, userId: memberId, role: hostRole, canRecord }),
+        body: JSON.stringify({ scopeType, scopeId, userId: memberId, role: hostRole }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to assign");
@@ -201,22 +200,11 @@ export default function AdminHostsPage() {
               className={styles.input}
               style={{ width: 130, height: 40, padding: "0 8px" }}
               value={hostRole}
-              onChange={(e) => {
-                setHostRole(e.target.value);
-                setCanRecord(e.target.value === "host");
-              }}
+              onChange={(e) => setHostRole(e.target.value)}
             >
               <option value="host">Host</option>
               <option value="co-host">Co-host</option>
             </select>
-            <label className={styles.itemMeta} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <input
-                type="checkbox"
-                checked={canRecord}
-                onChange={(e) => setCanRecord(e.target.checked)}
-              />
-              Can record
-            </label>
             <button className={styles.submit} disabled={busy}>
               {busy ? "Assigning…" : "Assign"}
             </button>
@@ -236,7 +224,6 @@ export default function AdminHostsPage() {
                     <span style={{ fontSize: 12, color: "#9b9bab", fontWeight: 500 }}>
                       {" "}
                       · {a.role}
-                      {a.canRecord ? " · recording" : ""}
                     </span>
                   </p>
                 </div>

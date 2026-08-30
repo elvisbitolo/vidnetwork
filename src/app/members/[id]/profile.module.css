@@ -83,6 +83,13 @@
   margin: 0 0 6px;
 }
 
+.username {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b6b7b;
+  margin: 2px 0 8px;
+}
+
 .location {
   font-size: 13px;
   color: #9b9bab;

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { sendEmailVerification } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
-import { signupWithEmail, loginWithGoogle } from "@/lib/client-auth";
+import { signupWithEmail, signupWithGoogle } from "@/lib/client-auth";
 import GoogleIcon from "@/components/GoogleIcon";
 import PasswordInput from "@/components/PasswordInput";
 import styles from "../auth.module.css";
@@ -26,8 +26,8 @@ export default function SignupPage() {
     setError("");
     setBusy("google");
     try {
-      await loginWithGoogle();
-      window.location.assign("/account");
+      await signupWithGoogle();
+      window.location.assign("/dashboard");
     } catch (err) {
       setError(err.message || t("googleFailed"));
     } finally {

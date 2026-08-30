@@ -26,8 +26,6 @@ export default function HostRoomsPage() {
   const [maxParticipants, setMaxParticipants] = useState(20);
   const [kind, setKind] = useState("standard");
   const [opensAt, setOpensAt] = useState("");
-  const [recordingAllowed, setRecordingAllowed] = useState(true);
-  const [replayVisibility, setReplayVisibility] = useState("members");
   const [publicPreview, setPublicPreview] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -79,8 +77,6 @@ export default function HostRoomsPage() {
         kind,
         publicPreview,
         opensAt: opensAt ? new Date(opensAt).toISOString() : null,
-        recordingAllowed,
-        replayVisibility,
       }),
     });
     const data = await res.json();
@@ -184,31 +180,6 @@ export default function HostRoomsPage() {
               value={opensAt}
               onChange={(e) => setOpensAt(e.target.value)}
             />
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Recording</label>
-            <label className={styles.checkCard}>
-              <input
-                type="checkbox"
-                checked={recordingAllowed}
-                onChange={(e) => setRecordingAllowed(e.target.checked)}
-              />
-              <span className={styles.checkText}>
-                <strong>Allow recording in this room</strong>
-              </span>
-            </label>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="replay">Replay visibility</label>
-            <select
-              id="replay"
-              className={styles.input}
-              value={replayVisibility}
-              onChange={(e) => setReplayVisibility(e.target.value)}
-            >
-              <option value="members">Members only</option>
-              <option value="owner">Hosts only</option>
-            </select>
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Public preview</label>

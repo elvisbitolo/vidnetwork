@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import {
   getSpaceBySlug,
@@ -12,11 +11,8 @@ import {
   listCoursesForSpace,
 } from "@/lib/server/spaces";
 import { expandEvents } from "@/lib/server/events";
-import { meetsTier } from "@/lib/server/plans";
-import { getPurchasedKeys, canAccessPaid } from "@/lib/server/purchases";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
-import BuyButton from "@/components/BuyButton";
 import Feed from "@/app/feed/Feed";
 import EventsBoard from "@/app/events/EventsBoard";
 import SpaceInvite from "../SpaceInvite";
@@ -30,8 +26,6 @@ export default async function SpacePage({ params }) {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const space = await getSpaceBySlug(slug);
   if (!space || space.status !== "active") {
@@ -53,9 +47,6 @@ export default async function SpacePage({ params }) {
   const memberNames = members.slice(0, 8).map((m) => m.name);
   const features = space.features || {};
 
-  const tierOk = !space.requiredTier || isOwner || meetsTier(sub.tier || "standard", space.requiredTier);
-  const purchasedKeys = await getPurchasedKeys(user.uid);
-  const purchaseOk = isOwner || canAccessPaid("space", space, purchasedKeys);
   const canEnter = membership || isOwner;
   const isInviteOnly = space.access === "invite";
 
@@ -125,21 +116,11 @@ export default async function SpacePage({ params }) {
             )}
           </p>
 
-          {!canEnter || !purchaseOk ? (
+          {!canEnter ? (
             <p className={styles.notMember}>
-              {!purchaseOk
-                ? "This space is sold separately — buy access to join."
-                : isInviteOnly
+              {isInviteOnly
                 ? "This space is invite only — ask the host to add you."
-                : !tierOk
-                ? "This space requires a Premium membership. Upgrade to join."
-                : "You're not a member yet — join to see and post in this space."}{" "}
-              {!purchaseOk ? (
-                <BuyButton targetType="space" targetId={space.id} priceCents={space.purchasePriceCents} />
-              ) : (
-                <Link className={styles.link} href="/pricing">See membership options</Link>
-              )}
-              .
+                : "You're not a member yet — join from the spaces page."}
             </p>
           ) : (
             <div className={styles.spaceActions}>

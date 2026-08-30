@@ -28,9 +28,16 @@ export async function POST(req) {
     const users = adminDb().collection("users");
     const userRef = users.doc(decoded.uid);
     const snap = await userRef.get();
+    let isNewUser = false;
     if (!snap.exists) {
-      const memberName =
-        name || decoded.name || decoded.email?.split("@")[0] || "Member";
+      if (!name) {
+        return NextResponse.json(
+          { error: "no_account" },
+          { status: 409 }
+        );
+      }
+      isNewUser = true;
+      const memberName = name || decoded.name || decoded.email?.split("@")[0] || "Member";
       await userRef.set({
         name: memberName,
         email: decoded.email || "",
@@ -52,7 +59,7 @@ export async function POST(req) {
             `- Courses with lessons and progress tracking\n` +
             `- Events with RSVPs and reminders\n` +
             `- Groups, spaces, direct messages and a community feed\n\n` +
-            `To pick a plan and start exploring: ${process.env.NEXT_PUBLIC_APP_URL || ""}/pricing\n\n` +
+            `To start exploring: ${process.env.NEXT_PUBLIC_APP_URL || ""}/explore\n\n` +
             `We're glad you're here.\n\n— The Yarnery Lounge Team`,
         }).catch((err) => {
           logError("email.welcome_failed", { uid: decoded.uid, error: err.message });
@@ -80,7 +87,7 @@ export async function POST(req) {
       expiresIn: SESSION_MAX_AGE_SECONDS * 1000,
     });
 
-    const res = NextResponse.json({ ok: true, uid: decoded.uid });
+    const res = NextResponse.json({ ok: true, uid: decoded.uid, isNewUser });
     res.cookies.set(AUTH_COOKIE, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

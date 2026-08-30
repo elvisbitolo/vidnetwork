@@ -38,7 +38,6 @@ export async function GET() {
       scopeType: a.scopeType,
       scopeId: a.scopeId,
       role: a.role,
-      canRecord: !!a.canRecord,
       ...info,
     });
   }

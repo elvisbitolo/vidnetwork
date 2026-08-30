@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import { getRecognitionCount, listRecognitions } from "@/lib/server/recognition";
 import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognition-core";
-import { QUIZ_QUESTIONS, QUIZ_LABELS, quizHasAnswers } from "@/lib/profile/questions";
+import { QUIZ_QUESTIONS, QUIZ_LABELS, quizHasAnswers, quizAnswerLabel } from "@/lib/profile/questions";
+import { roleBadgeLabel } from "@/lib/profile/roles";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import RecognitionForm from "./RecognitionForm";
@@ -36,8 +36,6 @@ export default async function MemberProfilePage({ params }) {
   if (!viewer) redirect("/login");
 
   const viewerDoc = await getUserDoc(viewer.uid);
-  const sub = await getAccessSub(viewer.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const userRef = adminDb().collection("users").doc(id);
   const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap] = await Promise.all([
@@ -101,11 +99,14 @@ export default async function MemberProfilePage({ params }) {
           <div className={styles.headerBody}>
             <h1 className={styles.title}>
               {member.name}
-              {member.role === "owner" && <span className={styles.ownerBadge}>Owner</span>}
+              {member.role === "owner" && (
+                <span className={styles.ownerBadge}>{roleBadgeLabel(member.role, member.roleLabel)}</span>
+              )}
               {member.foundingMember && (
                 <span className={styles.foundingBadge}>Founding Yarnie 🧶</span>
               )}
             </h1>
+            {member.username && <p className={styles.username}>@{member.username}</p>}
             {member.headline && <p className={styles.headline}>{member.headline}</p>}
             {member.location && <p className={styles.location}>{member.location}</p>}
             {(member.state || member.country) && (
@@ -148,6 +149,11 @@ export default async function MemberProfilePage({ params }) {
               member.crafts?.length > 0 ||
               member.goToYarn ||
               member.favoriteHookSize ||
+              member.yearsExperience ||
+              member.favoriteYarnBrand ||
+              member.crochetTechniques?.length > 0 ||
+              member.crochetMotivation?.length > 0 ||
+              member.learningNext ||
               member.proudestProject ||
               member.bestGiftProject ||
               quizHasAnswers(member)) && (
@@ -190,6 +196,48 @@ export default async function MemberProfilePage({ params }) {
                     <span className={styles.yarnValue}>{member.favoriteHookSize}</span>
                   </p>
                 )}
+                {member.yearsExperience && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Crocheting for</span>
+                    <span className={styles.yarnValue}>{member.yearsExperience}</span>
+                  </p>
+                )}
+                {member.favoriteYarnBrand && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Favorite yarn brand</span>
+                    <span className={styles.yarnValue}>{member.favoriteYarnBrand}</span>
+                  </p>
+                )}
+                {Array.isArray(member.crochetTechniques) && member.crochetTechniques.length > 0 && (
+                  <div className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Techniques</span>
+                    <span className={styles.craftTags}>
+                      {member.crochetTechniques.map((technique) => (
+                        <span key={technique} className={styles.craftTag}>
+                          {technique.charAt(0).toUpperCase() + technique.slice(1)}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {Array.isArray(member.crochetMotivation) && member.crochetMotivation.length > 0 && (
+                  <div className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Why I crochet</span>
+                    <span className={styles.craftTags}>
+                      {member.crochetMotivation.map((motive) => (
+                        <span key={motive} className={styles.craftTag}>
+                          {motive.charAt(0).toUpperCase() + motive.slice(1)}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                )}
+                {member.learningNext && (
+                  <p className={styles.yarnRow}>
+                    <span className={styles.yarnLabel}>Learning next</span>
+                    <span className={styles.yarnValue}>{member.learningNext}</span>
+                  </p>
+                )}
                 {member.proudestProject && (
                   <p className={styles.yarnRow}>
                     <span className={styles.yarnLabel}>Proudest project</span>
@@ -202,14 +250,15 @@ export default async function MemberProfilePage({ params }) {
                     <span className={styles.yarnValue}>{member.bestGiftProject}</span>
                   </p>
                 )}
-                {QUIZ_QUESTIONS.map((q) =>
-                  (member[q.field] || "").trim() ? (
+                {QUIZ_QUESTIONS.map((q) => {
+                  const answer = quizAnswerLabel(q, member);
+                  return answer ? (
                     <p key={q.field} className={styles.yarnRow}>
                       <span className={styles.yarnLabel}>{QUIZ_LABELS[q.field]}</span>
-                      <span className={styles.yarnValue}>{member[q.field]}</span>
+                      <span className={styles.yarnValue}>{answer}</span>
                     </p>
-                  ) : null
-                )}
+                  ) : null;
+                })}
               </div>
             )}
             {recognitionCount > 0 && (

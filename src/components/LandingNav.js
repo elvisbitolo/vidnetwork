@@ -6,10 +6,7 @@ import { useTranslations } from "next-intl";
 import styles from "./LandingNav.module.css";
 import { PlayIcon } from "./LandingIcons";
 
-const LINKS = [
-  { href: "/explore", key: "exploreCommunity" },
-  { href: "/pricing", key: "pricing" },
-];
+const LINKS = [{ href: "/explore", key: "exploreCommunity" }];
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },

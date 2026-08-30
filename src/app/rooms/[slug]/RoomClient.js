@@ -171,7 +171,7 @@ function HostControls({ roomId, isHost }) {
   );
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, canRecord, alwaysOn, musicUrl, musicPlaying, musicFileId }) {
+export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, alwaysOn, musicUrl, musicPlaying, musicFileId }) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -179,9 +179,6 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const [error, setError] = useState("");
   const [joined, setJoined] = useState(false);
   const [isViewer, setIsViewer] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [recordBusy, setRecordBusy] = useState(false);
-  const [recordError, setRecordError] = useState("");
   const [now, setNow] = useState(() => currentTime());
   const [statusMsg, setStatusMsg] = useState("");
 
@@ -217,7 +214,6 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
   const isStaff = role === "owner" || role === "moderator";
-  const canToggleRecording = isBroadcast && canRecord;
   const waiting = Boolean(opensAt) && !isHost && now < opensAt;
   const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
 
@@ -240,7 +236,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
       return null;
     }
     if (res.status === 403) {
-      router.push("/pricing");
+      router.push("/rooms");
       return null;
     }
     const data = await res.json();
@@ -339,26 +335,6 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
     };
   }, []);
 
-  async function toggleRecording() {
-    if (recordBusy) return;
-    setRecordBusy(true);
-    setRecordError("");
-    try {
-      const res = await fetch("/api/livekit/recording", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, action: recording ? "stop" : "start" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Recording failed");
-      setRecording(!recording);
-    } catch (err) {
-      setRecordError(err.message);
-    } finally {
-      setRecordBusy(false);
-    }
-  }
-
   if (waiting) {
     return (
       <main className={styles.page}>
@@ -419,22 +395,6 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
               <button className={styles.join} onClick={handleJoin} disabled={busy}>
                 {busy ? "Joining…" : alwaysOn ? "Drop in" : isBroadcast ? "Watch broadcast" : "Join room"}
               </button>
-              {canRecord && (
-                <div className={styles.recordBox}>
-                  {recordError && <p className={styles.error}>{recordError}</p>}
-                  <button
-                    className={recording ? styles.recordStop : styles.record}
-                    onClick={toggleRecording}
-                    disabled={recordBusy}
-                  >
-                    {recordBusy
-                      ? "…"
-                      : recording
-                      ? "Stop recording"
-                      : "Start recording"}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

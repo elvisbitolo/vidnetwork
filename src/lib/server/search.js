@@ -33,27 +33,12 @@ async function getUserMemberships(uid) {
   };
 }
 
-async function getPurchasedKeys(uid) {
-  const snap = await adminDb().collection("purchases").where("uid", "==", uid).limit(500).get();
-  const keys = new Set();
-  snap.docs.forEach((doc) => {
-    const data = doc.data();
-    if (data.targetType && data.targetId) {
-      keys.add(`${data.targetType}_${data.targetId}`);
-    }
-  });
-  return keys;
-}
-
 export async function searchCommunity({ q = "", hashtag = "" }, uid = "", role = "") {
   const needle = q.trim().toLowerCase();
   const tag = hashtag.trim().toLowerCase().replace(/^#/, "");
   const isStaff = canModerate({ role });
 
-  const [memberships, purchasedKeys] = await Promise.all([
-    isStaff ? null : getUserMemberships(uid),
-    isStaff ? null : getPurchasedKeys(uid),
-  ]);
+  const memberships = isStaff ? null : await getUserMemberships(uid);
 
   const canReadPost = (post) => {
     if (isStaff || post.authorId === uid) return true;
@@ -120,9 +105,7 @@ export async function searchCommunity({ q = "", hashtag = "" }, uid = "", role =
       ? filterCollection(
           "courses",
           (c) =>
-            c.status === "published" &&
-            includes(c.title, needle) &&
-            (c.publicPreview || isStaff || purchasedKeys.has(`course_${c.id}`))
+            c.status === "published" && includes(c.title, needle)
         )
       : [],
     needle

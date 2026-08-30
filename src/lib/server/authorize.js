@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc, canModerate } from "@/lib/server/auth";
-import { getSubscription, isActiveSub } from "@/lib/server/subscription";
-import { meetsTier } from "@/lib/server/plans";
+import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { adminDb } from "@/lib/firebase/admin";
 import { getScopedHostRights } from "@/lib/server/hosts";
 
@@ -23,13 +22,9 @@ export async function authorize(options = {}) {
 
   let sub = null;
   const needsSub = active !== false || tier;
-  const staff = canModerate(userDoc);
-  if (needsSub && !staff) {
-    sub = await getSubscription(user.uid);
+  if (needsSub) {
+    sub = await getAccessSub(user.uid);
     if (!isActiveSub(sub)) return deny(403, "Active membership required");
-    if (tier && !meetsTier(sub.tier || "standard", tier)) {
-      return deny(403, "Premium membership required");
-    }
   }
 
   if (groupId) {

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
-import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { listCourses } from "@/lib/server/courses";
 import Nav from "@/components/Nav";
 import styles from "./courses.module.css";
@@ -13,8 +12,6 @@ export default async function CoursesPage() {
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
-  const sub = await getAccessSub(user.uid);
-  if (!isActiveSub(sub)) redirect("/pricing");
 
   const courses = await listCourses(false);
 

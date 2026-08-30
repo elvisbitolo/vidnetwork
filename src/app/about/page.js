@@ -65,8 +65,8 @@ export default function AboutPage() {
 
         <section className={styles.cta}>
           <p>Ready to join?</p>
-          <Link className={styles.ctaLink} href="/pricing">
-            See plans
+          <Link className={styles.ctaLink} href="/signup">
+            Join the clubhouse
           </Link>
         </section>
       </div>

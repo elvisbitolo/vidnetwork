@@ -240,7 +240,7 @@
 }
 
 .liveBanner {
-  background: var(--primary);
+  background: linear-gradient(120deg, #ff8fab, #ffb3c1);
 }
 
 .liveLink {

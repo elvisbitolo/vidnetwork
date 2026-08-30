@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { WebhookReceiver } from "livekit-server-sdk";
-import { adminDb } from "@/lib/firebase/admin";
-import { transcribeRecording } from "@/lib/server/transcription";
 import { logError } from "@/lib/server/log";
 
 export const dynamic = "force-dynamic";
@@ -13,47 +11,14 @@ export async function POST(req) {
     return NextResponse.json({ error: "LiveKit not configured" }, { status: 500 });
   }
 
-  const body = await req.text();
-  const authHeader = req.headers.get("authorization") || "";
-  const receiver = new WebhookReceiver(apiKey, apiSecret);
-  const event = receiver.receive(body, authHeader);
-
-  if (event.event === "egress_started" || event.event === "egress_ended") {
-    const egressId = event.egressInfo?.egressId;
-    if (!egressId) return NextResponse.json({ ok: true });
-
-    const snap = await adminDb()
-      .collection("recordings")
-      .where("egressId", "==", egressId)
-      .get();
-    if (!snap.empty) {
-      const doc = snap.docs[0];
-      const data = doc.data();
-      if (event.event === "egress_started") {
-        await doc.ref.update({ status: "active" });
-      } else {
-        const status = event.egressInfo?.status;
-        const isComplete = status === "EGRESS_COMPLETE";
-        await doc.ref.update({
-          status: isComplete ? "complete" : "failed",
-          endedAt: new Date(),
-          visibility: data.visibility || "members",
-          retentionDays: data.retentionDays || 90,
-          resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
-        });
-        if (isComplete) {
-          transcribeRecording({
-            id: doc.id,
-            filepath: data.filepath,
-            resultUrl: event.egressInfo?.fileResults?.[0]?.url || data.resultUrl || "",
-            transcriptionStatus: data.transcriptionStatus,
-            transcribedAt: data.transcribedAt,
-          }).catch((err) => {
-            logError("transcription.kickoff_failed", { id: doc.id, error: err.message });
-          });
-        }
-      }
-    }
+  try {
+    const body = await req.text();
+    const authHeader = req.headers.get("authorization") || "";
+    const receiver = new WebhookReceiver(apiKey, apiSecret);
+    receiver.receive(body, authHeader);
+  } catch (err) {
+    logError("webhook.livekit.invalid", { error: err.message });
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
   return NextResponse.json({ ok: true });

@@ -43,6 +43,7 @@ async function ensureDoc(uid, name) {
         bestStreak: 0,
         badges: {},
         lastVisitDate: "",
+        recentVisits: [],
         name: name || "Member",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -64,6 +65,8 @@ export async function getGamification(uid, name) {
     bestStreak: data.bestStreak || 0,
     badges: data.badges || {},
     name: data.name || "Member",
+    lastVisitDate: data.lastVisitDate || "",
+    recentVisits: Array.isArray(data.recentVisits) ? data.recentVisits : [],
   };
 }
 
@@ -78,6 +81,7 @@ export async function awardPoints(uid, amount, name) {
         bestStreak: 0,
         badges: {},
         lastVisitDate: "",
+        recentVisits: [],
         name: name || "Member",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -104,6 +108,7 @@ export async function awardBadge(uid, code, name) {
         bestStreak: 0,
         badges: { [code]: { name: meta.name, earnedAt: new Date() } },
         lastVisitDate: "",
+        recentVisits: [],
         name: name || "Member",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -150,6 +155,9 @@ export async function recordDailyVisit(uid, name) {
       streak = 1;
     }
     const bestStreak = Math.max(data.bestStreak || 0, streak);
+    const recentVisits = [...(Array.isArray(data.recentVisits) ? data.recentVisits : []), now]
+      .filter((v, i, arr) => arr.indexOf(v) === i)
+      .slice(-7);
     const badges = data.badges || {};
     const newBadges = {};
     if (streak >= 3 && !badges.streak_3) newBadges.streak_3 = { name: BADGES.streak_3.name, earnedAt: new Date() };
@@ -160,6 +168,7 @@ export async function recordDailyVisit(uid, name) {
       streak,
       bestStreak,
       lastVisitDate: now,
+      recentVisits,
       points: (data.points || 0) + POINTS.DAILY_VISIT + Object.keys(newBadges).length * POINTS.BADGE_BONUS,
       badges: { ...badges, ...newBadges },
       name: name || data.name || "Member",

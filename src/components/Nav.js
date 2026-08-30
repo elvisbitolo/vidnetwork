@@ -21,8 +21,6 @@ function getAdministrationLinks(role) {
   if (role === "owner") {
     return [
       { href: "/admin/analytics", key: "analytics" },
-      { href: "/admin/income", key: "income" },
-      { href: "/admin/promocodes", key: "promoCodes" },
       { href: "/admin/rooms", key: "manageRooms" },
       { href: "/admin/courses", key: "manageCourses" },
       { href: "/admin/collections", key: "collections" },
@@ -45,6 +43,7 @@ function getAdministrationLinks(role) {
 const OVERVIEW_ITEMS = [
   { href: "/dashboard", key: "dashboard" },
   { href: "/feed", key: "feed" },
+  { href: "/dashboard/membership", key: "membership" },
 ];
 
 const CONNECT_ITEMS = [

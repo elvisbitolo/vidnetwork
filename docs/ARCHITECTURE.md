@@ -12,13 +12,13 @@ Browser (React 19 client)
 Next.js 16 App Router  (Node.js 24)
    ├── Page components   →  server components fetch with Admin SDK
    └── API routes        →  all writes + privileged reads, guarded server-side
-        │                    (requireUser / requireActiveMember / requireOwner …)
+        │                    (requireUser / requireOwner / requireModerator …)
         ▼
-src/lib/server/*        →  business logic: Firestore (Admin SDK), Stripe,
-                           LiveKit, AWS S3, Resend email, Web Push
+src/lib/server/*        →  business logic: Firestore (Admin SDK), LiveKit,
+                           Vercel Blob uploads, Resend email, Web Push
         │
         ▼
-External services: Firebase (Auth/Firestore/Storage) · Stripe · LiveKit · S3 · Resend · Deepgram/OpenAI
+External services: Firebase (Auth/Firestore) · LiveKit · Vercel (host + Blob) · Resend
 ```
 
 ## 2. Code layout
@@ -27,19 +27,19 @@ External services: Firebase (Auth/Firestore/Storage) · Stripe · LiveKit · S3 
 |---|---|
 | `src/app/**/page.js` | Pages (server or client components) |
 | `src/app/**/route.js` | API routes (colocated with their pages) |
-| `src/components/` | Shared client components (`Nav`, `BuyButton`, …) |
+| `src/components/` | Shared client components (`Nav`, `DashboardThemePicker`, …) |
 | `src/lib/firebase/` | Client + Admin SDK initializers |
 | `src/lib/server/` | Server-only business logic |
 | `src/lib/server/*-core.js` | **Pure** logic, no I/O — the unit-testable core |
-| `src/lib/server/__tests__/` | `node:test` suites (129 tests) |
+| `src/lib/server/__tests__/` | `node:test` suites (140 tests) |
 | `src/proxy.js` | Edge middleware (cookie-presence gating for protected routes) |
-| `firestore.rules`, `storage.rules`, `firestore.indexes.json` | Firebase security + indexes |
+| `firestore.rules`, `firestore.indexes.json` | Firebase security + indexes |
 | `vercel.json` | Vercel cron schedule |
 
 ### Rule of thumb
-- **Pure decisions** (validation, gating, state transitions, pricing math) live
-  in `*-core.js` and are unit tested.
-- **I/O** (Firestore, Stripe, email, LiveKit) lives in the non-core server
+- **Pure decisions** (validation, gating, state transitions) live in
+  `*-core.js` and are unit tested.
+- **I/O** (Firestore, Blob, email, LiveKit) lives in the non-core server
   modules and API routes.
 - **Clients may read** with the Firebase SDK (realtime); **clients never
   write** directly to sensitive collections — all writes go through API routes.
@@ -50,24 +50,27 @@ External services: Firebase (Auth/Firestore/Storage) · Stripe · LiveKit · S3 
 2. The client exchanges the idToken for an **httpOnly session cookie**
    (`POST /api/auth/session`). The server verifies the token and **requires a
    verified email** before issuing a session.
-3. The cookie is sent on every request; the edge middleware gates protected
+3. If no profile exists yet:
+   - with a `name` (from signup) → the profile is auto-created and the member
+     lands on `/dashboard` (`isNewUser`);
+   - without a `name` (from login) → `409 no_account` and the login page
+     redirects to `/signup`.
+4. The cookie is sent on every request; the edge middleware gates protected
    routes and server components/API routes resolve the user via
    `getCurrentUser()`.
-4. Roles come from `users/{uid}.role` (`member | moderator | owner`).
+5. Roles come from `users/{uid}.role` (`member | moderator | owner`) plus
+   scoped host assignments.
 
 ## 4. Data model (Firestore)
 
 | Collection | Purpose | Written by |
 |---|---|---|
-| `users/{uid}` | Profile + role | Server (self-updates via API) |
-| `subscriptions/{uid}` | Stripe subscription mirror | Webhook / server |
-| `purchases/{id}` | One-time content purchases | Webhook / server |
-| `promoCodes/{id}` | Discount coupons | Owner (admin API) |
+| `users/{uid}` | Profile + role (+ `photoURL` blob URL or data URL) | Server (self-updates via API) |
 | `posts/{id}` + `comments` | Feed posts, comments, polls | API |
 | `pollVotes/{id}` | Anonymous poll votes | API |
 | `rooms/{id}` | Live/broadcast rooms | Owner (admin API) |
 | `roomEvents/{id}` | Room join activity | Client (whitelisted) |
-| `recordings/{id}` | Room recording metadata | LiveKit webhook / server |
+| `musicFiles/{id}` | Uploaded room music (audio data URL or blob URL) | API |
 | `events/{id}` | Events + recurrence | Owner (admin API) |
 | `rsvps/{id}` | Event RSVPs (per occurrence) | API |
 | `courses`, `modules`, `lessons` | Course content | Owner (admin API) |
@@ -83,79 +86,78 @@ External services: Firebase (Auth/Firestore/Storage) · Stripe · LiveKit · S3 
 | `settings/{id}` | Platform settings (e.g. welcome checklist) | Owner (admin API) |
 | `collections/{id}` | Curated links to spaces | Owner (admin API) |
 | `questions/{id}` | Scheduled community questions | Owner (admin API) |
-| `automations/{id}` | Payment/engagement automations | Owner (admin API) |
-| `stripeEvents/{id}` | Stripe webhook idempotency | Webhook |
+| `automations/{id}` | Engagement automations | Owner (admin API) |
+| `hostAssignments/{id}` | Scoped host/co-host rights | Owner (admin API) |
+| `announcements/{id}` | Community/space/group/room broadcasts | Staff or scoped host |
 | `auditLogs/{id}` | Admin audit trail | Server |
 
 ## 5. Gating model
 
-Two layers, same intent:
-
 1. **Server guards** (`src/lib/server/authorize.js`) — the authoritative
-   boundary: `requireUser`, `requireActiveMember`, `requireTier`,
-   `requireGroupMember`, `requireOwner`, `requireModerator`.
-2. **Firestore/Storage rules** — backstop direct client access. The active-
-   subscription predicate (`isActiveSub`) is shared verbatim between
-   `billing.js` and the rules.
+   boundary: `requireUser`, `requireGroupMember`, `requireOwner`,
+   `requireModerator`, and the scoped-host guards.
+2. **Firestore rules** — backstop direct client access. There are no active-
+   subscription/tier predicates (`isActiveSub` ≡ `isNotSuspended`); any
+   authenticated member gets full community access, with staff/host-only
+   leaves gated to roles.
 
 Access specifics per resource: see [ROLES.md](./ROLES.md) and
 [AUTHORIZATION-MATRIX.md](./AUTHORIZATION-MATRIX.md).
 
-## 6. Payments flow (Stripe)
+## 6. Payments (planned — Shopify)
 
-- **Subscriptions:** checkout → `POST /api/stripe/checkout` creates a Checkout
-  Session (tier + promo code) → Stripe redirects → `checkout.session.completed`
-  webhook → `syncSubscription` writes `subscriptions/{uid}`.
-- **One-time purchases:** `POST /api/stripe/purchase` creates a PaymentIntent
-  with metadata (`uid`, `targetType`, `targetId`, `promoCode`) → the webhook
-  verifies the paid amount, records `purchases/{id}`, and grants access.
-- **Webhook hardening:** events are claimed idempotently in `stripeEvents`,
-  amount mismatches auto-refund, `charge.refunded` revokes access.
-- **Promo codes:** owner-defined coupons synced to Stripe; usage recorded on
-  the webhook and rolled into the income dashboard.
-- **Billing portal:** `POST /api/stripe/portal` opens Stripe's hosted portal.
+- No purchase flows exist yet. A `SHOPIFY_ACCESS_TOKEN` placeholder is defined
+  in `.env.example`; transactions will be added on Shopify later.
 
-## 7. Live video flow (LiveKit)
+## 7. Uploads (Vercel Blob)
 
-1. Room pages call `POST /api/livekit/token` — guarded by active subscription +
-   tier + space/group membership (+ `opensAt` lock for scheduled rooms).
+1. The client resizes the image and posts it as `multipart/form-data` to
+   `POST /api/upload?kind=avatar` (auth required, size/mime validated).
+2. When `BLOB_READ_WRITE_TOKEN` is set, the file is stored in a **Vercel Blob**
+   store and the public URL is returned.
+3. Without a token, the route **falls back** to returning a base64 data URL
+   (stored in Firestore), preserving the old behavior.
+4. The returned URL/data URL is saved to `users.photoURL` via `PATCH /api/me`.
+
+## 8. Live video flow (LiveKit)
+
+1. Room pages call `POST /api/livekit/token` — guarded by role/space/group
+   membership (+ `opensAt` lock for scheduled rooms).
 2. The client joins with a short-lived access token.
 3. Broadcast rooms use one-to-many egress; conference rooms allow N-way video.
-4. Recordings: egress writes to AWS S3 → the LiveKit webhook marks the
-   recording complete → optional transcription (Deepgram/OpenAI) writes
-   `transcript` to the recording doc.
+4. Room music streams user-uploaded audio stored in `musicFiles`.
 
-## 8. Background jobs (Vercel cron)
+## 9. Background jobs (Vercel cron)
 
 | Cron | Schedule | What it does |
 |---|---|---|
 | `event-reminders` | daily 12:00 | Email reminders for events within 24h (marks `reminded` only after send) |
-| `recording-retention` | daily 03:00 | Enforce retention policy on recordings |
 | `scheduled-questions` | hourly | Publish owner-scheduled community questions |
 
 Protected by `CRON_SECRET` bearer auth.
 
-## 9. Realtime
+## 10. Realtime
 
 Client SDK subscriptions (`onSnapshot`) power the feed, comments, chat and
 leaderboard. Reads respect Firestore rules; writes to realtime-sensitive
 collections (e.g. chat `messages`) are server-authored to avoid rule bypass.
 
-## 10. Testing & CI
+## 11. Testing & CI
 
-- `npm test` runs `node:test` on `src/lib/server/__tests__/**` (129 tests).
+- `npm test` runs `node:test` on `src/lib/server/__tests__/**` (140 tests).
 - GitHub Actions `.github/workflows/ci.yml` runs `lint → test → build` on every
   push/PR (Node 24).
-- Pure cores (promo codes, automations, settings, rate limiting, serialize,
-  posts/access, purchases, analytics, questions, recognition) all have suites.
+- `npm run lint` currently reports a **known pre-existing baseline** of 9 errors
+  + 15 warnings (mostly React-compiler `setState-in-effect` and ambient-audio
+  issues) — unchanged by recent work and tracked in `CURRENT-STATE.md`.
 
-## 11. Deployment
+## 12. Deployment
 
-- **App:** Vercel (`vercel.json` defines the cron jobs).
+- **App + Blob:** Vercel (`vercel.json` defines the cron jobs). Create a Blob
+  store in the dashboard and add `BLOB_READ_WRITE_TOKEN` to the environment.
 - **Firebase:** rules + indexes deployed via CLI
-  (`npx firebase deploy --only firestore:rules,firestore:indexes,storage:rules`).
-- **Stripe:** webhook endpoint configured to `/api/webhooks/stripe`.
-- **LiveKit:** egress + S3 configured for recordings.
+  (`npx firebase deploy --only firestore:rules,firestore:indexes`).
+- **LiveKit:** used for live rooms only (no recording pipeline).
 
 See [SETUP.md](./SETUP.md) for the full decision log and [SECURITY.md](./SECURITY.md)
 for the security policy.

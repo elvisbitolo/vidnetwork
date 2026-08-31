@@ -1,5 +1,6 @@
 import { adminDb } from "@/lib/firebase/admin";
 import { regionKeyFor, regionChatId } from "@/lib/server/region";
+import { encryptText, decryptText } from "@/lib/server/crypto";
 
 export { regionKeyFor, regionChatId } from "@/lib/server/region";
 
@@ -208,7 +209,7 @@ export async function listConversations(uid) {
         type: data.type,
         title: names[title] || title,
         groupId: data.groupId || "",
-        lastMessage: data.lastMessage || "",
+        lastMessage: data.lastMessageEnc ? decryptText(data.lastMessage) : data.lastMessage || "",
         lastMessageAt: data.lastMessageAt
           ? data.lastMessageAt.toMillis
             ? data.lastMessageAt.toMillis()
@@ -234,6 +235,7 @@ export async function getConversation(id, uid) {
   return {
     id: doc.id,
     ...data,
+    lastMessage: data.lastMessageEnc ? decryptText(data.lastMessage) : data.lastMessage || "",
     participantIds: data.participantIds,
     title: data.type === "dm"
       ? names[data.participantIds.filter((v) => v !== uid)[0]] || "Chat"
@@ -273,7 +275,7 @@ export async function listMessages(conversationId, limitCount = 200) {
       for (const [uid, ts] of Object.entries(data.readBy || {})) {
         readBy[uid] = ts?.toMillis?.() ?? (Number(ts) || 0);
       }
-      return {
+      const msg = {
         id: doc.id,
         ...data,
         readBy,
@@ -281,6 +283,11 @@ export async function listMessages(conversationId, limitCount = 200) {
           ? data.createdAt.toMillis()
           : new Date(data.createdAt || 0).getTime(),
       };
+      msg.text = decryptText(msg.text);
+      if (msg.attachment && typeof msg.attachment.dataUrl === "string") {
+        msg.attachment = { ...msg.attachment, dataUrl: decryptText(msg.attachment.dataUrl) };
+      }
+      return msg;
     })
     .reverse();
 }
@@ -296,7 +303,7 @@ export async function addMessage(conversationId, sender, text, attachment = null
     conversationId,
     senderId: sender.uid,
     senderName: sender.name,
-    text,
+    text: encryptText(text),
     createdAt: new Date(),
     readBy: {},
   };
@@ -305,7 +312,7 @@ export async function addMessage(conversationId, sender, text, attachment = null
       name: String(attachment.name || "").slice(0, 120),
       mime: String(attachment.mime || "").slice(0, 100),
       kind: attachment.kind === "image" ? "image" : "file",
-      dataUrl: attachment.dataUrl,
+      dataUrl: encryptText(attachment.dataUrl),
     };
     message.hasAttachment = true;
   }
@@ -319,7 +326,8 @@ export async function addMessage(conversationId, sender, text, attachment = null
         ? `📎 ${attachment.name}`
         : "");
   await convRef.update({
-    lastMessage: preview,
+    lastMessage: encryptText(preview),
+    lastMessageEnc: true,
     lastMessageAt: new Date(),
     updatedAt: new Date(),
   });

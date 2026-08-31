@@ -133,6 +133,23 @@
   padding: 18px;
 }
 
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 10px;
+}
+
+.quickActionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-light);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .kpiLabel {
   font-size: 13px;
   color: var(--dash-muted, #8b8b9b);

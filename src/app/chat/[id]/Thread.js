@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
 import styles from "../chat.module.css";
+
+const POLL_INTERVAL_MS = 4000;
 
 const MAX_FILE_RAW = 450 * 1024;
 const MAX_IMAGE_RAW = 8 * 1024 * 1024;
@@ -86,16 +86,28 @@ export default function Thread({ conversationId, uid, initialMessages }) {
   const emojiRef = useRef(null);
 
   useEffect(() => {
-    const q = query(
-      collection(db, "conversations", conversationId, "messages"),
-      orderBy("createdAt", "asc"),
-      limit(300)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      fetch(`/api/conversations/${conversationId}/read`, { method: "POST" }).catch(() => {});
-    });
-    return unsub;
+    let active = true;
+    let timer;
+
+    async function load() {
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}/messages`);
+        if (active && res.ok) {
+          const data = await res.json();
+          setMessages(Array.isArray(data.messages) ? data.messages : []);
+        }
+        fetch(`/api/conversations/${conversationId}/read`, { method: "POST" }).catch(() => {});
+      } catch {
+        // transient network error — the next poll will retry
+      }
+    }
+
+    load();
+    timer = setInterval(load, POLL_INTERVAL_MS);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, [conversationId]);
 
   useEffect(() => {

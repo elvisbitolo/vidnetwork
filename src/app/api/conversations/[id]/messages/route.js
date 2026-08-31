@@ -8,6 +8,64 @@ import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
 import { logError } from "@/lib/server/log";
 
+const MAX_ATTACHMENT_LENGTH = 700_000;
+const IMAGE_MIME = /^image\/(png|jpe?g|gif|webp|avif)$/;
+const ALLOWED_FILE_MIME = new Set([
+  "application/octet-stream",
+  "application/pdf",
+  "text/plain",
+  "text/csv",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/zip",
+  "audio/mpeg",
+  "audio/ogg",
+  "audio/wav",
+]);
+
+function validateAttachment(attachment) {
+  if (!attachment || typeof attachment !== "object") {
+    return { error: "Invalid attachment" };
+  }
+  const { dataUrl, mime, kind, name } = attachment;
+  if (typeof dataUrl !== "string" || !dataUrl) {
+    return { error: "Invalid attachment" };
+  }
+  if (dataUrl.length > MAX_ATTACHMENT_LENGTH) {
+    return {
+      error: "Attachment too large (max ~500 KB). Compress the file and try again.",
+    };
+  }
+  if (typeof name !== "string" || !name.trim()) {
+    return { error: "Attachment name required" };
+  }
+  const cleanMime = typeof mime === "string" ? mime.toLowerCase().trim() : "";
+  const isImage = kind === "image";
+  if (isImage) {
+    if (!IMAGE_MIME.test(cleanMime)) {
+      return { error: "Only PNG, JPEG, GIF, WEBP or AVIF images are allowed" };
+    }
+  } else if (kind !== "file" || !ALLOWED_FILE_MIME.has(cleanMime)) {
+    return { error: "That file type isn't allowed yet" };
+  }
+  // The payload must actually match the declared type — blocks MIME smuggling
+  // and non-data payloads (e.g. javascript: URLs).
+  if (!dataUrl.startsWith(`data:${cleanMime};base64,`)) {
+    return { error: "Attachment payload doesn't match its file type" };
+  }
+  return {
+    ok: true,
+    attachment: {
+      name: name.slice(0, 120),
+      mime: cleanMime.slice(0, 100),
+      kind: isImage ? "image" : "file",
+      dataUrl,
+    },
+  };
+}
+
 export async function GET(req, { params }) {
   const { id: conversationId } = await params;
   const user = await getCurrentUser();
@@ -18,6 +76,8 @@ export async function GET(req, { params }) {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
+  const limited = rateLimitGuard(`conv-msgs:${user.uid}`, { limit: 240 });
+  if (limited) return limited;
   const conv = await getConversation(conversationId, user.uid);
   if (!conv) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
@@ -40,29 +100,20 @@ export async function POST(req, { params }) {
   const limited = rateLimitGuard(`message:${user.uid}`, { limit: 30 });
   if (limited) return limited;
 
-  const MAX_ATTACHMENT_LENGTH = 700_000;
   const body = await req.json();
   const text = typeof body?.text === "string" ? body.text.trim() : "";
-  const attachment = body?.attachment || null;
+  let attachment = body?.attachment || null;
 
   if (text.length > 2000) {
     return NextResponse.json({ error: "Message too long" }, { status: 400 });
   }
 
   if (attachment) {
-    if (
-      typeof attachment !== "object" ||
-      typeof attachment.dataUrl !== "string" ||
-      !attachment.dataUrl
-    ) {
-      return NextResponse.json({ error: "Invalid attachment" }, { status: 400 });
+    const checked = validateAttachment(attachment);
+    if (!checked.ok) {
+      return NextResponse.json({ error: checked.error }, { status: 400 });
     }
-    if (attachment.dataUrl.length > MAX_ATTACHMENT_LENGTH) {
-      return NextResponse.json(
-        { error: "Attachment too large (max ~500 KB). Compress the file and try again." },
-        { status: 400 }
-      );
-    }
+    attachment = checked.attachment;
     if (!text && !attachment.dataUrl) {
       return NextResponse.json({ error: "Message required" }, { status: 400 });
     }

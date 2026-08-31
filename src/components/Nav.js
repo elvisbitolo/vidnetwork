@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import NotificationBell from "./NotificationBell";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
+import SidebarProfile from "./SidebarProfile";
 import LiveNowBanner from "./LiveNowBanner";
 import ChatbotGuide from "./ChatbotGuide";
+import { logout } from "@/lib/client-auth";
 import styles from "./Nav.module.css";
 
 const CHEVRON = (
@@ -16,6 +18,40 @@ const CHEVRON = (
     <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+function SearchForm({ className }) {
+  const t = useTranslations("nav");
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  function handleSearch(e) {
+    e.preventDefault();
+    const q = query.trim();
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q)}`);
+      setQuery("");
+    }
+  }
+
+  return (
+    <form className={className || styles.topbarSearchWrap} onSubmit={handleSearch} role="search">
+      <span className={styles.topbarSearchIcon}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.5" y2="16.5" />
+        </svg>
+      </span>
+      <input
+        className={styles.topbarInput}
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={t("searchPlaceholder")}
+        aria-label={t("searchPlaceholder")}
+      />
+    </form>
+  );
+}
 
 function getAdministrationLinks(role) {
   if (role === "owner") {
@@ -81,6 +117,7 @@ function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) 
 export default function Nav({ role, children }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const router = useRouter();
   const isRoomPage = pathname?.startsWith("/rooms/");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
@@ -91,8 +128,29 @@ export default function Nav({ role, children }) {
   const [hasHostTools, setHasHostTools] = useState(
     () => role === "owner" || role === "moderator"
   );
+  const [mobileSearch, setMobileSearch] = useState(false);
+  const [sidebarData, setSidebarData] = useState(null);
   const administrationLinks = getAdministrationLinks(role);
   const close = () => setMobileOpen(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/sidebar")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && json?.ok) setSidebarData(json.data);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+    router.refresh();
+  }
 
   function toggleGroup(id) {
     setOpenGroups((prev) => {
@@ -187,12 +245,54 @@ export default function Nav({ role, children }) {
             Yarnery Lounge
           </Link>
         </div>
+        <div className={styles.topbarCenter}>
+          <SearchForm />
+        </div>
         <div className={styles.topbarRight}>
-          <LanguageSwitcher />
+          <button
+            type="button"
+            className={`${styles.topbarIconBtn} ${styles.topbarSearchMobile}`}
+            onClick={() => setMobileSearch(true)}
+            aria-label={t("searchPlaceholder")}
+            title={t("searchPlaceholder")}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.5" y2="16.5" />
+            </svg>
+          </button>
           <NotificationBell />
+          <LanguageSwitcher />
           <ProfileMenu />
+          <button
+            type="button"
+            className={styles.topbarIconBtn}
+            onClick={handleLogout}
+            aria-label={t("logout")}
+            title={t("logout")}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </header>
+      {mobileSearch && (
+        <div className={styles.mobileSearchOverlay}>
+          <SearchForm />
+          <button
+            type="button"
+            className={styles.topbarIconBtn}
+            onClick={() => setMobileSearch(false)}
+            aria-label={t("toggleNav")}
+            title={t("toggleNav")}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className={styles.shell}>
         <aside
@@ -234,6 +334,11 @@ export default function Nav({ role, children }) {
                 <SidebarGroup id="administration" label={t("administration")} items={administrationLinks} open={openGroups} onToggle={toggleGroup} t={t} close={close} />
               )}
             </nav>
+            <SidebarProfile
+              points={sidebarData?.points}
+              streak={sidebarData?.streak}
+              close={close}
+            />
           </div>
         </aside>
 

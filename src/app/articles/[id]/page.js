@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import DOMPurify from "dompurify";
 import Nav from "@/components/Nav";
 
 function renderMarkdown(text) {
@@ -16,6 +17,14 @@ function renderMarkdown(text) {
     .replace(/^- (.+)$/gm, '<li style="margin-left:20px;margin-bottom:4px">$1</li>')
     .replace(/\n\n/g, '<br/><br/>')
     .replace(/\n/g, '<br/>');
+}
+
+function safeArticleHtml(content) {
+  // Strip <script>, event handlers, javascript: URLs and any other unsafe
+  // markup before it reaches the DOM. Runs client-side where DOMPurify lives.
+  return DOMPurify.sanitize(renderMarkdown(content || ""), {
+    USE_PROFILES: { html: true },
+  });
 }
 
 export default function ArticlePage() {
@@ -112,7 +121,7 @@ export default function ArticlePage() {
             lineHeight: 1.8,
             color: "#e5e5e5",
           }}
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(article.content) }}
+          dangerouslySetInnerHTML={{ __html: safeArticleHtml(article.content) }}
         />
       </article>
     </Nav>

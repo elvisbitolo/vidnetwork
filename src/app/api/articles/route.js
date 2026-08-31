@@ -3,6 +3,7 @@ import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
 import { extractHashtags } from "@/lib/server/hashtags";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { isValidImageUrl } from "@/lib/server/posts-core";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -57,6 +58,10 @@ export async function POST(req) {
   const cleanTitle = title.trim().slice(0, 200);
   const cleanContent = content.trim();
   const cleanExcerpt = (excerpt || content.slice(0, 300)).trim().slice(0, 300);
+  const cleanCover = typeof coverImage === "string" ? coverImage.trim() : "";
+  if (cleanCover && !isValidImageUrl(cleanCover)) {
+    return NextResponse.json({ error: "Invalid cover image URL" }, { status: 400 });
+  }
   const wordCount = cleanContent.split(/\s+/).length;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
 
@@ -66,7 +71,7 @@ export async function POST(req) {
     title: cleanTitle,
     content: cleanContent,
     excerpt: cleanExcerpt,
-    coverImage: coverImage || "",
+    coverImage: cleanCover,
     authorId: auth.user.uid,
     authorName,
     hashtags: extractHashtags(cleanTitle + " " + cleanContent),

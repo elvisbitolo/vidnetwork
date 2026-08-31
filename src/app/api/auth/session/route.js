@@ -4,7 +4,31 @@ import { AUTH_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/server/auth";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { logError } from "@/lib/server/log";
 
+// Blocks cookie-CSRF-style cross-origin session requests. Requests without an
+// Origin header (curl, servers) are allowed; browsers are expected to send one.
+// The Origin must match the Host the request was addressed to, which is what a
+// real browser sends for same-site requests and what malicious cross-site
+// forms/fetches cannot forge.
+function assertSameOrigin(req) {
+  const origin = req.headers.get("origin");
+  if (!origin) return null;
+  const host = req.headers.get("host");
+  if (!host) return null;
+  try {
+    const parsed = new URL(origin);
+    if (parsed.host === host && (parsed.protocol === "https:" || parsed.protocol === "http:")) {
+      return null;
+    }
+  } catch {
+    // invalid origin — fall through and block
+  }
+  return NextResponse.json({ error: "Cross-origin request blocked" }, { status: 403 });
+}
+
 export async function POST(req) {
+  const crossOrigin = assertSameOrigin(req);
+  if (crossOrigin) return crossOrigin;
+
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const limited = rateLimitGuard(`session-ip:${ip}`, { limit: 30 });
   if (limited) return limited;
@@ -17,6 +41,9 @@ export async function POST(req) {
     }
 
     const decoded = await adminAuth().verifyIdToken(idToken);
+
+    const perAccount = rateLimitGuard(`session-uid:${decoded.uid}`, { limit: 20 });
+    if (perAccount) return perAccount;
 
     if (decoded.email && !decoded.email_verified) {
       return NextResponse.json(

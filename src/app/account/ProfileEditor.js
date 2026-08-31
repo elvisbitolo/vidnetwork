@@ -172,16 +172,29 @@ export default function ProfileEditor({ initial }) {
     setUploading(true);
     try {
       const dataUrl = await resizeImage(file);
+      let photoURL = dataUrl;
+      const fd = new FormData();
+      const blob = await (await fetch(dataUrl)).blob();
+      fd.append("file", blob, "avatar.jpg");
+      const up = await fetch("/api/upload?kind=avatar", {
+        method: "POST",
+        body: fd,
+      });
+      const upData = await up.json().catch(() => ({}));
+      if (!up.ok || (!upData.url && !upData.dataUrl)) {
+        throw new Error(upData.error || "Failed to upload photo");
+      }
+      photoURL = upData.url || upData.dataUrl;
       const res = await fetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoURL: dataUrl }),
+        body: JSON.stringify({ photoURL }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to save photo");
       }
-      setPhotoURL(dataUrl);
+      setPhotoURL(photoURL);
       setSaved(true);
     } catch (err) {
       setError(err.message || "Failed to upload photo");

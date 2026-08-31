@@ -19,6 +19,10 @@ const AUTH_ROUTES = [
   "/spaces",
   "/discovery",
   "/dashboard",
+  "/articles",
+  "/gallery",
+  "/search",
+  "/perks",
 ];
 
 export function proxy(request) {
@@ -56,5 +60,9 @@ export const config = {
     "/spaces/:path*",
     "/discovery/:path*",
     "/dashboard/:path*",
+    "/articles/:path*",
+    "/gallery/:path*",
+    "/search/:path*",
+    "/perks/:path*",
   ],
 };

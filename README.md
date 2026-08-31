@@ -1,17 +1,19 @@
 # Yarnery Lounge
 
-Yarnery Lounge is a **paid-membership community platform**: live video rooms,
+Yarnery Lounge is an **open membership community platform**: live video rooms,
 courses, events, groups, chat and engagement tools in one web app. It is built
 as a close equivalent of the Mighty Networks product surface for a single
 community operated by a Host.
 
-LiveKit powers real-time video, Stripe handles subscriptions/purchases/promos,
-and Firebase provides auth, data and storage. Everything a member can do is
-gated server-side, with Firestore/Storage rules as a backstop.
+LiveKit powers real-time video, Firebase provides auth and data, and Vercel
+hosts the app + Blob storage for uploads. Anyone who signs up gets full
+role-based access to the community — there are **no paid tiers right now**;
+transactions are planned to be added later on **Shopify**. Everything members
+can do is gated server-side, with Firestore rules as a backstop.
 
-- **Stack:** Next.js 16 (App Router) · React 19 · Firebase · LiveKit · Stripe · AWS S3 · Vercel
+- **Stack:** Next.js 16 (App Router) · React 19 · Firebase (Auth + Firestore) · LiveKit · Vercel Blob · Vercel
 - **Requires:** Node.js 24
-- **Status:** feature-complete per the client scope; production-hardened (see [docs/CURRENT-STATE.md](./docs/CURRENT-STATE.md))
+- **Status:** feature-complete per the client scope; open access (see [docs/CURRENT-STATE.md](./docs/CURRENT-STATE.md))
 
 ## How to run it
 
@@ -19,7 +21,7 @@ gated server-side, with Firestore/Storage rules as a backstop.
 npm install
 cp .env.example .env.local   # fill in credentials
 node scripts/set-owner.mjs you@example.com   # promote yourself to owner
-npx firebase deploy --only firestore:rules,firestore:indexes,storage:rules
+npx firebase deploy --only firestore:rules,firestore:indexes
 npm run dev                  # http://localhost:3000
 ```
 
@@ -28,7 +30,7 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` | Start the dev server |
 | `npm run build` / `npm start` | Production build / serve |
 | `npm run lint` | ESLint |
-| `npm test` | Server unit tests (`node:test`, 129 tests) |
+| `npm test` | Server unit tests (`node:test`, 140 tests) |
 
 Full setup details: [docs/SETUP.md](./docs/SETUP.md).
 
@@ -41,9 +43,9 @@ Browser (React client)
 Next.js App Router
   ├── Pages (client/server components)     ── realtime Firestore reads
   ├── API routes (route.js)                ── server-side business logic
-  │     │  guards: requireUser / requireActiveMember / requireOwner …
+  │     │  guards: requireUser / requireOwner / requireModerator …
   │     ▼
-  ├── src/lib/server/*                     ── Admin SDK, Stripe, LiveKit, email
+  ├── src/lib/server/*                     ── Admin SDK, LiveKit, email
   └── *-core.js modules                    ── pure, unit-tested logic
 ```
 
@@ -52,8 +54,11 @@ Next.js App Router
   extracted into `*-core.js` modules with `node:test` suites.
 - **Client reads** use the Firebase client SDK (realtime feeds, chat); **all
   writes** go through server API routes.
+- **Uploads** (profile photos) go through `/api/upload` → an optional
+  **Vercel Blob** store; without a `BLOB_READ_WRITE_TOKEN` they fall back to
+  base64 stored in Firestore.
 - **Security boundary** is server-side authorization; rules in
-  `firestore.rules` / `storage.rules` backstop direct client access.
+  `firestore.rules` backstop direct client access.
 
 More: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 

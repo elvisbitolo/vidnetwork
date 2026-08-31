@@ -1,4 +1,4 @@
-import { redirect } from "next/server";
+import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import Nav from "@/components/Nav";

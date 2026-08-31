@@ -8,6 +8,7 @@ import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { createNotification } from "@/lib/server/notifications";
 import { runAutomations } from "@/lib/server/automations";
 import { logError } from "@/lib/server/log";
+import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { validatePostText, isValidImageUrl, POST_TEXT_MAX } from "@/lib/server/posts-core";
 
 export async function POST(req) {
@@ -19,6 +20,8 @@ export async function POST(req) {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
+  const limited = rateLimitGuard(`feed-post:${user.uid}`, { limit: 10 });
+  if (limited) return limited;
 
   const {
     text,

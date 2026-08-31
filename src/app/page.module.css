@@ -345,11 +345,6 @@
   background: #141418;
 }
 
-.pricingSection {
-  padding: 100px 0;
-  background: #0e0e12;
-}
-
 .ctaSection {
   padding: 40px 0 100px;
   background: #0e0e12;
@@ -1130,8 +1125,7 @@
   }
 
   .featuresSection,
-  .showcaseSection,
-  .pricingSection {
+  .showcaseSection {
     padding: 48px 0;
   }
 

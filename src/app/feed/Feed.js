@@ -334,7 +334,7 @@ function CommentList({ postId, uid, canModerate }) {
 
 const EMPTY_POLL = ["", ""];
 
-export default function Feed({ uid, userName, role, groupId, spaceId }) {
+export default function Feed({ uid, userName, role, groupId, spaceId, initialKind }) {
   const canModerate = role === "owner" || role === "moderator";
   const [posts, setPosts] = useState([]);
   const [text, setText] = useState("");
@@ -342,7 +342,11 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
-  const [kind, setKind] = useState("post");
+  const [kind, setKind] = useState(
+    initialKind === "poll" || initialKind === "question" || initialKind === "win"
+      ? initialKind
+      : "post"
+  );
   const [pollOptions, setPollOptions] = useState(EMPTY_POLL);
   const [filter, setFilter] = useState("all");
   const fileInputRef = useRef(null);
@@ -416,7 +420,9 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
   const handlePost = useCallback(
     async (e) => {
       e.preventDefault();
-      const trimmed = text.trim();
+const trimmed = text.trim();
+      const tag = /\b#win\b/i.test(trimmed) ? "" : "#win";
+      const payloadText = kind === "win" && trimmed ? `${trimmed} ${tag}`.trim() : trimmed;
       const cleanPoll = pollOptions
         .map((opt) => opt.trim())
         .filter((opt) => opt.length > 0);
@@ -431,7 +437,7 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: trimmed,
+            text: payloadText,
             imageUrl,
             groupId: groupId || "",
             spaceId: spaceId || "",
@@ -506,7 +512,13 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
   const bookmarkedCount = posts.filter((p) => p.bookmarks?.[uid]).length;
 
   const kindLabel =
-    kind === "poll" ? "Ask a poll" : kind === "question" ? "Ask a question" : "New post";
+    kind === "poll"
+      ? "Ask a poll"
+      : kind === "question"
+        ? "Ask a question"
+        : kind === "win"
+          ? "Share a win"
+          : "New post";
 
   return (
     <div className={styles.feed}>
@@ -516,6 +528,7 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
             { key: "post", label: "✍️ Post" },
             { key: "poll", label: "📊 Poll" },
             { key: "question", label: "❓ Question" },
+            { key: "win", label: "🏆 Win" },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -534,8 +547,10 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
             kind === "poll"
               ? "Ask a question, then add options below…"
               : kind === "question"
-              ? "What do you want to ask the community?…"
-              : "Share something with the community…"
+                ? "What do you want to ask the community?…"
+                : kind === "win"
+                  ? "Share a win with the community…"
+                  : "Share something with the community…"
           }
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -677,6 +692,7 @@ export default function Feed({ uid, userName, role, groupId, spaceId }) {
                     {post.authorName}
                     {post.kind === "poll" && <span className={styles.kindBadge}>📊 Poll</span>}
                     {post.kind === "question" && <span className={styles.kindBadge}>❓ Question</span>}
+                    {post.kind === "win" && <span className={styles.kindBadge}>🏆 Win</span>}
                     {post.pinned && <span className={styles.pinnedBadge}>📌 Pinned</span>}
                   </p>
                   <p className={styles.postTime}>{timeAgo(post.createdAt)}</p>

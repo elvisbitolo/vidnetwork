@@ -41,6 +41,7 @@ export default async function MembersPage() {
     .map((m) => ({
       id: m.id,
       name: m.name,
+      username: m.username || "",
       headline: m.headline || "",
       location: m.location || "",
       country: m.country || "",

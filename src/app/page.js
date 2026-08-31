@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import LandingNav from "@/components/LandingNav";
-import LandingPricing from "@/components/LandingPricing";
 import Reveal from "@/components/Reveal";
 import ThemePicker from "@/components/ThemePicker";
 import {
@@ -507,23 +506,6 @@ export default function Home() {
               </div>
             </Reveal>
           </div>
-        </div>
-      </section>
-
-      {/* ─── Pricing ─── */}
-      <section className={styles.pricingSection} aria-labelledby="pricing-title">
-        <div className={styles.wrap}>
-          <Reveal>
-            <div className={styles.sectionHead}>
-              <h2 id="pricing-title" className={styles.sectionTitle}>
-                {t("simpleTransparent")}
-              </h2>
-              <p className={styles.sectionSub}>{t("simpleTransparentDesc")}</p>
-            </div>
-          </Reveal>
-          <Reveal>
-            <LandingPricing />
-          </Reveal>
         </div>
       </section>
 

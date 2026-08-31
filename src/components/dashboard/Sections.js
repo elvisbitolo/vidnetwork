@@ -54,19 +54,73 @@ export function WelcomeBanner({ name }) {
   );
 }
 
-export function QuickActions({ isStaff }) {
+function ActionIcon({ icon }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+  };
+  switch (icon) {
+    case "goLive":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+          <path d="M7 7a8 8 0 0 0 0 10M17 7a8 8 0 0 1 0 10M4.5 4.5a12 12 0 0 0 0 15M19.5 4.5a12 12 0 0 1 0 15" />
+        </svg>
+      );
+    case "addProject":
+      return (
+        <svg {...common}>
+          <path d="M12 2l9 4.9v10.2L12 22l-9-4.9V6.9L12 2z" />
+          <path d="M12 2v20M3 6.9l9 4.9 9-4.9" />
+        </svg>
+      );
+    case "askQuestion":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.6 9a2.4 2.4 0 1 1 3.9 1.9c-.9.7-1.5 1.2-1.5 2.6" />
+          <circle cx="12" cy="16.8" r="0.4" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "shareWin":
+      return (
+        <svg {...common}>
+          <path d="M6 9H4.5a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1.5M6 9h12v10H6V9z" />
+          <path d="M6 9V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M15 15l1.5 4-3-2-3 2 1.5-4a3.5 3.5 0 1 1 3-3.5M9.5 15a6 6 0 1 1 9 .5" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+      );
+  }
+}
+
+export function QuickActions() {
   const t = useTranslations("dashboard");
   const actions = [
-    { key: "startLive", href: "/rooms", icon: "●" },
-    { key: "createRoom", href: isStaff ? "/admin/rooms" : "/rooms", icon: "+" },
-    { key: "createPost", href: "/feed", icon: "✎" },
+    { key: "createPost", href: "/feed", icon: "post" },
+    { key: "goLive", href: "/rooms", icon: "goLive" },
+    { key: "addProject", href: "/gallery", icon: "addProject" },
+    { key: "askQuestion", href: "/feed?kind=question", icon: "askQuestion" },
+    { key: "shareWin", href: "/feed?kind=win", icon: "shareWin" },
   ];
   return (
     <Card title={t("quickActions")}>
       <div
+        className={styles.quickActions}
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(118px, 1fr))",
           gap: 10,
         }}
       >
@@ -75,9 +129,11 @@ export function QuickActions({ isStaff }) {
             key={action.key}
             className={styles.kpi}
             href={action.href}
-            style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6, padding: 14 }}
+            style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 7, padding: 14 }}
           >
-            <span style={{ fontSize: 18, color: "var(--secondary-light)" }}>{action.icon}</span>
+            <span className={styles.quickActionIcon}>
+              <ActionIcon icon={action.icon} />
+            </span>
             <span style={{ fontSize: 13, fontWeight: 600, color: "#f5f5f5" }}>{t(action.key)}</span>
           </Link>
         ))}

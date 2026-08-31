@@ -7,11 +7,13 @@ import styles from "./feed.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function FeedPage() {
+export default async function FeedPage({ searchParams }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const userDoc = await getUserDoc(user.uid);
+  const params = await searchParams;
+  const initialKind = params?.kind || "";
 
   recordDailyVisit(user.uid, userDoc?.name || user.name || "Member").catch(() => {});
 
@@ -24,6 +26,7 @@ export default async function FeedPage() {
           uid={user.uid}
           userName={userDoc?.name || user.name || "Member"}
           role={userDoc?.role || "member"}
+          initialKind={initialKind}
         />
       </div>
 </Nav>

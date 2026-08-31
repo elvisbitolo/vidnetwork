@@ -10,9 +10,7 @@ import ProfileMenu from "./ProfileMenu";
 import SidebarProfile from "./SidebarProfile";
 import LiveNowBanner from "./LiveNowBanner";
 import ChatbotGuide from "./ChatbotGuide";
-import { logout } from "@/lib/client-auth";
 import styles from "./Nav.module.css";
-
 const CHEVRON = (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
     <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -117,7 +115,6 @@ function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) 
 export default function Nav({ role, children }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
-  const router = useRouter();
   const isRoomPage = pathname?.startsWith("/rooms/");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
@@ -145,12 +142,6 @@ export default function Nav({ role, children }) {
       active = false;
     };
   }, []);
-
-  async function handleLogout() {
-    await logout();
-    router.push("/login");
-    router.refresh();
-  }
 
   function toggleGroup(id) {
     setOpenGroups((prev) => {
@@ -264,19 +255,6 @@ export default function Nav({ role, children }) {
           <NotificationBell />
           <LanguageSwitcher />
           <ProfileMenu />
-          <button
-            type="button"
-            className={styles.topbarIconBtn}
-            onClick={handleLogout}
-            aria-label={t("logout")}
-            title={t("logout")}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
         </div>
       </header>
       {mobileSearch && (

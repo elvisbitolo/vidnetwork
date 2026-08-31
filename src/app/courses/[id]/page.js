@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getCourseFull, getProgress } from "@/lib/server/courses";
+import { getQuizByLesson, getQuizResult } from "@/lib/server/quizzes";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import QuizBlock from "./QuizBlock";
 import styles from "../courses.module.css";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,25 @@ export default async function CoursePage({ params }) {
   }
 
   const isOwner = userDoc?.role === "owner";
+
+  const quizzesByLesson = {};
+  const resultsByLesson = {};
+  for (const mod of modules) {
+    for (const lesson of lessons[mod.id] || []) {
+      const quiz = await getQuizByLesson(lesson.id);
+      if (quiz) {
+        quizzesByLesson[lesson.id] = {
+          id: quiz.id,
+          lessonId: quiz.lessonId,
+          moduleId: quiz.moduleId,
+          courseId: quiz.courseId,
+          questions: quiz.questions || [],
+          passingScore: Number(quiz.passingScore) || 70,
+        };
+        resultsByLesson[lesson.id] = await getQuizResult(quiz.id, user.uid);
+      }
+    }
+  }
 
   const progress = await getProgress(id, user.uid);
   const completed = new Set(progress.completedLessons || []);
@@ -105,20 +126,29 @@ export default async function CoursePage({ params }) {
                       const locked = isLocked(lesson);
                       const href = locked ? `#` : `/courses/${id}/lessons/${lesson.id}`;
                       return (
-                        <Link
-                          key={lesson.id}
-                          href={href}
-                          aria-disabled={locked}
-                          className={locked ? `${styles.lesson} ${styles.lessonLocked}` : styles.lesson}
-                        >
-                          <span className={isDone ? `${styles.lessonMark} ${styles.lessonDone}` : styles.lessonMark}>
-                            {locked ? "🔒" : isDone ? "✓" : "•"}
-                          </span>
-                          <span className={styles.lessonTitle}>{lesson.title}</span>
-                          {lesson.kind === "video" && (
-                            <span className={styles.lessonKind}>▶ video</span>
+                        <div key={lesson.id}>
+                          <Link
+                            href={href}
+                            aria-disabled={locked}
+                            className={locked ? `${styles.lesson} ${styles.lessonLocked}` : styles.lesson}
+                          >
+                            <span className={isDone ? `${styles.lessonMark} ${styles.lessonDone}` : styles.lessonMark}>
+                              {locked ? "🔒" : isDone ? "✓" : "•"}
+                            </span>
+                            <span className={styles.lessonTitle}>{lesson.title}</span>
+                            {lesson.kind === "video" && (
+                              <span className={styles.lessonKind}>▶ video</span>
+                            )}
+                          </Link>
+                          {quizzesByLesson[lesson.id] && (
+                            <QuizBlock
+                              quizId={quizzesByLesson[lesson.id].id}
+                              questions={quizzesByLesson[lesson.id].questions}
+                              passingScore={quizzesByLesson[lesson.id].passingScore}
+                              previousResult={resultsByLesson[lesson.id] || null}
+                            />
                           )}
-                        </Link>
+                        </div>
                       );
                     })}
                   </div>

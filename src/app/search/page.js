@@ -16,7 +16,12 @@ export default async function SearchPage({ searchParams }) {
 
   const q = params.q || "";
   const hashtag = params.hashtag || "";
-  const results = q || hashtag ? await searchCommunity({ q, hashtag }, user.uid) : null;
+  const type = params.type || "";
+  const spaceId = params.spaceId || "";
+  const initialResults =
+    q || hashtag
+      ? await searchCommunity({ q, hashtag, type, spaceId }, user.uid)
+      : null;
 
   return (
       <Nav role={userDoc?.role}>
@@ -28,7 +33,9 @@ export default async function SearchPage({ searchParams }) {
         <SearchBoard
           initialQ={q}
           initialHashtag={hashtag}
-          initialResults={results}
+          initialType={type}
+          initialSpaceId={spaceId}
+          initialResults={initialResults}
         />
       </div>
 </Nav>

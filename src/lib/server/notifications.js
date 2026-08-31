@@ -1,5 +1,27 @@
 import { adminDb } from "@/lib/firebase/admin";
 
+const NOTIFICATION_TYPE_TO_PREF = {
+  comment: "feed",
+  like: "feed",
+  mention: "mentions",
+  chat: "chat",
+  event_reminder: "events",
+  event_rsvp: "events",
+  space_activity: "feed",
+  follow: "feed",
+  automation: "automations",
+  digest: "automations",
+};
+
+async function shouldNotify(userId, type) {
+  const prefKey = NOTIFICATION_TYPE_TO_PREF[type];
+  if (!prefKey) return true;
+  const doc = await adminDb().collection("users").doc(userId).get();
+  const prefs = doc.exists ? doc.data().notificationPreferences : null;
+  if (!prefs) return true;
+  return prefs[prefKey] !== false;
+}
+
 export async function createNotification({
   userId,
   type,
@@ -9,6 +31,9 @@ export async function createNotification({
   href,
   text,
 }) {
+  const enabled = await shouldNotify(userId, type);
+  if (!enabled) return;
+
   await adminDb().collection("notifications").add({
     userId,
     type,

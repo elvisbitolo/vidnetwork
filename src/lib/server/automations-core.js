@@ -4,6 +4,10 @@ export const AUTOMATION_TRIGGERS = [
   "event_rsvp",
   "purchase",
   "checklist_complete",
+  "course_completed",
+  "space_joined",
+  "member_inactive",
+  "milestone_reached",
 ];
 
 export const AUTOMATION_ACTIONS = [
@@ -11,7 +15,21 @@ export const AUTOMATION_ACTIONS = [
   "create_notification",
   "award_points",
   "add_member_to_space",
+  "send_dm",
+  "send_push",
 ];
+
+export const TRIGGER_PLACEHOLDERS = {
+  new_member: ["memberName", "memberEmail"],
+  new_post: ["authorName", "postText"],
+  event_rsvp: ["rsvpName", "eventTitle"],
+  purchase: ["memberName", "memberEmail", "itemName", "targetType", "spaceId"],
+  checklist_complete: ["memberName", "memberEmail"],
+  course_completed: ["memberName", "memberEmail", "courseName", "courseId", "completionDate"],
+  space_joined: ["memberName", "memberEmail", "spaceName", "spaceId"],
+  member_inactive: ["memberName", "memberEmail", "inactiveDays", "spaceId"],
+  milestone_reached: ["memberName", "memberEmail", "milestonePoints", "totalPoints"],
+};
 
 export function fillTemplate(template, values = {}) {
   if (typeof template !== "string") return template;

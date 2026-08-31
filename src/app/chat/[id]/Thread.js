@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import styles from "../chat.module.css";
+import tStyles from "./thread.module.css";
+import { renderRichText } from "@/lib/chat-render";
 
 const POLL_INTERVAL_MS = 4000;
 
@@ -72,6 +74,46 @@ function fileToDataUrl(file) {
   });
 }
 
+function highlightMatch(text, query) {
+  if (!query || !text) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase() ? (
+      <mark key={i} className={tStyles.highlight}>{part}</mark>
+    ) : (
+      part
+    )
+  );
+}
+
+function BubbleContent({ msg, searchQuery, isReply }) {
+  const bubbleTextClass = isReply ? tStyles.replyBubbleText : styles.bubbleText;
+
+  if (!msg.text) return null;
+
+  let content = renderRichText(msg.text);
+
+  if (searchQuery) {
+    const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    content = content.map((node, i) => {
+      if (typeof node !== "string") return node;
+      const parts = node.split(new RegExp(`(${escaped})`, "gi"));
+      return parts.length === 1
+        ? node
+        : <span key={`hl-${i}`}>{parts.map((part, j) =>
+            part.toLowerCase() === searchQuery.toLowerCase() ? (
+              <mark key={j} className={tStyles.highlight}>{part}</mark>
+            ) : (
+              part
+            )
+          )}</span>;
+    });
+  }
+
+  return content ? <p className={bubbleTextClass}>{content}</p> : null;
+}
+
 export default function Thread({ conversationId, uid, initialMessages }) {
   const [messages, setMessages] = useState(initialMessages);
   const [text, setText] = useState("");
@@ -80,10 +122,16 @@ export default function Thread({ conversationId, uid, initialMessages }) {
   const [attachment, setAttachment] = useState(null);
   const [attachError, setAttachError] = useState("");
   const [sendError, setSendError] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [replyBusy, setReplyBusy] = useState(false);
+  const [expandedThreads, setExpandedThreads] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const bottomRef = useRef(null);
   const emojiRef = useRef(null);
+  const replyInputRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -123,6 +171,12 @@ export default function Thread({ conversationId, uid, initialMessages }) {
     document.addEventListener("mousedown", onPointerDown);
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [showEmoji]);
+
+  useEffect(() => {
+    if (replyingTo && replyInputRef.current) {
+      replyInputRef.current.focus();
+    }
+  }, [replyingTo]);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
@@ -206,6 +260,30 @@ export default function Thread({ conversationId, uid, initialMessages }) {
     }
   }
 
+  async function handleReplySend(parentId) {
+    const trimmed = replyText.trim();
+    if (!trimmed || replyBusy) return;
+    setReplyBusy(true);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: trimmed, parentId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send reply");
+      }
+      setReplyText("");
+      setReplyingTo(null);
+      setExpandedThreads((prev) => ({ ...prev, [parentId]: true }));
+    } catch {
+      // transient — next poll picks it up
+    } finally {
+      setReplyBusy(false);
+    }
+  }
+
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -213,52 +291,195 @@ export default function Thread({ conversationId, uid, initialMessages }) {
     }
   }
 
+  function handleReplyKeyDown(e, parentId) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleReplySend(parentId);
+    }
+  }
+
+  function toggleThread(msgId) {
+    setExpandedThreads((prev) => ({ ...prev, [msgId]: !prev[msgId] }));
+  }
+
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter((m) => {
+        const q = searchQuery.toLowerCase();
+        const matchesSelf = (m.text || "").toLowerCase().includes(q);
+        const matchesReply = (m.replies || []).some((r) =>
+          (r.text || "").toLowerCase().includes(q)
+        );
+        return matchesSelf || matchesReply;
+      })
+    : messages;
+
+  const matchCount = searchQuery.trim()
+    ? filteredMessages.reduce((acc, m) => {
+        const q = searchQuery.toLowerCase();
+        let count = 0;
+        if ((m.text || "").toLowerCase().includes(q)) count++;
+        count += (m.replies || []).filter((r) =>
+          (r.text || "").toLowerCase().includes(q)
+        ).length;
+        return acc + count;
+      }, 0)
+    : 0;
+
   return (
     <div className={styles.threadBody}>
-      <div className={styles.messages}>
-        {messages.length === 0 && (
-          <p className={styles.empty}>No messages yet — say hello!</p>
+      <div className={tStyles.searchBar}>
+        <input
+          className={tStyles.searchInput}
+          type="text"
+          placeholder="Search messages…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery.trim() && (
+          <>
+            <button
+              type="button"
+              className={tStyles.searchClear}
+              onClick={() => setSearchQuery("")}
+            >
+              Clear
+            </button>
+            <p className={tStyles.searchCount}>
+              {matchCount} {matchCount === 1 ? "message matches" : "messages match"}
+            </p>
+          </>
         )}
-        {messages.map((msg) => {
+      </div>
+
+      <div className={styles.messages}>
+        {filteredMessages.length === 0 && (
+          <p className={styles.empty}>
+            {searchQuery.trim() ? "No messages match your search" : "No messages yet — say hello!"}
+          </p>
+        )}
+        {filteredMessages.map((msg) => {
           const isMine = msg.senderId === uid;
           const millis =
             msg.createdAt?.toMillis?.() ||
             msg.createdAt?.seconds * 1000 ||
             Number(msg.createdAt) ||
             0;
+          const replies = msg.replies || [];
+          const isExpanded = expandedThreads[msg.id] || false;
           return (
-            <div
-              key={msg.id}
-              className={isMine ? `${styles.bubble} ${styles.mine}` : styles.bubble}
-            >
-              {!isMine && <p className={styles.bubbleName}>{msg.senderName}</p>}
-              {msg.text && <p className={styles.bubbleText}>{msg.text}</p>}
-              {msg.attachment?.kind === "image" && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  className={styles.bubbleImage}
-                  src={msg.attachment.dataUrl}
-                  alt={msg.attachment.name || "Shared image"}
-                />
-              )}
-              {msg.attachment && msg.attachment.kind !== "image" && (
-                <a
-                  className={styles.fileChip}
-                  href={msg.attachment.dataUrl}
-                  download={msg.attachment.name}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className={styles.fileIcon}>📎</span>
-                  <span className={styles.fileMeta}>
-                    <span className={styles.fileName}>{msg.attachment.name}</span>
-                    <span className={styles.fileSize}>
-                      {formatBytes(msg.attachment.size)}
+            <div key={msg.id} className={tStyles.threadMessage}>
+              <div
+                className={isMine ? `${styles.bubble} ${styles.mine}` : styles.bubble}
+              >
+                {!isMine && <p className={styles.bubbleName}>{msg.senderName}</p>}
+                <BubbleContent msg={msg} searchQuery={searchQuery.trim()} />
+                {msg.attachment?.kind === "image" && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className={styles.bubbleImage}
+                    src={msg.attachment.dataUrl}
+                    alt={msg.attachment.name || "Shared image"}
+                  />
+                )}
+                {msg.attachment && msg.attachment.kind !== "image" && (
+                  <a
+                    className={styles.fileChip}
+                    href={msg.attachment.dataUrl}
+                    download={msg.attachment.name}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className={styles.fileIcon}>📎</span>
+                    <span className={styles.fileMeta}>
+                      <span className={styles.fileName}>{msg.attachment.name}</span>
+                      <span className={styles.fileSize}>
+                        {formatBytes(msg.attachment.size)}
+                      </span>
                     </span>
-                  </span>
-                  <span className={styles.fileDownload}>Download</span>
-                </a>
+                    <span className={styles.fileDownload}>Download</span>
+                  </a>
+                )}
+                <p className={styles.bubbleTime}>{timeLabel(millis)}</p>
+                <div className={tStyles.replyActions}>
+                  {replies.length > 0 && (
+                    <button
+                      type="button"
+                      className={tStyles.replyCountBadge}
+                      onClick={() => toggleThread(msg.id)}
+                    >
+                      {isExpanded ? "▾" : "▸"} {replies.length} {replies.length === 1 ? "reply" : "replies"}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={tStyles.replyBtn}
+                    onClick={() => {
+                      setReplyingTo(replyingTo === msg.id ? null : msg.id);
+                      setReplyText("");
+                    }}
+                  >
+                    ↩ Reply
+                  </button>
+                </div>
+              </div>
+
+              {isExpanded && replies.length > 0 && (
+                <div>
+                  {replies.map((reply) => {
+                    const isReplyMine = reply.senderId === uid;
+                    const replyMillis =
+                      reply.createdAt?.toMillis?.() ||
+                      reply.createdAt?.seconds * 1000 ||
+                      Number(reply.createdAt) ||
+                      0;
+                    return (
+                      <div
+                        key={reply.id}
+                        className={tStyles.replyConnector}
+                      >
+                        <div
+                          className={`${tStyles.replyBubble} ${isReplyMine ? tStyles.replyMine : ""}`}
+                        >
+                          {!isReplyMine && <p className={styles.bubbleName}>{reply.senderName}</p>}
+                          <BubbleContent msg={reply} searchQuery={searchQuery.trim()} isReply />
+                          <p className={styles.bubbleTime}>{timeLabel(replyMillis)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-              <p className={styles.bubbleTime}>{timeLabel(millis)}</p>
+
+              {replyingTo === msg.id && (
+                <div className={tStyles.replyConnector}>
+                  <div className={tStyles.replyInputWrap}>
+                    <textarea
+                      ref={replyInputRef}
+                      className={tStyles.replyInput}
+                      rows={1}
+                      placeholder="Write a reply…"
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyDown={(e) => handleReplyKeyDown(e, msg.id)}
+                      maxLength={2000}
+                    />
+                    <button
+                      type="button"
+                      className={tStyles.replySend}
+                      disabled={!replyText.trim() || replyBusy}
+                      onClick={() => handleReplySend(msg.id)}
+                    >
+                      {replyBusy ? "…" : "Send"}
+                    </button>
+                    <button
+                      type="button"
+                      className={tStyles.replyCancel}
+                      onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

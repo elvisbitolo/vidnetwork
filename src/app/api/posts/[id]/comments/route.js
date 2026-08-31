@@ -8,6 +8,7 @@ import { logError } from "@/lib/server/log";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { validateCommentText } from "@/lib/server/posts-core";
+import { extractMentions, resolveMentions, sendMentionNotifications } from "@/lib/server/mentions";
 
 export async function POST(req, { params }) {
   const { id: postId } = await params;
@@ -41,6 +42,20 @@ export async function POST(req, { params }) {
 
   await awardPoints(user.uid, POINTS.COMMENT, authorName);
   await awardBadge(user.uid, "first_comment", authorName);
+
+  const mentionUsernames = extractMentions(check.text);
+  if (mentionUsernames.length > 0) {
+    resolveMentions(mentionUsernames).then((mentions) =>
+      sendMentionNotifications({
+        mentions,
+        actorId: user.uid,
+        actorName: authorName,
+        targetId: postId,
+        href: `/feed`,
+        text: "comment",
+      })
+    ).catch(() => {});
+  }
 
   if (post.authorId !== user.uid) {
     await createNotification({

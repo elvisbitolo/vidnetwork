@@ -10,12 +10,14 @@ import {
   listEventsForSpace,
   listCoursesForSpace,
 } from "@/lib/server/spaces";
+import { canManageScope } from "@/lib/server/hosts";
 import { expandEvents } from "@/lib/server/events";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
 import Feed from "@/app/feed/Feed";
 import EventsBoard from "@/app/events/EventsBoard";
 import SpaceInvite from "../SpaceInvite";
+import SpaceAnalytics from "./SpaceAnalytics";
 import styles from "../spaces.module.css";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +43,7 @@ export default async function SpacePage({ params }) {
   }
 
   const isOwner = userDoc?.role === "owner";
+  const canManage = isOwner || (await canManageScope(user.uid, "space", space.id));
   const membership = await isSpaceMember(space.id, user.uid);
   const members = await getSpaceMembers(space.id);
   const memberIds = members.map((m) => m.userId);
@@ -227,6 +230,17 @@ export default async function SpacePage({ params }) {
             )}
           </>
         )}
+
+        {features.pages && (
+          <>
+            <h2 className={styles.sectionTitle}>Pages</h2>
+            <Link className={styles.spaceChatLink} href={`/spaces/${space.slug}/pages`}>
+              Browse pages
+            </Link>
+          </>
+        )}
+
+        {canManage && <SpaceAnalytics spaceId={space.id} />}
       </div>
 </Nav>
   );

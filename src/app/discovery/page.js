@@ -6,6 +6,7 @@ import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Nav from "@/components/Nav";
+import ForYou from "./ForYou";
 import styles from "./discovery.module.css";
 
 function money(cents) {
@@ -58,6 +59,11 @@ export default function DiscoveryPage() {
           A snapshot of what&apos;s happening across the community.
         </p>
         {error && <p className={styles.error}>{error}</p>}
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>For you</h2>
+          <ForYou />
+        </section>
 
         {discovery && (
           <>

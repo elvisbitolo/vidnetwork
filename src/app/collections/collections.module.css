@@ -1,0 +1,91 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 24px;
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: #d8d8e3;
+  box-shadow: 0 6px 20px rgba(23, 23, 28, 0.05);
+}
+
+.cardName {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0;
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cardMeta {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7c3aed;
+  margin: 4px 0 0;
+}
+
+.spaceCard {
+  background: #faf9ff;
+  border: 1px solid #e0d4f7;
+  border-radius: 12px;
+  padding: 16px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.spaceCard:hover {
+  border-color: #7c3aed;
+}
+
+.spaceName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 4px;
+}
+
+.spaceDesc {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

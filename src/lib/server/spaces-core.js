@@ -1,4 +1,4 @@
-export const SPACE_FEATURES = ["feed", "chat", "members", "events", "courses", "live"];
+export const SPACE_FEATURES = ["feed", "chat", "members", "events", "courses", "live", "pages"];
 
 export const SPACE_FEATURE_LABELS = {
   feed: "Feed",
@@ -7,6 +7,7 @@ export const SPACE_FEATURE_LABELS = {
   events: "Events",
   courses: "Courses",
   live: "Live rooms",
+  pages: "Pages",
 };
 
 export const SPACE_ACCESS = ["public", "private", "invite"];

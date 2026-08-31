@@ -23,6 +23,13 @@ export async function POST(req, { params }) {
     return NextResponse.json({ error: "Invalid poll option" }, { status: 400 });
   }
 
+  if (post.pollDeadline) {
+    const deadlineMs = new Date(post.pollDeadline).getTime();
+    if (!isNaN(deadlineMs) && Date.now() >= deadlineMs) {
+      return NextResponse.json({ error: "Voting is closed" }, { status: 400 });
+    }
+  }
+
   const { option } = await req.json();
   if (typeof option !== "number" || option < 0 || option >= post.pollOptions.length) {
     return NextResponse.json({ error: "Invalid poll option" }, { status: 400 });

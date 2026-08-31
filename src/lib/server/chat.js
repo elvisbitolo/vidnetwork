@@ -292,7 +292,7 @@ export async function listMessages(conversationId, limitCount = 200) {
     .reverse();
 }
 
-export async function addMessage(conversationId, sender, text, attachment = null) {
+export async function addMessage(conversationId, sender, text, attachment = null, parentId = null) {
   const convRef = adminDb().collection("conversations").doc(conversationId);
   const convDoc = await convRef.get();
   if (!convDoc.exists) return null;
@@ -306,6 +306,8 @@ export async function addMessage(conversationId, sender, text, attachment = null
     text: encryptText(text),
     createdAt: new Date(),
     readBy: {},
+    parentId: parentId || null,
+    replyCount: 0,
   };
   if (attachment) {
     message.attachment = {

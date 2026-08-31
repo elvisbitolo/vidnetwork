@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { getSpace, isSpaceMember } from "@/lib/server/spaces";
 import { extractHashtags } from "@/lib/server/hashtags";
+import { extractMentions, resolveMentions, sendMentionNotifications } from "@/lib/server/mentions";
 import { awardPoints, awardBadge, POINTS } from "@/lib/server/gamification";
 import { createNotification } from "@/lib/server/notifications";
 import { runAutomations } from "@/lib/server/automations";
@@ -30,6 +31,7 @@ export async function POST(req) {
     spaceId = "",
     kind = "post",
     pollOptions = [],
+    pollDeadline = "",
   } = await req.json();
 
   let cleanText = typeof text === "string" ? text.trim() : "";
@@ -40,6 +42,12 @@ export async function POST(req) {
       .filter((opt) => opt.length > 0 && opt.length <= 100);
     if (cleanOptions.length < 2 || cleanOptions.length > 5) {
       return NextResponse.json({ error: "Polls need 2-5 options" }, { status: 400 });
+    }
+    if (pollDeadline) {
+      const deadlineDate = new Date(pollDeadline);
+      if (isNaN(deadlineDate.getTime()) || deadlineDate.getTime() <= Date.now()) {
+        return NextResponse.json({ error: "Poll deadline must be a valid future date" }, { status: 400 });
+      }
     }
   } else {
     if (!cleanText && !imageUrl) {
@@ -89,6 +97,9 @@ export async function POST(req) {
       .slice(0, 5);
     data.pollCounts = {};
     data.pollTotal = 0;
+    if (pollDeadline) {
+      data.pollDeadline = new Date(pollDeadline).toISOString();
+    }
   }
 
   let spaceSlug = "";
@@ -121,6 +132,22 @@ export async function POST(req) {
   }
 
   const ref = await adminDb().collection("posts").add(data);
+
+  const mentionUsernames = extractMentions(cleanText);
+  if (mentionUsernames.length > 0) {
+    resolveMentions(mentionUsernames).then((mentions) =>
+      sendMentionNotifications({
+        mentions,
+        actorId: user.uid,
+        actorName: authorName,
+        targetId: ref.id,
+        href: spaceId ? `/spaces/${spaceSlug}` : `/feed`,
+        text: "post",
+      })
+    ).catch((err) => {
+      logError("mention.notify_failed", { uid: user.uid, postId: ref.id, error: err.message });
+    });
+  }
 
   runAutomations("new_post", {
     authorName,

@@ -7,6 +7,7 @@ import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { adminDb } from "@/lib/firebase/admin";
 import { sendEmail } from "@/lib/server/email";
 import { logError } from "@/lib/server/log";
+import { validateReplyText } from "@/lib/server/chat-core";
 
 const MAX_ATTACHMENT_LENGTH = 700_000;
 const IMAGE_MIME = /^image\/(png|jpe?g|gif|webp|avif)$/;
@@ -83,8 +84,29 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
   }
   const { listMessages } = await import("@/lib/server/chat");
-  const messages = await listMessages(conversationId);
-  return NextResponse.json({ messages });
+  const allMessages = await listMessages(conversationId);
+
+  const topLevel = [];
+  const replyMap = {};
+
+  for (const msg of allMessages) {
+    if (msg.parentId) {
+      if (!replyMap[msg.parentId]) replyMap[msg.parentId] = [];
+      replyMap[msg.parentId].push(msg);
+    }
+  }
+
+  for (const msg of allMessages) {
+    if (!msg.parentId) {
+      topLevel.push({
+        ...msg,
+        replies: replyMap[msg.id] || [],
+        replyCount: replyMap[msg.id]?.length || msg.replyCount || 0,
+      });
+    }
+  }
+
+  return NextResponse.json({ messages: topLevel });
 }
 
 export async function POST(req, { params }) {
@@ -102,7 +124,20 @@ export async function POST(req, { params }) {
 
   const body = await req.json();
   const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const parentId = typeof body?.parentId === "string" && body.parentId ? body.parentId : null;
   let attachment = body?.attachment || null;
+
+  if (parentId) {
+    const parentSnap = await adminDb()
+      .collection("conversations")
+      .doc(conversationId)
+      .collection("messages")
+      .doc(parentId)
+      .get();
+    if (!parentSnap.exists) {
+      return NextResponse.json({ error: "Parent message not found" }, { status: 404 });
+    }
+  }
 
   if (text.length > 2000) {
     return NextResponse.json({ error: "Message too long" }, { status: 400 });
@@ -130,11 +165,23 @@ export async function POST(req, { params }) {
       name: senderName,
     },
     text,
-    attachment
+    attachment,
+    parentId
   );
 
   if (!messageId) {
     return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  if (parentId) {
+    const parentRef = adminDb()
+      .collection("conversations")
+      .doc(conversationId)
+      .collection("messages")
+      .doc(parentId);
+    await parentRef.update({
+      replyCount: adminDb.FieldValue.increment(1),
+    }).catch(() => {});
   }
 
   const conv = await getConversation(conversationId, user.uid);

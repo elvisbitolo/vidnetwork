@@ -4,6 +4,8 @@ import { sendEmail } from "@/lib/server/email";
 import { createNotification } from "@/lib/server/notifications";
 import { awardPoints } from "@/lib/server/gamification";
 import { addSpaceMember } from "@/lib/server/spaces";
+import { getOrCreateDm, addMessage } from "@/lib/server/chat";
+import { recordAutomationRun } from "@/lib/server/automation-history";
 import { logError } from "@/lib/server/log";
 
 export { fillTemplate };
@@ -114,6 +116,29 @@ async function executeAction(automation, context) {
     if (!targetSpaceId) return;
     await addSpaceMember(targetSpaceId, subjectUid, context.subjectName || "Member", "member");
   }
+
+  if (action === "send_dm") {
+    const subjectUid = context.subjectUid || "";
+    let senderOwner = owner;
+    if (!senderOwner) senderOwner = await getOwnerUser();
+    if (!subjectUid || !senderOwner) return;
+    const text = fillTemplate(config.message, values);
+    const conversation = await getOrCreateDm(senderOwner.uid, subjectUid);
+    if (!conversation) return;
+    await addMessage(
+      conversation.id,
+      { uid: senderOwner.uid, name: senderOwner.name || "Yarnery Lounge" },
+      text || "You have a new message from Yarnery Lounge."
+    );
+  }
+
+  if (action === "send_push") {
+    const subjectUid = context.subjectUid || config.toUserId || "";
+    if (!subjectUid) return;
+    const title = fillTemplate(config.title, values) || "Yarnery Lounge";
+    const body = fillTemplate(config.body, values) || "You have a new notification.";
+    await sendPushToUser(subjectUid, title, body, config.href || "/dashboard");
+  }
 }
 
 export async function runAutomations(trigger, context = {}) {
@@ -124,14 +149,94 @@ export async function runAutomations(trigger, context = {}) {
     .get();
   const automations = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   for (const automation of automations) {
+    const targetUserId = context.subjectUid || "";
     try {
       await executeAction(automation, context);
+      await recordAutomationRun({
+        automationId: automation.id,
+        trigger,
+        action: automation.action,
+        targetUserId,
+        success: true,
+        error: "",
+      });
     } catch (err) {
       logError("automation.run_failed", {
         error: err.message,
         trigger,
         automationId: automation.id,
       });
+      await recordAutomationRun({
+        automationId: automation.id,
+        trigger,
+        action: automation.action,
+        targetUserId,
+        success: false,
+        error: err.message || "Unknown error",
+      });
     }
   }
+}
+
+async function sendPushToUser(uid, title, body, url = "/dashboard") {
+  const webpush = await import("web-push");
+  const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+  const vapidSubject = process.env.VAPID_SUBJECT;
+  if (!vapidPublic || !vapidPrivate || !vapidSubject) {
+    throw new Error("Push not configured — add VAPID keys.");
+  }
+  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
+  const doc = await adminDb().collection("pushSubscriptions").doc(uid).get();
+  if (!doc.exists) return;
+  const sub = doc.data();
+  await webpush.sendNotification(
+    { endpoint: sub.endpoint, keys: sub.keys },
+    JSON.stringify({ title, body, url })
+  );
+}
+
+export function fireCourseCompleted({ subjectUid, subjectName, memberName, memberEmail, courseId, courseName }) {
+  return runAutomations("course_completed", {
+    subjectUid,
+    subjectName: subjectName || memberName,
+    memberName,
+    memberEmail,
+    courseId,
+    courseName,
+    completionDate: new Date(),
+  });
+}
+
+export function fireSpaceJoined({ subjectUid, subjectName, memberName, memberEmail, spaceId, spaceName }) {
+  return runAutomations("space_joined", {
+    subjectUid,
+    subjectName: subjectName || memberName,
+    memberName,
+    memberEmail,
+    spaceId,
+    spaceName,
+  });
+}
+
+export function fireMemberInactive({ subjectUid, subjectName, memberName, memberEmail, spaceId, inactiveDays }) {
+  return runAutomations("member_inactive", {
+    subjectUid,
+    subjectName: subjectName || memberName,
+    memberName,
+    memberEmail,
+    spaceId,
+    inactiveDays,
+  });
+}
+
+export function fireMilestoneReached({ subjectUid, subjectName, memberName, memberEmail, totalPoints, milestonePoints }) {
+  return runAutomations("milestone_reached", {
+    subjectUid,
+    subjectName: subjectName || memberName,
+    memberName,
+    memberEmail,
+    totalPoints,
+    milestonePoints,
+  });
 }

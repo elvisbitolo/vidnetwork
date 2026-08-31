@@ -1,0 +1,137 @@
+.box {
+  background: #1f1f27;
+  border: 1px solid #2e2e38;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  color: #f5f5f5;
+}
+
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f5f5f5;
+  margin: 0 0 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: #25252e;
+  border: 1px solid #2e2e38;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #9b9bab;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 720px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.subHeading {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 8px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1b1b22;
+}
+
+.rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #e5e5ea;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-size: 12px;
+  color: #9b9bab;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 14px;
+  text-align: center;
+  color: #6b6b7b;
+  font-size: 14px;
+  border: 1px dashed #2e2e38;
+  border-radius: 10px;
+}
+
+.retry {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: 1px solid #7c3aed;
+  border-radius: 8px;
+  background: transparent;
+  color: #c4b5fd;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry:hover {
+  background: rgba(124, 58, 237, 0.15);
+}

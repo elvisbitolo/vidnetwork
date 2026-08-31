@@ -13,6 +13,10 @@ const TRIGGERS = {
   event_rsvp: "A member RSVPs to an event",
   purchase: "A member buys access (event, course or space)",
   checklist_complete: "A member finishes the Welcome Checklist",
+  course_completed: "A member completes all lessons in a course",
+  space_joined: "A member joins a space",
+  member_inactive: "A member hasn't visited in X days",
+  milestone_reached: "A member reaches a points milestone",
 };
 
 const ACTIONS = {
@@ -20,6 +24,8 @@ const ACTIONS = {
   create_notification: "Create a notification",
   award_points: "Award points",
   add_member_to_space: "Add member to a space",
+  send_dm: "Send a direct message",
+  send_push: "Send a push notification",
 };
 
 const PLACEHOLDERS = {
@@ -46,6 +52,31 @@ const PLACEHOLDERS = {
     { token: "memberName", label: "Member's name" },
     { token: "memberEmail", label: "Member's email" },
   ],
+  course_completed: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+    { token: "courseName", label: "Course name" },
+    { token: "courseId", label: "Course ID" },
+    { token: "completionDate", label: "Completion date" },
+  ],
+  space_joined: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+    { token: "spaceName", label: "Space name" },
+    { token: "spaceId", label: "Space ID" },
+  ],
+  member_inactive: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+    { token: "inactiveDays", label: "Days inactive" },
+    { token: "spaceId", label: "Space ID" },
+  ],
+  milestone_reached: [
+    { token: "memberName", label: "Member's name" },
+    { token: "memberEmail", label: "Member's email" },
+    { token: "milestonePoints", label: "Milestone points" },
+    { token: "totalPoints", label: "Total points" },
+  ],
 };
 
 export default function AdminAutomationsPage() {
@@ -64,12 +95,21 @@ export default function AdminAutomationsPage() {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [message, setMessage] = useState("");
+  const [dmMessage, setDmMessage] = useState("");
+  const [pushTitle, setPushTitle] = useState("");
+  const [pushBody, setPushBody] = useState("");
+  const [inactiveDays, setInactiveDays] = useState(30);
+  const [milestone, setMilestone] = useState(1000);
   const [points, setPoints] = useState(5);
   const [spaceId, setSpaceId] = useState("");
+  const [expanded, setExpanded] = useState("");
+  const [history, setHistory] = useState({});
 
   const subjectRef = useRef(null);
   const bodyRef = useRef(null);
   const messageRef = useRef(null);
+  const dmMessageRef = useRef(null);
+  const pushBodyRef = useRef(null);
 
   const loadAutomations = useCallback(async () => {
     const res = await fetch("/api/admin/automations");
@@ -105,12 +145,25 @@ export default function AdminAutomationsPage() {
         ? subjectRef.current
         : field === "body"
         ? bodyRef.current
+        : field === "dmMessage"
+        ? dmMessageRef.current
+        : field === "pushBody"
+        ? pushBodyRef.current
         : messageRef.current;
     if (!el) return;
     const placeholder = `{{${token}}}`;
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
-    const setter = field === "subject" ? setSubject : field === "body" ? setBody : setMessage;
+    const setter =
+      field === "subject"
+        ? setSubject
+        : field === "body"
+        ? setBody
+        : field === "dmMessage"
+        ? setDmMessage
+        : field === "pushBody"
+        ? setPushBody
+        : setMessage;
     setter(el.value.slice(0, start) + placeholder + el.value.slice(end));
     requestAnimationFrame(() => {
       el.focus();
@@ -145,14 +198,23 @@ export default function AdminAutomationsPage() {
     setBusy(true);
     try {
       const to = toMode === "owner" ? "owner" : customEmail.trim();
-      const config =
+      const baseConfig =
         action === "send_email"
           ? { to, subject, body }
           : action === "create_notification"
           ? { to: "owner", message, href: "/dashboard" }
+          : action === "send_dm"
+          ? { message: dmMessage, href: "/chat" }
+          : action === "send_push"
+          ? { title: pushTitle, body: pushBody, href: "/dashboard" }
           : action === "award_points"
           ? { points }
           : { spaceId };
+      const config = {
+        ...baseConfig,
+        ...(trigger === "member_inactive" ? { inactiveDays: Number(inactiveDays) || 30 } : {}),
+        ...(trigger === "milestone_reached" ? { milestonePoints: Number(milestone) || 1000 } : {}),
+      };
       const res = await fetch("/api/admin/automations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,6 +226,9 @@ export default function AdminAutomationsPage() {
       setSubject("");
       setBody("");
       setMessage("");
+      setDmMessage("");
+      setPushTitle("");
+      setPushBody("");
       setSpaceId("");
       setCustomEmail("");
       await loadAutomations();
@@ -198,6 +263,31 @@ export default function AdminAutomationsPage() {
     } catch (err) {
       setError(err.message);
     }
+  }
+
+  async function toggleHistory(automationId) {
+    setExpanded((cur) => {
+      const next = cur === automationId ? "" : automationId;
+      if (next && !history[next]) {
+        fetch(`/api/admin/automations/${next}/history`)
+          .then((res) => (res.ok ? res.json() : null))
+          .then((json) => {
+            if (json) setHistory((h) => ({ ...h, [next]: json }));
+          })
+          .catch(() => {});
+      }
+      return next;
+    });
+  }
+
+  function formatRunTime(ms) {
+    if (!ms) return "—";
+    return new Date(ms).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
   }
 
   return (
@@ -323,6 +413,90 @@ export default function AdminAutomationsPage() {
             </div>
           )}
 
+          {action === "send_dm" && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="a-dm-message">Direct message text</label>
+              <textarea
+                id="a-dm-message"
+                ref={dmMessageRef}
+                className={styles.textarea}
+                rows={4}
+                value={dmMessage}
+                onChange={(e) => setDmMessage(e.target.value)}
+                placeholder="Sent as a DM from the community owner to the member."
+              />
+              {renderChips("dmMessage")}
+              <p className={styles.subtitle}>
+                Creates a 1-on-1 chat between you and the member and sends this as the first message.
+              </p>
+            </div>
+          )}
+
+          {action === "send_push" && (
+            <>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="a-push-title">Push notification title</label>
+                <input
+                  id="a-push-title"
+                  className={styles.input}
+                  value={pushTitle}
+                  onChange={(e) => setPushTitle(e.target.value)}
+                  placeholder="e.g. You earned a milestone!"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="a-push-body">Push notification body</label>
+                <textarea
+                  id="a-push-body"
+                  ref={pushBodyRef}
+                  className={styles.textarea}
+                  rows={3}
+                  value={pushBody}
+                  onChange={(e) => setPushBody(e.target.value)}
+                  placeholder="e.g. You've reached 1000 points. Keep going!"
+                />
+                {renderChips("pushBody")}
+              </div>
+            </>
+          )}
+
+          {trigger === "member_inactive" && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="a-inactive">Days inactive to trigger</label>
+              <input
+                id="a-inactive"
+                className={styles.input}
+                type="number"
+                min={1}
+                value={inactiveDays}
+                onChange={(e) => setInactiveDays(Number(e.target.value))}
+              />
+              <p className={styles.subtitle}>
+                Fires when a member hasn&apos;t visited for this many days.
+              </p>
+            </div>
+          )}
+
+          {trigger === "milestone_reached" && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="a-milestone">Points milestone</label>
+              <select
+                id="a-milestone"
+                className={styles.select}
+                value={milestone}
+                onChange={(e) => setMilestone(Number(e.target.value))}
+              >
+                <option value={100}>100 points</option>
+                <option value={500}>500 points</option>
+                <option value={1000}>1000 points</option>
+                <option value={5000}>5000 points</option>
+              </select>
+              <p className={styles.subtitle}>
+                Fires when a member crosses this points threshold.
+              </p>
+            </div>
+          )}
+
           {action === "award_points" && (
             <div className={styles.field}>
               <label className={styles.label} htmlFor="a-points">Points to award</label>
@@ -384,6 +558,12 @@ export default function AdminAutomationsPage() {
                 </div>
                 <div className={styles.itemActions}>
                   <button
+                    className={styles.toggle}
+                    onClick={() => toggleHistory(automation.id)}
+                  >
+                    {expanded === automation.id ? "Hide history" : "History"}
+                  </button>
+                  <button
                     className={automation.active ? styles.toggleOn : styles.toggle}
                     onClick={() => handleToggle(automation)}
                   >
@@ -393,6 +573,40 @@ export default function AdminAutomationsPage() {
                     Delete
                   </button>
                 </div>
+
+                {expanded === automation.id && (
+                  <div className={styles.history}>
+                    {history[automation.id]?.stats && (
+                      <p className={styles.itemMeta}>
+                        Runs: <strong>{history[automation.id].stats.total || 0}</strong> · Success:{" "}
+                        <strong>{history[automation.id].stats.success || 0}</strong> · Failed:{" "}
+                        <strong>{history[automation.id].stats.failed || 0}</strong> · Last run:{" "}
+                        {formatRunTime(history[automation.id].stats.lastRun)}
+                      </p>
+                    )}
+                    {(history[automation.id]?.runs || []).length === 0 ? (
+                      <p className={styles.subtitle}>No runs recorded yet.</p>
+                    ) : (
+                      <ul className={styles.historyList}>
+                        {(history[automation.id]?.runs || []).map((run) => (
+                          <li key={run.id} className={styles.historyItem}>
+                            <span className={styles.itemMeta}>{formatRunTime(run.ranAt)}</span>
+                            <span
+                              className={
+                                run.success ? styles.historyOk : styles.historyFail
+                              }
+                            >
+                              {run.success ? "✓" : "✗"}
+                            </span>
+                            <span className={styles.itemMeta}>
+                              {run.success ? "Success" : run.error || "Failed"}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -20,6 +20,14 @@ import styles from "./account.module.css";
 const QUESTIONS_PER_PAGE = 3;
 const QUIZ_PAGE_COUNT = Math.ceil(QUIZ_QUESTIONS.length / QUESTIONS_PER_PAGE);
 
+const STEP_LABELS = [
+  "About you",
+  "Colours & links",
+  "Yarn story",
+  "Your makes",
+  "Love quiz",
+];
+
 function normalize(value) {
   return (value || "").trim();
 }
@@ -149,6 +157,7 @@ export default function ProfileEditor({ initial }) {
   });
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
   const [quizPage, setQuizPage] = useState(0);
+  const [step, setStep] = useState(0);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -434,6 +443,23 @@ export default function ProfileEditor({ initial }) {
       {error && <p className={styles.formError}>{error}</p>}
       {saved && <p className={styles.formSaved}>Profile saved.</p>}
       {notice && <p className={styles.formNotice}>{notice}</p>}
+
+      <nav className={styles.stepTabs} aria-label="Profile sections">
+        {STEP_LABELS.map((label, i) => (
+          <button
+            key={label}
+            type="button"
+            className={i === step ? `${styles.stepTab} ${styles.stepTabActive}` : styles.stepTab}
+            onClick={() => setStep(i)}
+          >
+            <span className={styles.stepTabNum}>{i + 1}</span>
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {step === 0 && (
+      <div className={styles.stepPane}>
       <div className={styles.avatarRow}>
         {photoURL ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -556,7 +582,11 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setBio(e.target.value)}
         />
       </div>
+      </div>
+      )}
 
+      {step === 1 && (
+      <div className={styles.stepPane}>
       <h3 className={styles.sectionTitle}>Signature colours</h3>
       <p className={styles.fieldHint} style={{ marginTop: -6, marginBottom: 12 }}>
         Pick a 2026 trend palette or mix your own — your colours show beside your name across the lounge.
@@ -673,7 +703,11 @@ export default function ProfileEditor({ initial }) {
           + Add another link
         </button>
       )}
+      </div>
+      )}
 
+      {step === 2 && (
+      <div className={styles.stepPane}>
       <h3 className={styles.sectionTitle}>Your yarn story</h3>
 
       <div className={styles.field}>
@@ -777,7 +811,11 @@ export default function ProfileEditor({ initial }) {
           })}
         </div>
       </div>
+      </div>
+      )}
 
+      {step === 3 && (
+      <div className={styles.stepPane}>
       <div className={styles.field}>
         <label className={styles.fieldLabel} htmlFor="profile-yarn">Go-to yarn choice</label>
         <input
@@ -844,7 +882,11 @@ export default function ProfileEditor({ initial }) {
           onChange={(e) => setBestGiftProject(e.target.value)}
         />
       </div>
+      </div>
+      )}
 
+      {step === 4 && (
+      <div className={styles.stepPane}>
       <h3 className={styles.sectionTitle}>Crochet love quiz</h3>
       <p className={styles.fieldHint} style={{ marginTop: -8, marginBottom: 4 }}>
         Fun questions so other members can get to know your yarn heart. Tick the ones that fit.
@@ -925,10 +967,35 @@ export default function ProfileEditor({ initial }) {
           Next ›
         </button>
       </nav>
+      </div>
+      )}
 
-      <button className={styles.manage} type="submit" disabled={busy}>
-        {busy ? "Saving…" : "Save profile"}
-      </button>
+      <nav className={styles.quizNav} aria-label="Profile navigation">
+        <button
+          type="button"
+          className={styles.quizNavBtn}
+          disabled={step === 0}
+          onClick={() => setStep((s) => Math.max(0, s - 1))}
+        >
+          ‹ Back
+        </button>
+        <span className={styles.quizCounter}>
+          {step + 1} of {STEP_LABELS.length}
+        </span>
+        {step < STEP_LABELS.length - 1 ? (
+          <button
+            type="button"
+            className={styles.quizNavBtn}
+            onClick={() => setStep((s) => Math.min(STEP_LABELS.length - 1, s + 1))}
+          >
+            Next ›
+          </button>
+        ) : (
+          <button className={styles.manage} type="submit" disabled={busy}>
+            {busy ? "Saving…" : "Save profile"}
+          </button>
+        )}
+      </nav>
     </form>
   );
 }

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { roleBadgeLabel } from "@/lib/profile/roles";
+import { logout } from "@/lib/client-auth";
 import styles from "./Nav.module.css";
 
 function initials(name) {
@@ -15,6 +17,7 @@ function initials(name) {
 }
 
 export default function ProfileMenu() {
+  const router = useRouter();
   const menuRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -34,6 +37,12 @@ export default function ProfileMenu() {
 
   const name = profile?.name || "Account";
   const isStaff = profile?.role === "owner" || profile?.role === "moderator";
+
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+    router.refresh();
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -116,6 +125,13 @@ export default function ProfileMenu() {
             </Link>
           )}
           <div className={styles.profileMenuDivider} />
+          <button
+            type="button"
+            className={styles.profileLink}
+            onClick={handleLogout}
+          >
+            Sign out
+          </button>
         </div>
       )}
     </div>

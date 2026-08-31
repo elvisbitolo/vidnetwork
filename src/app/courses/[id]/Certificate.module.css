@@ -1,0 +1,155 @@
+.certificate {
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.certificateDecorative {
+  position: absolute;
+  inset: 8px;
+  border: 2px solid #e0d4f7;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.certificateCorner {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 3px solid #7c3aed;
+}
+
+.certificateCornerTl {
+  top: 16px;
+  left: 16px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 4px 0 0 0;
+}
+
+.certificateCornerTr {
+  top: 16px;
+  right: 16px;
+  border-left: none;
+  border-bottom: none;
+  border-radius: 0 4px 0 0;
+}
+
+.certificateCornerBl {
+  bottom: 16px;
+  left: 16px;
+  border-right: none;
+  border-top: none;
+  border-radius: 0 0 0 4px;
+}
+
+.certificateCornerBr {
+  bottom: 16px;
+  right: 16px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 4px 0;
+}
+
+.certificateLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #7c3aed;
+  margin: 0 0 8px;
+}
+
+.certificateTitle {
+  font-size: 22px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+.certificateSubtitle {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 0 0 20px;
+}
+
+.certificateMember {
+  font-size: 16px;
+  font-weight: 600;
+  color: #34344a;
+  margin: 0 0 4px;
+}
+
+.certificateDate {
+  font-size: 13px;
+  color: #9b9bab;
+  margin: 0 0 20px;
+}
+
+.certificateNumber {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #7c3aed;
+  background: #f5f3ff;
+  padding: 6px 16px;
+  border-radius: 999px;
+  display: inline-block;
+  margin: 0 0 20px;
+}
+
+.downloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  background: #7c3aed;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.downloadBtn:hover {
+  background: #6d28d9;
+}
+
+.downloadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media print {
+  .downloadBtn {
+    display: none;
+  }
+
+  .certificate {
+    border: none;
+    box-shadow: none;
+    padding: 24px;
+  }
+
+  .certificateDecorative {
+    border-color: #7c3aed;
+  }
+}
+
+@media (max-width: 560px) {
+  .certificate {
+    padding: 24px 16px;
+  }
+
+  .certificateTitle {
+    font-size: 18px;
+  }
+}

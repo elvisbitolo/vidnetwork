@@ -1,0 +1,281 @@
+.quiz {
+  margin-top: 32px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 4px;
+}
+
+.passing {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  margin: 0 0 20px;
+}
+
+.error {
+  font-size: 14px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 0 0 20px;
+}
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.question {
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0;
+  background: #fafaff;
+}
+
+.questionText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #17171c;
+  line-height: 1.5;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.questionIndex {
+  color: var(--secondary);
+  margin-right: 2px;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e4e4ee;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.option:hover:not(:disabled) {
+  border-color: var(--secondary);
+}
+
+.option input {
+  margin-top: 3px;
+  accent-color: var(--secondary);
+  cursor: pointer;
+}
+
+.option:has(input:disabled) {
+  cursor: default;
+}
+
+.optionSelected {
+  border-color: var(--secondary);
+  background: #f5f3ff;
+}
+
+.optionCorrect {
+  border-color: var(--success);
+  background: #f0fdf4;
+}
+
+.optionWrong {
+  border-color: var(--error);
+  background: #fef2f2;
+}
+
+.optionMuted {
+  opacity: 0.55;
+}
+
+.optionLetter {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f0f0f5;
+  color: #34344a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.optionSelected .optionLetter,
+.optionCorrect .optionLetter {
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+.optionWrong .optionLetter {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.optionText {
+  font-size: 14px;
+  color: #34344a;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.optionBadge {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: var(--success);
+  font-size: 16px;
+}
+
+.optionBadgeWrong {
+  color: var(--error);
+}
+
+.explanation {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.explanationCorrect {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.explanationWrong {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.submit {
+  margin-top: 24px;
+  height: 44px;
+  padding: 0 24px;
+  background: var(--secondary);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--secondary-hover);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.results {
+  margin-bottom: 4px;
+}
+
+.scoreCard {
+  text-align: center;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e4e4ee;
+  background: #ffffff;
+}
+
+.scorePass {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.scoreFail {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.scoreHeading {
+  font-size: 20px;
+  font-weight: 800;
+  color: #17171c;
+  margin: 0 0 8px;
+}
+
+.scoreText {
+  font-size: 15px;
+  font-weight: 600;
+  color: #34344a;
+  margin: 0 0 16px;
+}
+
+.retake {
+  height: 40px;
+  padding: 0 20px;
+  background: var(--secondary);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.retake:hover {
+  background: var(--secondary-hover);
+}
+
+.resultCard {
+  margin-top: 8px;
+  padding: 20px;
+  border: 1px solid #e4e4ee;
+  border-radius: 12px;
+  background: #fafaff;
+}
+
+.resultStatus {
+  font-size: 16px;
+  font-weight: 700;
+  color: #17171c;
+  margin: 0 0 6px;
+}
+
+.resultText {
+  font-size: 14px;
+  color: #34344a;
+  margin: 0 0 16px;
+}
+
+@media (max-width: 640px) {
+  .quiz {
+    padding: 20px 16px;
+  }
+
+  .question {
+    padding: 16px 14px;
+  }
+}

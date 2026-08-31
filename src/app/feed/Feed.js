@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import ReportModal from "./ReportModal";
+import MentionInput from "@/components/MentionInput";
 import styles from "./feed.module.css";
 
 function resizeImage(file, maxSize = 1600) {
@@ -55,6 +56,21 @@ function timeAgo(ts) {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(millis).toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function renderMentions(text) {
+  if (!text) return "";
+  const parts = text.split(/(@[a-zA-Z0-9_]{1,30})/g);
+  return parts.map((part, index) => {
+    const match = part.match(/^@([a-zA-Z0-9_]{1,30})$/);
+    if (!match) return renderHashtags(part);
+    const username = match[1];
+    return (
+      <Link key={index} className={styles.mention} href={`/members?search=${encodeURIComponent(username)}`}>
+        @{username}
+      </Link>
+    );
+  });
 }
 
 function renderHashtags(text) {
@@ -173,7 +189,28 @@ function PollBlock({ postId, post, uid, disabled }) {
       : undefined
   );
   const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(() => (typeof window !== "undefined" ? Date.now() : 0));
   const options = post.pollOptions || [];
+
+  const deadlineMs = post.pollDeadline ? new Date(post.pollDeadline).getTime() : 0;
+  const isExpired = deadlineMs > 0 && now >= deadlineMs;
+  const countdownText = deadlineMs > 0 && !isExpired && now > 0
+    ? (() => {
+        const diff = deadlineMs - now;
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const mins = Math.floor((diff % 3600000) / 60000);
+        if (days > 0) return `${days}d ${hours}h remaining`;
+        if (hours > 0) return `${hours}h ${mins}m remaining`;
+        return `${mins}m remaining`;
+      })()
+    : null;
+
+  useEffect(() => {
+    if (!deadlineMs || isExpired) return;
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, [deadlineMs, isExpired]);
 
   async function handleVote(option) {
     if (busy || disabled || votedOption !== undefined) return;
@@ -201,6 +238,16 @@ function PollBlock({ postId, post, uid, disabled }) {
         {total} {total === 1 ? "vote" : "votes"}
         {votedOption !== undefined ? " — you voted" : ""}
       </p>
+      {countdownText && (
+        <p style={{ fontSize: 12, color: "#9b9bab", margin: "0 0 8px", fontWeight: 600 }}>
+          {countdownText}
+        </p>
+      )}
+      {isExpired && votedOption === undefined && (
+        <p style={{ fontSize: 12, color: "#9b9bab", margin: "0 0 8px", fontWeight: 600 }}>
+          Voting closed
+        </p>
+      )}
       {options.map((option, index) => {
         const count = counts[index] || 0;
         const pct = total > 0 ? Math.round((count / total) * 100) : 0;
@@ -210,7 +257,7 @@ function PollBlock({ postId, post, uid, disabled }) {
             key={index}
             className={`${styles.pollOption} ${mine ? styles.pollOptionMine : ""}`}
             onClick={() => handleVote(index)}
-            disabled={busy || disabled || votedOption !== undefined}
+            disabled={busy || disabled || votedOption !== undefined || isExpired}
           >
             <span className={styles.pollOptionText}>{option}</span>
             {votedOption !== undefined && (
@@ -311,7 +358,7 @@ function CommentList({ postId, uid, canModerate }) {
                   <ReportButton type="comment" targetId={c.id} commentPostId={postId} small />
                 )}
               </div>
-              <p className={styles.commentText}>{c.text}</p>
+              <p className={styles.commentText}>{renderMentions(c.text)}</p>
             </div>
           ))}
         </div>
@@ -348,7 +395,9 @@ export default function Feed({ uid, userName, role, groupId, spaceId, initialKin
       : "post"
   );
   const [pollOptions, setPollOptions] = useState(EMPTY_POLL);
+  const [pollDeadline, setPollDeadline] = useState("");
   const [filter, setFilter] = useState("all");
+  const [sort, setSort] = useState("newest");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -443,6 +492,7 @@ const trimmed = text.trim();
             spaceId: spaceId || "",
             kind,
             pollOptions: kind === "poll" ? cleanPoll : [],
+            pollDeadline: kind === "poll" && pollDeadline ? pollDeadline : "",
           }),
         });
         if (!res.ok) throw new Error((await res.json()).error || "Post failed");
@@ -450,6 +500,7 @@ const trimmed = text.trim();
         setImageUrl("");
         setKind("post");
         setPollOptions(EMPTY_POLL);
+        setPollDeadline("");
       } catch (err) {
         console.error(err);
         alert(err.message || "Post failed. Try again.");
@@ -457,7 +508,7 @@ const trimmed = text.trim();
         setBusy(false);
       }
     },
-    [text, imageUrl, busy, uploading, groupId, spaceId, kind, pollOptions]
+    [text, imageUrl, busy, uploading, groupId, spaceId, kind, pollOptions, pollDeadline]
   );
 
   function setPollOption(index, value) {
@@ -504,12 +555,52 @@ const trimmed = text.trim();
     filtered = filtered.filter((p) => p.authorId === uid);
   } else if (filter === "bookmarked") {
     filtered = filtered.filter((p) => p.bookmarks?.[uid]);
+  } else if (filter === "hosts") {
+    filtered = filtered.filter((p) => p.authorRole === "owner" || p.authorRole === "moderator");
+  } else if (filter === "unanswered") {
+    filtered = filtered.filter((p) => p.kind === "question" && (p.commentCount || 0) === 0);
+  }
+  if (sort === "oldest") {
+    filtered = [...filtered].sort((a, b) => {
+      const ap = a.pinned ? 1 : 0;
+      const bp = b.pinned ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
+      const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
+      return at - bt;
+    });
+  } else if (sort === "top") {
+    filtered = [...filtered].sort((a, b) => {
+      const ap = a.pinned ? 1 : 0;
+      const bp = b.pinned ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return Object.keys(b.likes || {}).length - Object.keys(a.likes || {}).length;
+    });
+  } else if (sort === "activity") {
+    filtered = [...filtered].sort((a, b) => {
+      const ap = a.pinned ? 1 : 0;
+      const bp = b.pinned ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      const at = a.lastActivityAt?.toMillis?.() || a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
+      const bt = b.lastActivityAt?.toMillis?.() || b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
+      return bt - at;
+    });
+  } else {
+    filtered = [...filtered].sort((a, b) => {
+      const ap = a.pinned ? 1 : 0;
+      const bp = b.pinned ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
+      const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
+      return bt - at;
+    });
   }
 
   const postCount = posts.length;
   const popularCount = posts.filter((p) => Object.keys(p.likes || {}).length > 0).length;
   const mineCount = posts.filter((p) => p.authorId === uid).length;
   const bookmarkedCount = posts.filter((p) => p.bookmarks?.[uid]).length;
+  const unansweredCount = posts.filter((p) => p.kind === "question" && (p.commentCount || 0) === 0).length;
 
   const kindLabel =
     kind === "poll"
@@ -540,7 +631,7 @@ const trimmed = text.trim();
             </button>
           ))}
         </div>
-        <textarea
+        <MentionInput
           className={styles.composerInput}
           rows={3}
           placeholder={
@@ -550,10 +641,11 @@ const trimmed = text.trim();
                 ? "What do you want to ask the community?…"
                 : kind === "win"
                   ? "Share a win with the community…"
-                  : "Share something with the community…"
+                  : "Share something with the community… Type @ to mention someone."
           }
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={setText}
+          maxLength={5000}
         />
         {kind === "poll" && (
           <div className={styles.pollComposer}>
@@ -584,6 +676,19 @@ const trimmed = text.trim();
                 + Add option
               </button>
             )}
+            <div style={{ marginTop: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#6b6b7b", display: "block", marginBottom: 4 }}>
+                Deadline (optional)
+              </label>
+              <input
+                type="datetime-local"
+                className={styles.pollOptionInput}
+                value={pollDeadline}
+                onChange={(e) => setPollDeadline(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                style={{ maxWidth: 260 }}
+              />
+            </div>
           </div>
         )}
         {imageUrl && (
@@ -666,6 +771,30 @@ const trimmed = text.trim();
           >
             Saved ({bookmarkedCount})
           </button>
+          <button
+            className={filter === "hosts" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("hosts")}
+          >
+            Hosts
+          </button>
+          <button
+            className={filter === "unanswered" ? styles.filterTabActive : styles.filterTab}
+            onClick={() => setFilter("unanswered")}
+          >
+            Unanswered ({unansweredCount})
+          </button>
+        </div>
+        <div className={styles.sortTabs}>
+          <select
+            className={styles.sortSelect}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="top">Top</option>
+            <option value="activity">Latest Activity</option>
+          </select>
         </div>
       </div>
 
@@ -719,7 +848,7 @@ const trimmed = text.trim();
                   <ReportButton type="post" targetId={post.id} />
                 )}
               </div>
-              {post.text && <p className={styles.postText}>{renderHashtags(post.text)}</p>}
+              {post.text && <p className={styles.postText}>{renderMentions(post.text)}</p>}
               {post.kind === "poll" && (
                 <PollBlock postId={post.id} post={post} uid={uid} />
               )}

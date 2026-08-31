@@ -1,0 +1,305 @@
+/* Thread reply connector */
+.threadMessage {
+  position: relative;
+}
+
+.replyConnector {
+  position: relative;
+  margin-left: 28px;
+  padding-left: 18px;
+  border-left: 2px solid #e6e6ef;
+}
+
+@media (max-width: 560px) {
+  .replyConnector {
+    margin-left: 18px;
+    padding-left: 14px;
+  }
+}
+
+.replyBubble {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #f3f3f8;
+  align-self: flex-start;
+  font-size: 13px;
+}
+
+.replyMine {
+  background: var(--primary);
+  color: #ffffff;
+  align-self: flex-end;
+}
+
+.replyBubbleText {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.replyBubbleText strong {
+  font-weight: 700;
+}
+
+.replyBubbleText em {
+  font-style: italic;
+}
+
+.replyBubbleText a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.replyMine .replyBubbleText a {
+  color: #ffffff;
+}
+
+.replyBubble .bubbleName {
+  color: var(--primary);
+}
+
+.replyMine .bubbleName {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Reply button */
+.replyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: none;
+  background: none;
+  color: #9b9bab;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.replyBtn:hover {
+  color: var(--primary);
+  background: #f0eaff;
+}
+
+.mine .replyBtn {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mine .replyBtn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Reply count badge */
+.replyCountBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: none;
+  background: #f0eaff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.replyCountBadge:hover {
+  background: #ede9fe;
+}
+
+/* Reply input */
+.replyInputWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.replyInput {
+  flex: 1;
+  min-height: 36px;
+  max-height: 90px;
+  padding: 7px 12px;
+  border: 1px solid #d8d8e3;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #f5f5f5;
+  background: #2a2a2a;
+  outline: none;
+  font-family: inherit;
+  resize: none;
+  transition: border-color 0.15s ease;
+}
+
+.replyInput:focus {
+  border-color: var(--primary);
+}
+
+.replySend {
+  height: 36px;
+  padding: 0 14px;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.replySend:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.replySend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.replyCancel {
+  height: 36px;
+  padding: 0 12px;
+  background: none;
+  color: #9b9bab;
+  border: 1px solid #d8d8e3;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.replyCancel:hover {
+  color: #17171c;
+  border-color: #9b9bab;
+}
+
+/* Search bar */
+.searchBar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e6e6ef;
+}
+
+.searchInput {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8d8e3;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #f5f5f5;
+  background: #2a2a2a;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--primary);
+}
+
+.searchClear {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8d8e3;
+  background: none;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #9b9bab;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.searchClear:hover {
+  color: #17171c;
+  border-color: #9b9bab;
+}
+
+.searchCount {
+  font-size: 12px;
+  color: #9b9bab;
+  margin: 0;
+  padding: 0 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Rich text in bubbles */
+.bubbleText strong {
+  font-weight: 700;
+}
+
+.bubbleText em {
+  font-style: italic;
+}
+
+.bubbleText a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--primary-rgb, 124, 58, 237), 0.4);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.bubbleText a:hover {
+  text-decoration-color: var(--primary);
+}
+
+.mine .bubbleText a {
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+
+.mine .bubbleText a:hover {
+  text-decoration-color: #ffffff;
+}
+
+/* Search highlight */
+.highlight {
+  background: rgba(234, 179, 8, 0.3);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Reply actions row */
+.replyActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .searchBar {
+    padding: 10px 16px;
+  }
+
+  .searchCount {
+    padding: 0 16px;
+  }
+
+  .replyInputWrap {
+    gap: 6px;
+  }
+
+  .replyBtn,
+  .replyCountBadge {
+    font-size: 11px;
+  }
+}

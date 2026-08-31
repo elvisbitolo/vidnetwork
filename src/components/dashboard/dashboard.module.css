@@ -482,6 +482,82 @@
   display: block;
 }
 
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dash-muted, #8b8b9b);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.exportBtn {
+  padding: 9px 16px;
+  border: 1px solid var(--dash-accent, var(--secondary));
+  border-radius: 10px;
+  background: var(--dash-accent, var(--secondary));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.exportBtn:hover {
+  opacity: 0.92;
+}
+
+.exportBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.retentionTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.retentionTable th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--dash-muted, #8b8b9b);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--dash-border, #2e2e38);
+  white-space: nowrap;
+}
+
+.retentionTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--dash-border, #2e2e38);
+  color: var(--dash-text, #f5f5f5);
+  white-space: nowrap;
+}
+
+.retentionCell {
+  text-align: center;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.retentionScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.retentionEmpty {
+  padding: 18px 10px;
+  text-align: center;
+  color: var(--dash-muted, #6b6b7b);
+  font-size: 14px;
+}
+
 .skeleton {
   border-radius: 14px;
   background: var(--dash-surface, #24242a);

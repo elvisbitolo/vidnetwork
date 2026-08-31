@@ -22,6 +22,8 @@ export async function GET(req) {
     {
       q: searchParams.get("q") || "",
       hashtag: searchParams.get("hashtag") || "",
+      type: searchParams.get("type") || "",
+      spaceId: searchParams.get("spaceId") || "",
     },
     user.uid,
     userDoc?.role || "member"

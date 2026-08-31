@@ -8,6 +8,7 @@ import { QUIZ_QUESTIONS, QUIZ_LABELS, quizHasAnswers, quizAnswerLabel } from "@/
 import { roleBadgeLabel } from "@/lib/profile/roles";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import FollowButton from "@/components/FollowButton";
 import RecognitionForm from "./RecognitionForm";
 import StickerDisplay from "./StickerDisplay";
 import styles from "./profile.module.css";
@@ -36,14 +37,25 @@ export default async function MemberProfilePage({ params }) {
   if (!viewer) redirect("/login");
 
   const viewerDoc = await getUserDoc(viewer.uid);
+  const isSelf = viewer.uid === id;
 
   const userRef = adminDb().collection("users").doc(id);
-  const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap] = await Promise.all([
+  const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap, followData] = await Promise.all([
     userRef.get(),
     adminDb().collection("posts").where("authorId", "==", id).get(),
     getRecognitionCount(id),
     listRecognitions(id, 10),
     adminDb().collection("stickers").where("toUid", "==", id).get(),
+    (async () => {
+      if (isSelf) return { following: false, followerCount: 0, followingCount: 0 };
+      const { isFollowing, getFollowerCount, getFollowingCount } = await import("@/lib/server/follows");
+      const [fol, fc, fgc] = await Promise.all([
+        isFollowing(viewer.uid, id),
+        getFollowerCount(id),
+        getFollowingCount(id),
+      ]);
+      return { following: fol, followerCount: fc, followingCount: fgc };
+    })(),
   ]);
 
   const stickerSummary = {};
@@ -73,8 +85,6 @@ export default async function MemberProfilePage({ params }) {
     }))
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 20);
-
-  const isSelf = viewer.uid === id;
 
   const bannerGradient = ((colors) => {
     const list = (Array.isArray(colors) ? colors : []).filter((c) =>
@@ -263,6 +273,15 @@ export default async function MemberProfilePage({ params }) {
             )}
             {recognitionCount > 0 && (
               <p className={styles.recognitionCount}>{recognitionCountLabel(recognitionCount)}</p>
+            )}
+            {!isSelf && (
+              <FollowButton
+                targetUserId={id}
+                initialFollowing={followData.following}
+                initialFollowerCount={followData.followerCount}
+                initialFollowingCount={followData.followingCount}
+                isSelf={isSelf}
+              />
             )}
             {!isSelf && (
               <Link className={styles.messageBtn} href={`/chat?with=${id}`}>

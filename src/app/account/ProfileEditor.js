@@ -99,6 +99,59 @@ function resizeImage(file, maxSize = 256) {
   });
 }
 
+function cropCoverToBanner(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const sourceWidth = img.naturalWidth;
+        const sourceHeight = img.naturalHeight;
+        const targetRatio = 4 / 1;
+        const targetWidth = Math.min(1200, sourceWidth);
+
+        let sourceX = 0;
+        let sourceY = 0;
+        let cropWidth = sourceWidth;
+        let cropTotalHeight = sourceHeight;
+
+        if (sourceWidth / sourceHeight > targetRatio) {
+          // Image is wider than the banner ratio: crop the left/right sides.
+          cropTotalHeight = sourceHeight;
+          cropWidth = cropTotalHeight * targetRatio;
+          sourceX = (sourceWidth - cropWidth) / 2;
+        } else {
+          // Image is taller than the banner ratio (e.g. a passport photo):
+          // crop vertically, favoring the top portion where a face usually is.
+          cropTotalHeight = sourceWidth / targetRatio;
+          sourceY = 0; // keep the top so the face stays visible
+        }
+
+        const scale = targetWidth / cropWidth;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(cropWidth * scale);
+        canvas.height = Math.round(cropTotalHeight * scale);
+        canvas.getContext("2d").drawImage(
+          img,
+          sourceX,
+          sourceY,
+          cropWidth,
+          cropTotalHeight,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = () => reject(new Error("Couldn't read that image"));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error("Couldn't read that file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function toHandledLinks(links) {
   if (!Array.isArray(links) || links.length === 0) return [];
   return links
@@ -252,7 +305,7 @@ export default function ProfileEditor({ initial }) {
     setError("");
     setUploadingCover(true);
     try {
-      const dataUrl = await resizeImage(file, 1200);
+      const dataUrl = await cropCoverToBanner(file);
       let coverPhotoURL = dataUrl;
       const fd = new FormData();
       const blob = await (await fetch(dataUrl)).blob();

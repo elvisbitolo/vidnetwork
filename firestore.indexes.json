@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "stickers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "fromUid", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "chat",
       "queryScope": "COLLECTION",
       "fields": [

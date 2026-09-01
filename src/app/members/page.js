@@ -45,7 +45,6 @@ export default async function MembersPage() {
       headline: m.headline || "",
       location: m.location || "",
       country: m.country || "",
-      state: m.state || "",
       bio: m.bio || "",
       photoURL: m.photoURL || "",
       favoriteColors: Array.isArray(m.favoriteColors) ? m.favoriteColors : [],
@@ -69,7 +68,19 @@ export default async function MembersPage() {
         <p className={styles.subtitle}>
           {members.length} {members.length === 1 ? "member" : "members"} in the community
         </p>
-        <MembersDirectory members={members} role={userDoc?.role} todayKey={todayKey} />
+        <MembersDirectory
+          members={members}
+          viewer={{
+            country: userDoc?.country || "",
+            goToYarn: userDoc?.goToYarn || "",
+            favoriteHookSize: userDoc?.favoriteHookSize || "",
+            favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
+            crafts: Array.isArray(userDoc?.crafts) ? userDoc.crafts : [],
+            crochetTechniques: Array.isArray(userDoc?.crochetTechniques) ? userDoc.crochetTechniques : [],
+          }}
+          role={userDoc?.role}
+          todayKey={todayKey}
+        />
         <SimilarMembers />
       </div>
 </Nav>

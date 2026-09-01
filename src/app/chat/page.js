@@ -53,7 +53,6 @@ export default async function ChatPage({ searchParams }) {
   const conversations = await listConversations(user.uid);
 
   const userCountry = userDoc?.country || "";
-  const userState = userDoc?.state || "";
 
   const mapMembers = (snap) =>
     snap.docs
@@ -61,19 +60,10 @@ export default async function ChatPage({ searchParams }) {
       .filter((m) => m.name && m.id !== user.uid);
 
   let nearby = [];
-  if (userState) {
+  if (userCountry) {
     nearby = mapMembers(
-      await adminDb().collection("users").where("state", "==", userState).limit(30).get()
-    );
-  }
-  if (nearby.length < 12 && userCountry) {
-    const countryMates = mapMembers(
       await adminDb().collection("users").where("country", "==", userCountry).limit(30).get()
     );
-    for (const member of countryMates) {
-      if (nearby.length >= 12) break;
-      if (!nearby.some((n) => n.id === member.id)) nearby.push(member);
-    }
   }
   nearby = nearby.slice(0, 12);
 
@@ -85,9 +75,9 @@ export default async function ChatPage({ searchParams }) {
 
         <section className={styles.nearby}>
           <h2 className={styles.nearbyTitle}>Members near you</h2>
-          {!userCountry && !userState ? (
+          {!userCountry ? (
             <p className={styles.nearbyEmpty}>
-              Set your state and country in <Link href="/account#profile">Account</Link> to find
+              Set your country in <Link href="/account#profile">Account</Link> to find
               members nearby.
             </p>
           ) : nearby.length === 0 ? (
@@ -101,9 +91,7 @@ export default async function ChatPage({ searchParams }) {
                   </span>
                   <div className={styles.nearbyBody}>
                     <p className={styles.nearbyName}>{member.name}</p>
-                    <p className={styles.nearbyLoc}>
-                      {[member.state, member.country].filter(Boolean).join(", ")}
-                    </p>
+                    <p className={styles.nearbyLoc}>{member.country || ""}</p>
                   </div>
                   <Link className={styles.nearbyMsg} href={`/chat?with=${member.id}`}>
                     Message
@@ -130,9 +118,6 @@ export default async function ChatPage({ searchParams }) {
                   <div className={styles.itemTop}>
                     <p className={styles.itemTitle}>
                       {conv.title}
-                      {conv.type === "region" && (
-                        <span className={styles.itemTag}>Regional</span>
-                      )}
                     </p>
                     <p className={styles.itemTime}>{timeLabel(conv.lastMessageAt)}</p>
                   </div>

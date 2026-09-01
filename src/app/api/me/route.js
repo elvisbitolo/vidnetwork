@@ -4,11 +4,6 @@ import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { normalizeProfile } from "@/lib/server/profile";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { getGamification } from "@/lib/server/gamification";
-import {
-  regionKeyFor,
-  getOrCreateRegionChat,
-  leaveRegionChat,
-} from "@/lib/server/chat";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -27,7 +22,6 @@ export async function GET() {
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
     country: userDoc?.country || "",
-    state: userDoc?.state || "",
     bio: userDoc?.bio || "",
     favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
     goToYarn: userDoc?.goToYarn || "",
@@ -35,6 +29,7 @@ export async function GET() {
     proudestProject: userDoc?.proudestProject || "",
     bestGiftProject: userDoc?.bestGiftProject || "",
     photoURL: userDoc?.photoURL || "",
+    coverPhotoURL: userDoc?.coverPhotoURL || "",
     notifications: userDoc?.notifications || "on",
     points: Number(gamification.points) || 0,
     streak: Number(gamification.streak) || 0,
@@ -82,29 +77,10 @@ export async function PATCH(req) {
 
   const ref = adminDb().collection("users").doc(user.uid);
   const doc = await ref.get();
-  const prevCountry = doc.exists ? doc.data().country || "" : "";
-  const prevState = doc.exists ? doc.data().state || "" : "";
   if (doc.exists) {
     await ref.update(patch);
   } else {
     await ref.set({ ...patch, role: "member", createdAt: new Date() });
-  }
-
-  if ("country" in patch || "state" in patch) {
-    try {
-      const newCountry = patch.country ?? prevCountry;
-      const newState = patch.state ?? prevState;
-      if (regionKeyFor(prevCountry, prevState) !== regionKeyFor(newCountry, newState)) {
-        if (regionKeyFor(prevCountry, prevState)) {
-          await leaveRegionChat(user.uid, prevCountry, prevState);
-        }
-        if (regionKeyFor(newCountry, newState)) {
-          await getOrCreateRegionChat(user.uid, newCountry, newState);
-        }
-      }
-    } catch {
-      // Region chat sync is best-effort; profile saves regardless.
-    }
   }
 
   if (patch.name) {

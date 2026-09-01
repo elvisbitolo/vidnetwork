@@ -16,6 +16,7 @@ import {
   CROCHET_MOTIVATIONS,
 } from "@/lib/server/profile";
 import styles from "./account.module.css";
+import coverStyles from "./cover.module.css";
 
 const QUESTIONS_PER_PAGE = 3;
 const QUIZ_PAGE_COUNT = Math.ceil(QUIZ_QUESTIONS.length / QUESTIONS_PER_PAGE);
@@ -156,15 +157,18 @@ export default function ProfileEditor({ initial }) {
     return handled.length > 0 ? handled : [{ platform: "website", handle: "" }];
   });
   const [photoURL, setPhotoURL] = useState(initial.photoURL || "");
+  const [coverPhotoURL, setCoverPhotoURL] = useState(initial.coverPhotoURL || "");
   const [quizPage, setQuizPage] = useState(0);
   const [step, setStep] = useState(0);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef(null);
+  const coverRef = useRef(null);
 
   async function handlePhoto(e) {
     const file = e.target.files?.[0];
@@ -229,6 +233,74 @@ export default function ProfileEditor({ initial }) {
       setNotice("Profile photo removed.");
     } catch (err) {
       setError(err.message || "Failed to remove photo");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCoverPhoto(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file (JPG, PNG, etc.).");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Cover photo must be 8 MB or smaller.");
+      return;
+    }
+    setError("");
+    setUploadingCover(true);
+    try {
+      const dataUrl = await resizeImage(file, 1200);
+      let coverPhotoURL = dataUrl;
+      const fd = new FormData();
+      const blob = await (await fetch(dataUrl)).blob();
+      fd.append("file", blob, "cover.jpg");
+      const up = await fetch("/api/upload?kind=cover", {
+        method: "POST",
+        body: fd,
+      });
+      const upData = await up.json().catch(() => ({}));
+      if (!up.ok || (!upData.url && !upData.dataUrl)) {
+        throw new Error(upData.error || "Failed to upload cover photo");
+      }
+      coverPhotoURL = upData.url || upData.dataUrl;
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverPhotoURL }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save cover photo");
+      }
+      setCoverPhotoURL(coverPhotoURL);
+      setSaved(true);
+    } catch (err) {
+      setError(err.message || "Failed to upload cover photo");
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
+  async function handleRemoveCover() {
+    setError("");
+    setBusy(true);
+    try {
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coverPhotoURL: "" }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove cover photo");
+      }
+      setCoverPhotoURL("");
+      setNotice("Cover photo removed.");
+    } catch (err) {
+      setError(err.message || "Failed to remove cover photo");
     } finally {
       setBusy(false);
     }
@@ -460,6 +532,49 @@ export default function ProfileEditor({ initial }) {
 
       {step === 0 && (
       <div className={styles.stepPane}>
+      <div className={coverStyles.coverRow}>
+        {coverPhotoURL ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className={coverStyles.coverImg} src={coverPhotoURL} alt="Cover" />
+        ) : (
+          <span className={coverStyles.coverPlaceholder}>
+            <span className={coverStyles.coverPlaceholderIcon}>🖼</span>
+            Add a cover photo
+          </span>
+        )}
+        <div className={coverStyles.coverControls}>
+          <div className={styles.avatarButtons}>
+            <button
+              type="button"
+              className={styles.avatarButton}
+              disabled={uploadingCover}
+              onClick={() => coverRef.current?.click()}
+            >
+              {uploadingCover ? "Uploading…" : "Upload cover"}
+            </button>
+            {coverPhotoURL && (
+              <button
+                type="button"
+                className={`${styles.avatarButton} ${styles.avatarRemove}`}
+                disabled={busy}
+                onClick={handleRemoveCover}
+              >
+                Remove cover
+              </button>
+            )}
+          </div>
+          <p className={styles.avatarHint}>
+            Add a photo that shows the personality of your profile. It appears at the top of your profile page.
+          </p>
+          <input
+            ref={coverRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleCoverPhoto}
+          />
+        </div>
+      </div>
       <div className={styles.avatarRow}>
         {photoURL ? (
           // eslint-disable-next-line @next/next/no-img-element

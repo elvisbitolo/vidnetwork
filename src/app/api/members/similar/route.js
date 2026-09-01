@@ -10,8 +10,6 @@ function similarityScore(a, b) {
   max += locationWeight;
   if (a.country && b.country && a.country === b.country) score += locationWeight;
   else if (a.country && b.country) score += 0.5;
-  if (a.state && b.state && a.state === b.state) score += locationWeight;
-  else if (a.state && b.state) score += 0.5;
 
   const yarnWeight = 2;
   max += yarnWeight;
@@ -56,7 +54,12 @@ export async function GET(req) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const me = await adminDb().collection("users").doc(auth.user.uid).get();
+  const url = new URL(req.url);
+  const forUid = url.searchParams.get("for") || null;
+  const baseUid = forUid || auth.user.uid;
+  const exclude = forUid || auth.user.uid;
+
+  const me = await adminDb().collection("users").doc(baseUid).get();
   if (!me.exists) {
     return NextResponse.json({ members: [] });
   }
@@ -64,7 +67,7 @@ export async function GET(req) {
 
   const snap = await adminDb().collection("users").limit(500).get();
   const candidates = snap.docs
-    .filter((doc) => doc.id !== auth.user.uid)
+    .filter((doc) => doc.id !== exclude)
     .map((doc) => ({ id: doc.id, ...doc.data() }));
 
   const scored = candidates
@@ -77,7 +80,6 @@ export async function GET(req) {
       name: member.name || "Member",
       headline: member.headline || "",
       country: member.country || "",
-      state: member.state || "",
       photoURL: member.photoURL || "",
       favoriteColors: Array.isArray(member.favoriteColors) ? member.favoriteColors : [],
       goToYarn: member.goToYarn || "",

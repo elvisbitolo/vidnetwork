@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { roleBadgeLabel } from "@/lib/profile/roles";
+import { countryNames } from "@/lib/profile/countries";
 import { composeLayout } from "./avatarLayout";
 import styles from "./members.module.css";
 
@@ -33,6 +34,41 @@ const PRESETS = {
 
 function craftLabel(value) {
   return CRAFTS.find((c) => c.value === value)?.label || value;
+}
+
+function commoStrings(viewer, member) {
+  const found = [];
+  if (!viewer || !member) return found;
+  if (viewer.country && viewer.country === member.country) {
+    found.push(`Both in ${member.country}`);
+  }
+  if (viewer.goToYarn && viewer.goToYarn === member.goToYarn) {
+    found.push(`Both love ${member.goToYarn}`);
+  }
+  if (viewer.favoriteHookSize && viewer.favoriteHookSize === member.favoriteHookSize) {
+    found.push(`Both use a ${member.favoriteHookSize}`);
+  }
+  if (Array.isArray(viewer.favoriteColors) && Array.isArray(member.favoriteColors)) {
+    const overlap = viewer.favoriteColors.filter((c) => member.favoriteColors.includes(c));
+    if (overlap.length > 0) {
+      found.push(`${overlap.length} favorite ${overlap.length === 1 ? "color" : "colors"} in common`);
+    }
+  }
+  if (Array.isArray(viewer.crafts) && Array.isArray(member.crafts)) {
+    const overlap = viewer.crafts.filter((c) => member.crafts.includes(c));
+    if (overlap.length > 0) {
+      found.push(
+        `${overlap.length} shared ${overlap.length === 1 ? "craft" : "crafts"}: ${overlap.map(craftLabel).join(", ")}`
+      );
+    }
+  }
+  if (Array.isArray(viewer.crochetTechniques) && Array.isArray(member.crochetTechniques)) {
+    const overlap = viewer.crochetTechniques.filter((t) => member.crochetTechniques.includes(t));
+    if (overlap.length > 0) {
+      found.push(`${overlap.length} shared technique${overlap.length === 1 ? "" : "s"}`);
+    }
+  }
+  return found.slice(0, 4);
 }
 
 function distinct(values) {
@@ -73,14 +109,13 @@ function useViewportKey() {
 }
 
 const TOOLTIP_W = 300;
-const TOOLTIP_H = 320;
+const TOOLTIP_H = 400;
 const HIDE_DELAY = 220;
 
-export default function MembersDirectory({ members, role, todayKey }) {
+export default function MembersDirectory({ members, viewer, role, todayKey }) {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [country, setCountry] = useState("");
-  const [state, setState] = useState("");
   const [craft, setCraft] = useState("");
   const [hover, setHover] = useState(null);
   const hideTimer = useRef(null);
@@ -106,7 +141,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
   function showDetails(member, e) {
     clearTimeout(hideTimer.current);
     const rect = e.currentTarget.getBoundingClientRect();
-    setHover({ member, rect });
+    setHover({ member, rect, common: commoStrings(viewer, member) });
   }
 
   function scheduleHide() {
@@ -131,14 +166,11 @@ export default function MembersDirectory({ members, role, todayKey }) {
     return { left, top };
   })();
 
-  const countries = useMemo(() => distinct(members.map((m) => m.country)), [members]);
-
-  const states = useMemo(() => {
-    const pool = country
-      ? members.filter((m) => m.country === country)
-      : members;
-    return distinct(pool.map((m) => m.state));
-  }, [members, country]);
+  const countries = useMemo(() => {
+    const all = countryNames();
+    const inUse = distinct(members.map((m) => m.country));
+    return [...all, ...inUse.filter((c) => !all.includes(c))];
+  }, [members]);
 
   const query = search.trim().toLowerCase();
 
@@ -149,14 +181,12 @@ export default function MembersDirectory({ members, role, todayKey }) {
       if (tab === "hosts" && member.role !== "owner" && member.role !== "moderator") return false;
       if (craft && !member.crafts?.includes(craft)) return false;
       if (country && member.country !== country) return false;
-      if (state && member.state !== state) return false;
       if (!query) return true;
       return (
         member.name?.toLowerCase().includes(query) ||
         member.headline?.toLowerCase().includes(query) ||
         member.location?.toLowerCase().includes(query) ||
         member.country?.toLowerCase().includes(query) ||
-        member.state?.toLowerCase().includes(query) ||
         member.bio?.toLowerCase().includes(query)
       );
     });
@@ -167,7 +197,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
       return [...pool].sort((a, b) => (b.points || 0) - (a.points || 0));
     }
     return [...pool].sort((a, b) => a.name.localeCompare(b.name));
-  }, [members, tab, query, country, state, craft, todayKey]);
+  }, [members, tab, query, country, craft, todayKey]);
 
   const DENSE_BASE = 20;
   const DENSE_STEP = Math.round((14 * 960) / preset.width);
@@ -216,27 +246,12 @@ export default function MembersDirectory({ members, role, todayKey }) {
         <select
           className={styles.locationSelect}
           value={country}
-          onChange={(e) => {
-            setCountry(e.target.value);
-            setState("");
-          }}
+          onChange={(e) => setCountry(e.target.value)}
           aria-label="Filter by country"
         >
           <option value="">All countries</option>
           {countries.map((c) => (
             <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select
-          className={styles.locationSelect}
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          aria-label="Filter by state or region"
-          disabled={states.length === 0}
-        >
-          <option value="">All states / regions</option>
-          {states.map((s) => (
-            <option key={s} value={s}>{s}</option>
           ))}
         </select>
       </div>
@@ -261,7 +276,7 @@ export default function MembersDirectory({ members, role, todayKey }) {
 
       {filtered.length === 0 ? (
         <p className={styles.empty}>
-          {query || tab !== "all" || country || state || craft
+          {query || tab !== "all" || country || craft
             ? "No members match this view."
             : "No members yet."}
         </p>
@@ -367,10 +382,8 @@ export default function MembersDirectory({ members, role, todayKey }) {
           {hover.member.location && (
             <p className={styles.tooltipLocation}>📍 {hover.member.location}</p>
           )}
-          {(hover.member.state || hover.member.country) && (
-            <p className={styles.tooltipLocation}>
-              {[hover.member.state, hover.member.country].filter(Boolean).join(", ")}
-            </p>
+          {hover.member.country && (
+            <p className={styles.tooltipLocation}>{hover.member.country}</p>
           )}
           {hover.member.crafts?.length > 0 && (
             <p className={styles.tooltipCrafts}>{hover.member.crafts.map(craftLabel).join(" · ")}</p>
@@ -385,6 +398,18 @@ export default function MembersDirectory({ members, role, todayKey }) {
                 />
               ))}
             </span>
+          )}
+          {hover.common?.length > 0 && (
+            <div className={styles.tooltipCommon}>
+              <p className={styles.tooltipCommonTitle}>In common</p>
+              <ul className={styles.tooltipCommonList}>
+                {hover.common.map((item, i) => (
+                  <li key={i} className={styles.tooltipCommonItem}>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           <div className={styles.tooltipActions}>
             <Link

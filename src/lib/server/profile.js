@@ -98,7 +98,6 @@ export function normalizeProfile(body) {
       patch.country = country;
     }
   }
-  if ("state" in body) patch.state = clean(body.state, 60);
   if ("bio" in body) patch.bio = clean(body.bio, 600);
   if ("favoriteColors" in body) {
     const raw = Array.isArray(body.favoriteColors) ? body.favoriteColors.slice(0, 3) : [];
@@ -149,6 +148,16 @@ export function normalizeProfile(body) {
       patch.photoURL = photoURL;
     } else {
       errors.photoURL = "Profile photo must be a valid URL or image";
+    }
+  }
+  if ("coverPhotoURL" in body) {
+    const coverPhotoURL = typeof body.coverPhotoURL === "string" ? body.coverPhotoURL.trim().slice(0, 300000) : "";
+    if (coverPhotoURL === "") {
+      patch.coverPhotoURL = "";
+    } else if (/^(https?:\/\/|data:image\/)/.test(coverPhotoURL)) {
+      patch.coverPhotoURL = coverPhotoURL;
+    } else {
+      errors.coverPhotoURL = "Cover photo must be a valid URL or image";
     }
   }
   if ("notifications" in body) {

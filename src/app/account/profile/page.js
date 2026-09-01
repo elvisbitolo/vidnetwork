@@ -19,7 +19,6 @@ export default async function AccountProfilePage() {
     headline: userDoc?.headline || "",
     location: userDoc?.location || "",
     country: userDoc?.country || "",
-    state: userDoc?.state || "",
     bio: userDoc?.bio || "",
     favoriteColors: Array.isArray(userDoc?.favoriteColors) ? userDoc.favoriteColors : [],
     crafts: Array.isArray(userDoc?.crafts) ? userDoc.crafts : [],
@@ -33,6 +32,7 @@ export default async function AccountProfilePage() {
     proudestProject: userDoc?.proudestProject || "",
     bestGiftProject: userDoc?.bestGiftProject || "",
     photoURL: userDoc?.photoURL || "",
+    coverPhotoURL: userDoc?.coverPhotoURL || "",
     socialLinks: Array.isArray(userDoc?.socialLinks) ? userDoc.socialLinks : [],
   };
 

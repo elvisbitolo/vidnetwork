@@ -4,6 +4,7 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getRecognitionCount, listRecognitions } from "@/lib/server/recognition";
 import { RECOGNITION_VALUES, recognitionCountLabel } from "@/lib/server/recognition-core";
+import { BADGES } from "@/lib/server/gamification";
 import { QUIZ_QUESTIONS, QUIZ_LABELS, quizHasAnswers, quizAnswerLabel } from "@/lib/profile/questions";
 import { roleBadgeLabel } from "@/lib/profile/roles";
 import Nav from "@/components/Nav";
@@ -11,6 +12,7 @@ import BackButton from "@/components/BackButton";
 import FollowButton from "@/components/FollowButton";
 import RecognitionForm from "./RecognitionForm";
 import StickerDisplay from "./StickerDisplay";
+import MembersToExplore from "./MembersToExplore";
 import styles from "./profile.module.css";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,58 @@ const CRAFT_LABELS = {
   macrame: "Macrame",
 };
 
+function formatJoined(value) {
+  if (!value) return "";
+  const d = value.toMillis ? new Date(value.toMillis()) : new Date(value);
+  return d.toLocaleDateString([], { month: "long", year: "numeric" });
+}
+
+function commonalities(viewer, member) {
+  const found = [];
+  if (viewer.country && viewer.country === member.country) {
+    found.push({ icon: "🌍", label: `Both in ${member.country}` });
+  }
+  if (viewer.goToYarn && viewer.goToYarn === member.goToYarn) {
+    found.push({ icon: "🧶", label: `Both love ${member.goToYarn}` });
+  }
+  if (viewer.favoriteHookSize && viewer.favoriteHookSize === member.favoriteHookSize) {
+    found.push({ icon: "🪝", label: `Both use a ${member.favoriteHookSize}` });
+  }
+  if (Array.isArray(viewer.favoriteColors) && Array.isArray(member.favoriteColors)) {
+    const overlap = viewer.favoriteColors.filter((c) => member.favoriteColors.includes(c));
+    if (overlap.length > 0) {
+      found.push({ icon: "🎨", label: `${overlap.length} favorite ${overlap.length === 1 ? "color" : "colors"} in common` });
+    }
+  }
+  if (Array.isArray(viewer.crafts) && Array.isArray(member.crafts)) {
+    const overlap = viewer.crafts.filter((c) => member.crafts.includes(c));
+    if (overlap.length > 0) {
+      found.push({
+        icon: "🧵",
+        label: `${overlap.length} shared ${overlap.length === 1 ? "craft" : "crafts"}: ${overlap.map((c) => CRAFT_LABELS[c] || c).join(", ")}`,
+      });
+    }
+  }
+  if (Array.isArray(viewer.crochetTechniques) && Array.isArray(member.crochetTechniques)) {
+    const overlap = viewer.crochetTechniques.filter((t) => member.crochetTechniques.includes(t));
+    if (overlap.length > 0) {
+      found.push({ icon: "✂️", label: `${overlap.length} shared technique${overlap.length === 1 ? "" : "s"}` });
+    }
+  }
+  if (Array.isArray(viewer.crochetMotivation) && Array.isArray(member.crochetMotivation)) {
+    const overlap = viewer.crochetMotivation.filter((m) => member.crochetMotivation.includes(m));
+    if (overlap.length > 0) {
+      found.push({ icon: "💭", label: `${overlap.length} shared reason${overlap.length === 1 ? "" : "s"} you crochet` });
+    }
+  }
+  for (const q of QUIZ_QUESTIONS) {
+    const v = quizAnswerLabel(q, viewer);
+    const m = quizAnswerLabel(q, member);
+    if (v && m && v === m) found.push({ icon: "✨", label: `Both picked “${m}”` });
+  }
+  return found.slice(0, 6);
+}
+
 export default async function MemberProfilePage({ params }) {
   const { id } = await params;
   const viewer = await getCurrentUser();
@@ -40,12 +94,13 @@ export default async function MemberProfilePage({ params }) {
   const isSelf = viewer.uid === id;
 
   const userRef = adminDb().collection("users").doc(id);
-  const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap, followData] = await Promise.all([
+  const [memberDoc, postsSnap, recognitionCount, recognitions, stickersSnap, followData, gamiSnap] = await Promise.all([
     userRef.get(),
     adminDb().collection("posts").where("authorId", "==", id).get(),
     getRecognitionCount(id),
     listRecognitions(id, 10),
     adminDb().collection("stickers").where("toUid", "==", id).get(),
+    adminDb().collection("gamification").doc(id).get(),
     (async () => {
       if (isSelf) return { following: false, followerCount: 0, followingCount: 0 };
       const { isFollowing, getFollowerCount, getFollowingCount } = await import("@/lib/server/follows");
@@ -77,6 +132,20 @@ export default async function MemberProfilePage({ params }) {
   }
 
   const member = memberDoc.data();
+  const gami = gamiSnap.exists ? gamiSnap.data() : {};
+  const memberPoints = gami.points || 0;
+  const memberStreak = gami.streak || 0;
+  const memberJoined = formatJoined(member.createdAt);
+  const earnedBadges = Object.entries(BADGES)
+    .filter(([code]) => gami.badges?.[code])
+    .map(([code, meta]) => ({
+      code,
+      name: meta.name,
+      description: meta.description,
+      earnedAt: gami.badges[code].earnedAt,
+    }))
+    .sort((a, b) => new Date(b.earnedAt || 0) - new Date(a.earnedAt || 0));
+  const memberSimilarities = isSelf ? [] : commonalities(viewerDoc, member);
   const posts = postsSnap.docs
     .map((doc) => ({
       id: doc.id,
@@ -86,14 +155,10 @@ export default async function MemberProfilePage({ params }) {
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 20);
 
-  const bannerGradient = ((colors) => {
-    const list = (Array.isArray(colors) ? colors : []).filter((c) =>
-      /^#[0-9a-fA-F]{6}$/.test(c)
-    );
-    if (list.length === 0) return "";
-    if (list.length === 1) return list[0];
-    return `linear-gradient(135deg, ${list.join(", ")})`;
-  })(member.favoriteColors);
+const coverUrl = member.coverPhotoURL || "";
+  const bannerBackground = coverUrl
+    ? `url(${coverUrl}) center / cover no-repeat`
+    : "linear-gradient(135deg, #ececf4, #f7f7fb)";
 
   return (
       <Nav role={viewerDoc?.role}>
@@ -101,7 +166,7 @@ export default async function MemberProfilePage({ params }) {
         <BackButton fallback="/members" label="All members" />
 
         <div className={styles.profileCard}>
-          {bannerGradient && <div className={styles.banner} style={{ background: bannerGradient }} />}
+          {bannerBackground && <div className={styles.banner} style={{ background: bannerBackground }} />}
           <div className={styles.header}>
           <div className={styles.avatar}>
             {(member.name || "?").slice(0, 1).toUpperCase()}
@@ -119,11 +184,7 @@ export default async function MemberProfilePage({ params }) {
             {member.username && <p className={styles.username}>@{member.username}</p>}
             {member.headline && <p className={styles.headline}>{member.headline}</p>}
             {member.location && <p className={styles.location}>{member.location}</p>}
-            {(member.state || member.country) && (
-              <p className={styles.location}>
-                {[member.state, member.country].filter(Boolean).join(", ")}
-              </p>
-            )}
+            {member.country && <p className={styles.location}>{member.country}</p>}
             {member.bio && <p className={styles.bio}>{member.bio}</p>}
             {Array.isArray(member.socialLinks) && member.socialLinks.length > 0 && (
               <div className={styles.socialLinks}>
@@ -292,6 +353,41 @@ export default async function MemberProfilePage({ params }) {
           </div>
         </div>
 
+        <div className={styles.stats}>
+          <Link className={styles.statItem} href="/leaderboard">
+            <span className={styles.statValue}>{memberPoints}</span>
+            <span className={styles.statLabel}>Points</span>
+          </Link>
+          <span className={styles.statItem}>
+            <span className={styles.statValue}>{memberStreak}</span>
+            <span className={styles.statLabel}>Day streak</span>
+          </span>
+          <span className={styles.statItem}>
+            <span className={styles.statValue}>{earnedBadges.length}</span>
+            <span className={styles.statLabel}>Badges</span>
+          </span>
+          {memberJoined && (
+            <span className={styles.statItem}>
+              <span className={styles.statValue}>{memberJoined}</span>
+              <span className={styles.statLabel}>Member since</span>
+            </span>
+          )}
+        </div>
+
+        {!isSelf && memberSimilarities.length > 0 && (
+          <div className={styles.similarBox}>
+            <h2 className={styles.similarTitle}>What you have in common</h2>
+            <ul className={styles.similarList}>
+              {memberSimilarities.map((s, i) => (
+                <li key={i} className={styles.similarItem}>
+                  <span className={styles.similarIcon}>{s.icon}</span>
+                  <span>{s.label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {!isSelf && <RecognitionForm toUid={id} values={RECOGNITION_VALUES} />}
 
         <StickerDisplay
@@ -326,6 +422,23 @@ export default async function MemberProfilePage({ params }) {
             </div>
           </>
         )}
+
+        {earnedBadges.length > 0 && (
+          <>
+            <h2 className={styles.sectionTitle}>Badges</h2>
+            <div className={styles.badgeGrid}>
+              {earnedBadges.map((badge) => (
+                <div key={badge.code} className={styles.badge}>
+                  <span className={styles.badgeIcon}>🏅</span>
+                  <p className={styles.badgeName}>{badge.name}</p>
+                  <p className={styles.badgeDesc}>{badge.description}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <MembersToExplore forUid={id} />
 
         <h2 className={styles.sectionTitle}>Recent posts</h2>
         {posts.length === 0 ? (

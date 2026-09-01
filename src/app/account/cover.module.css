@@ -1,0 +1,70 @@
+.coverRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.coverImg {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #e6e6ef;
+}
+
+.coverPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 160px;
+  border-radius: 14px;
+  border: 1px dashed #d8d8e3;
+  background: #faf9ff;
+  color: #6b6b7b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.coverPlaceholderIcon {
+  font-size: 20px;
+}
+
+.coverControls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coverButton {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6e6ef;
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.coverButton:hover {
+  background: #eef2ff;
+}
+
+.coverButtonRemove {
+  background: #ffffff;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.coverButtonRemove:hover {
+  background: #fef2f2;
+}
+
+.coverHint {
+  font-size: 13px;
+  color: #9b9bab;
+  line-height: 1.5;
+}

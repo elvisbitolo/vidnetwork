@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const AVATAR_MAX_BYTES = 4 * 1024 * 1024;
+const COVER_MAX_BYTES = 8 * 1024 * 1024;
 
 export async function POST(req) {
   const auth = await requireUser();
@@ -16,7 +17,13 @@ export async function POST(req) {
   if (limited) return limited;
 
   const url = new URL(req.url);
-  const kind = url.searchParams.get("kind") === "music" ? "music" : "avatar";
+  const kind = url.searchParams.get("kind");
+  const isAvatar = kind === "avatar";
+  const isCover = kind === "cover";
+  const isMusic = kind === "music";
+  if (!isAvatar && !isCover && !isMusic) {
+    return NextResponse.json({ error: "Unknown upload kind" }, { status: 400 });
+  }
 
   const formData = await req.formData();
   const file = formData.get("file");
@@ -24,11 +31,12 @@ export async function POST(req) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  if (kind === "avatar" && !file.type.startsWith("image/")) {
+  const maxBytes = isCover ? COVER_MAX_BYTES : AVATAR_MAX_BYTES;
+  if ((isAvatar || isCover) && !file.type.startsWith("image/")) {
     return NextResponse.json({ error: "Only image files are allowed" }, { status: 400 });
   }
-  if (file.size > AVATAR_MAX_BYTES) {
-    return NextResponse.json({ error: "File too large (max 4 MB)" }, { status: 400 });
+  if (file.size > maxBytes) {
+    return NextResponse.json({ error: `File too large (max ${maxBytes / 1024 / 1024} MB)` }, { status: 400 });
   }
 
   // Graceful degradation: without a Blob token, keep storing base64 in Firestore.

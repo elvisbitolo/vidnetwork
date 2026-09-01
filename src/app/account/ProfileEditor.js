@@ -109,6 +109,7 @@ function loadImage(file) {
           dataUrl: reader.result,
           width: img.naturalWidth,
           height: img.naturalHeight,
+          element: img,
         });
       };
       img.onerror = () => reject(new Error("Couldn't read that image"));
@@ -210,6 +211,7 @@ export default function ProfileEditor({ initial }) {
   const [cropOpen, setCropOpen] = useState(false);
   const [cropImage, setCropImage] = useState(null);
   const [cropRect, setCropRect] = useState(null);
+  const [cropStage, setCropStage] = useState("adjust");
   const fileRef = useRef(null);
   const coverRef = useRef(null);
   const cropImgRef = useRef(null);
@@ -298,6 +300,7 @@ export default function ProfileEditor({ initial }) {
     const img = await loadImage(file);
     setCropImage(img);
     setCropRect(initialCropRect(img.width, img.height));
+    setCropStage("adjust");
     setCropOpen(true);
   }
 
@@ -313,6 +316,23 @@ export default function ProfileEditor({ initial }) {
     return { x: (width - w) / 2, y: height * 0.18, w, h };
   }
 
+  function getResizeMode(x, y, rect, img, tolerance) {
+    const t = tolerance;
+    const nearLeft = x <= rect.x + t;
+    const nearRight = x >= rect.x + rect.w - t;
+    const nearTop = y <= rect.y + t;
+    const nearBottom = y >= rect.y + rect.h - t;
+    if (nearLeft && nearTop) return "nw";
+    if (nearRight && nearTop) return "ne";
+    if (nearLeft && nearBottom) return "sw";
+    if (nearRight && nearBottom) return "se";
+    if (nearLeft) return "w";
+    if (nearRight) return "e";
+    if (nearTop) return "n";
+    if (nearBottom) return "s";
+    return null;
+  }
+
   function handleCropPointerDown(e) {
     const img = cropImgRef.current;
     if (!img) return;
@@ -322,13 +342,14 @@ export default function ProfileEditor({ initial }) {
     const y = (e.clientY - imgRect.top) * scale;
     const rect = cropRect;
     if (x < rect.x || x > rect.x + rect.w || y < rect.y || y > rect.y + rect.h) return;
-    const nearCorner =
-      x > rect.x + rect.w - 28 * scale && y > rect.y + rect.h - 28 * scale;
+    const tolerance = Math.max(24 * scale, 24);
+    const mode = getResizeMode(x, y, rect, img, tolerance);
     cropDragRef.current = {
-      mode: nearCorner ? "resize" : "move",
+      mode: mode || "move",
       startX: x,
       startY: y,
       startRect: rect,
+      scale,
     };
   }
 
@@ -342,34 +363,127 @@ export default function ProfileEditor({ initial }) {
     const x = (e.clientX - imgRect.left) * scale;
     const y = (e.clientY - imgRect.top) * scale;
     const ratio = 16 / 5;
-    const { mode, startX, startY, startRect } = drag;
+    const { mode, startRect } = drag;
+    const right = startRect.x + startRect.w;
+    const bottom = startRect.y + startRect.h;
+
     if (mode === "move") {
-      let nx = startRect.x + (x - startX);
-      let ny = startRect.y + (y - startY);
+      let nx = startRect.x + (x - drag.startX);
+      let ny = startRect.y + (y - drag.startY);
       nx = Math.max(0, Math.min(img.naturalWidth - startRect.w, nx));
       ny = Math.max(0, Math.min(img.naturalHeight - startRect.h, ny));
       setCropRect({ ...startRect, x: nx, y: ny });
-    } else {
-      let newW = startRect.w + (x - startX);
-      newW = Math.max(120 * scale, Math.min(img.naturalWidth, newW));
-      let newH = newW / ratio;
-      if (newH > img.naturalHeight) {
-        newH = img.naturalHeight;
-        newW = newH * ratio;
-      }
-      let nx = startRect.x;
-      let ny = startRect.y;
-      if (nx + newW > img.naturalWidth) nx = img.naturalWidth - newW;
-      if (ny + newH > img.naturalHeight) ny = img.naturalHeight - newH;
-      setCropRect({ x: nx, y: ny, w: newW, h: newH });
+      return;
     }
+
+    const usesLeft = mode === "w" || mode === "nw" || mode === "sw";
+    const usesRight = mode === "e" || mode === "ne" || mode === "se";
+    const usesTop = mode === "n" || mode === "nw" || mode === "ne";
+    const usesBottom = mode === "s" || mode === "sw" || mode === "se";
+
+    const minW = Math.max(120 * drag.scale, 120 * scale);
+    const anchorX = usesRight
+      ? startRect.x
+      : usesLeft
+      ? right
+      : startRect.x + startRect.w / 2;
+    const anchorY = usesBottom
+      ? startRect.y
+      : usesTop
+      ? bottom
+      : startRect.y + startRect.h / 2;
+
+    let finalW = startRect.w;
+    if (usesLeft || usesRight) {
+      const dist = Math.abs(x - anchorX) * 2;
+      finalW = Math.max(startRect.w / 2, dist);
+    } else if (usesTop || usesBottom) {
+      const dist = Math.abs(y - anchorY);
+      finalW = Math.max(startRect.w / 2, dist * ratio);
+    }
+    const maxW = img.naturalWidth;
+    const maxH = img.naturalHeight;
+    finalW = Math.max(minW, Math.min(maxW, finalW));
+
+    let nx = usesRight
+      ? anchorX
+      : usesLeft
+      ? anchorX - finalW
+      : anchorX - finalW / 2;
+    let finalH = finalW / ratio;
+    let ny = usesBottom
+      ? anchorY
+      : usesTop
+      ? anchorY - finalH
+      : anchorY - finalH / 2;
+
+    const maxWByH = maxH * ratio;
+    if (finalW > maxWByH) {
+      finalW = maxWByH;
+      finalH = maxH;
+      nx = usesLeft
+        ? right - finalW
+        : usesRight
+        ? startRect.x
+        : anchorX - finalW / 2;
+      ny = usesTop
+        ? bottom - finalH
+        : usesBottom
+        ? startRect.y
+        : anchorY - finalH / 2;
+    }
+
+    if (nx < 0) {
+      finalW = Math.max(minW, finalW + nx);
+      finalH = finalW / ratio;
+      nx = 0;
+      if (usesTop) ny = bottom - finalH;
+      else if (usesBottom) ny = startRect.y;
+      else ny = anchorY - finalH / 2;
+    }
+    if (ny < 0) {
+      finalH = Math.max(minW / ratio, finalH + ny);
+      finalW = finalH * ratio;
+      ny = 0;
+      if (usesLeft) nx = right - finalW;
+      else if (usesRight) nx = startRect.x;
+      else nx = anchorX - finalW / 2;
+    }
+    if (nx + finalW > maxW) {
+      nx = usesLeft ? right - finalW : Math.max(0, maxW - finalW);
+    }
+    if (ny + finalH > maxH) {
+      ny = usesTop ? bottom - finalH : Math.max(0, maxH - finalH);
+    }
+    if (nx < 0) nx = 0;
+    if (ny < 0) ny = 0;
+
+    setCropRect({ x: nx, y: ny, w: finalW, h: finalH });
   }
 
   function handleCropPointerUp() {
     cropDragRef.current = null;
   }
 
+  function goToCropConfirm() {
+    setCropStage("confirm");
+  }
+
+  function backToCropAdjust() {
+    setCropStage("adjust");
+  }
+
+  function previewCropDataUrl() {
+    if (!cropImage?.element || !cropRect) return "";
+    return cropImageToBanner(cropImage.element, cropRect);
+  }
+
   async function applyCoverCrop() {
+    setCropStage("save");
+    await applyCoverCropSave();
+  }
+
+  async function applyCoverCropSave() {
     const img = cropImgRef.current;
     if (!img || !cropRect) return;
     setUploadingCover(true);
@@ -398,11 +512,14 @@ export default function ProfileEditor({ initial }) {
       }
       setCoverPhotoURL(coverPhotoURL);
       setSaved(true);
+      setNotice("Cover photo saved.");
       setCropOpen(false);
       setCropImage(null);
       setCropRect(null);
+      setCropStage("adjust");
     } catch (err) {
       setError(err.message || "Failed to upload cover photo");
+      setCropStage("confirm");
     } finally {
       setUploadingCover(false);
     }
@@ -412,6 +529,7 @@ export default function ProfileEditor({ initial }) {
     setCropOpen(false);
     setCropImage(null);
     setCropRect(null);
+    setCropStage("adjust");
   }
 
   async function handleRemoveCover() {
@@ -1256,56 +1374,101 @@ export default function ProfileEditor({ initial }) {
           className={coverStyles.cropModal}
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 className={coverStyles.cropTitle}>Crop cover photo</h3>
-          <p className={coverStyles.cropHint}>
-            Drag the box to reposition it, or drag the handle in the bottom-right corner to resize. Your face will stay visible.
-          </p>
-          <div
-            className={coverStyles.cropWrap}
-            onPointerDown={handleCropPointerDown}
-            onPointerMove={handleCropPointerMove}
-            onPointerUp={handleCropPointerUp}
-            onPointerLeave={handleCropPointerUp}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              ref={cropImgRef}
-              className={coverStyles.cropImage}
-              src={cropImage?.dataUrl}
-              alt="Cover preview"
-              draggable={false}
-            />
-            {cropRect && (
-              <span
-                className={coverStyles.cropRect}
-                style={{
-                  left: `${(cropRect.x / cropImage.width) * 100}%`,
-                  top: `${(cropRect.y / cropImage.height) * 100}%`,
-                  width: `${(cropRect.w / cropImage.width) * 100}%`,
-                  height: `${(cropRect.h / cropImage.height) * 100}%`,
-                }}
+          {cropStage === "adjust" ? (
+            <>
+              <h3 className={coverStyles.cropTitle}>Crop cover photo</h3>
+              <p className={coverStyles.cropHint}>
+                Drag anywhere inside the outline to move it. Drag any edge or
+                corner to resize. Select the part of the photo you want to
+                keep, then press Next.
+              </p>
+              <div
+                className={coverStyles.cropWrap}
+                onPointerDown={handleCropPointerDown}
+                onPointerMove={handleCropPointerMove}
+                onPointerUp={handleCropPointerUp}
+                onPointerLeave={handleCropPointerUp}
               >
-                <span className={coverStyles.cropResizeHandle} />
-              </span>
-            )}
-          </div>
-          <div className={coverStyles.cropActions}>
-            <button
-              type="button"
-              className={coverStyles.coverButton}
-              onClick={cancelCoverCrop}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className={coverStyles.cropApply}
-              disabled={uploadingCover}
-              onClick={applyCoverCrop}
-            >
-              {uploadingCover ? "Saving…" : "Use this crop"}
-            </button>
-          </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  ref={cropImgRef}
+                  className={coverStyles.cropImage}
+                  src={cropImage?.dataUrl}
+                  alt="Cover preview"
+                  draggable={false}
+                />
+                {cropRect && (
+                  <span
+                    className={coverStyles.cropRect}
+                    style={{
+                      left: `${(cropRect.x / cropImage.width) * 100}%`,
+                      top: `${(cropRect.y / cropImage.height) * 100}%`,
+                      width: `${(cropRect.w / cropImage.width) * 100}%`,
+                      height: `${(cropRect.h / cropImage.height) * 100}%`,
+                    }}
+                  >
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleNw}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleNe}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleSw}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleSe}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleN}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleS}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleW}`} />
+                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleE}`} />
+                  </span>
+                )}
+              </div>
+              <div className={coverStyles.cropActions}>
+                <button
+                  type="button"
+                  className={coverStyles.coverButton}
+                  onClick={cancelCoverCrop}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={coverStyles.cropApply}
+                  onClick={goToCropConfirm}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className={coverStyles.cropTitle}>Preview your cover</h3>
+              <p className={coverStyles.cropHint}>
+                This is how your cover photo will look. When you&apos;re
+                happy, select &quot;Done&quot; to save it.
+              </p>
+              <div className={coverStyles.previewBanner}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewCropDataUrl()}
+                  alt="Cover photo preview"
+                  draggable={false}
+                />
+              </div>
+              <div className={coverStyles.cropActions}>
+                <button
+                  type="button"
+                  className={coverStyles.coverButton}
+                  onClick={backToCropAdjust}
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  className={coverStyles.cropApply}
+                  disabled={uploadingCover || cropStage === "save"}
+                  onClick={applyCoverCrop}
+                >
+                  {uploadingCover || cropStage === "save" ? "Saving…" : "Done"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )}

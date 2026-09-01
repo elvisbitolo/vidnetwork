@@ -129,16 +129,82 @@
   cursor: move;
 }
 
-.cropResizeHandle {
+.cropHandle {
   position: absolute;
-  width: 16px;
-  height: 16px;
-  right: -10px;
-  bottom: -10px;
-  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border-radius: 3px;
   background: #ffffff;
   border: 2px solid #2563eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.cropHandleNw {
+  left: -7px;
+  top: -7px;
   cursor: nwse-resize;
+}
+
+.cropHandleNe {
+  right: -7px;
+  top: -7px;
+  cursor: nesw-resize;
+}
+
+.cropHandleSw {
+  left: -7px;
+  bottom: -7px;
+  cursor: nesw-resize;
+}
+
+.cropHandleSe {
+  right: -7px;
+  bottom: -7px;
+  cursor: nwse-resize;
+}
+
+.cropHandleN {
+  left: 50%;
+  top: -7px;
+  margin-left: -7px;
+  cursor: ns-resize;
+}
+
+.cropHandleS {
+  left: 50%;
+  bottom: -7px;
+  margin-left: -7px;
+  cursor: ns-resize;
+}
+
+.cropHandleW {
+  top: 50%;
+  left: -7px;
+  margin-top: -7px;
+  cursor: ew-resize;
+}
+
+.cropHandleE {
+  top: 50%;
+  right: -7px;
+  margin-top: -7px;
+  cursor: ew-resize;
+}
+
+.previewBanner {
+  position: relative;
+  display: block;
+  margin: 0 0 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e6e6ef;
+}
+
+.previewBanner img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .cropActions {

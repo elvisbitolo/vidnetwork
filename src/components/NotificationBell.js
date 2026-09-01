@@ -38,7 +38,7 @@ export default function NotificationBell() {
   }, []);
 
   return (
-    <Link className={styles.bell} href="/notifications" title="Notifications" data-tour="tour-notifications">
+    <Link className={styles.bell} href="/notifications" title="Notifications">
       <span className={styles.bellIcon}>🔔</span>
       {unread > 0 && <span className={styles.bellBadge}>{unread}</span>}
     </Link>

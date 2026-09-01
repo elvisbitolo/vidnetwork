@@ -9,7 +9,6 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
 import SidebarProfile from "./SidebarProfile";
 import LiveNowBanner from "./LiveNowBanner";
-import OnboardingTour from "./OnboardingTour";
 import styles from "./Nav.module.css";
 const CHEVRON = (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -84,7 +83,7 @@ const CONNECT_ITEMS = [
   { href: "/rooms", key: "rooms" },
   { href: "/events", key: "events" },
   { href: "/challenges", key: "crochetAlong" },
-  { href: "/members", key: "members", tourKey: "tour-members-nav" },
+  { href: "/members", key: "members" },
 ];
 
 const LEARN_ITEMS = [
@@ -102,7 +101,7 @@ function SidebarGroup({ id, label, items, open, onToggle, t, close, children }) 
       </button>
       <div className={isOpen ? `${styles.groupBody} ${styles.groupBodyOpen}` : styles.groupBody}>
         {items && items.map((item) => (
-          <Link key={item.href} className={styles.sidebarLink} href={item.href} onClick={close} data-tour={item.tourKey}>
+          <Link key={item.href} className={styles.sidebarLink} href={item.href} onClick={close}>
             {t(item.key)}
           </Link>
         ))}
@@ -328,7 +327,6 @@ export default function Nav({ role, children }) {
           {!isRoomPage && <LiveNowBanner />}
           {children}
         </div>
-        <OnboardingTour />
       </div>
     </>
   );

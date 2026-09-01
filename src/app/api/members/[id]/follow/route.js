@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { followUser, unfollowUser, isFollowing, getFollowerCount, getFollowingCount } from "@/lib/server/follows";
+import { followUser, unfollowUser, getFollowerCount, getFollowingCount } from "@/lib/server/follows";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function GET(req, { params }) {
@@ -29,14 +29,18 @@ export async function POST(req, { params }) {
   const limited = rateLimitGuard(`follow:${user.uid}`, { limit: 30 });
   if (limited) return limited;
 
-  const currentlyFollowing = await isFollowing(user.uid, id);
-  if (currentlyFollowing) {
-    await unfollowUser(user.uid, id);
+  const body = await req.json().catch(() => ({}));
+  const action = typeof body.action === "string" ? body.action : "follow";
+
+  let following;
+  if (action === "unfollow") {
+    following = (await unfollowUser(user.uid, id)).following;
   } else {
     const result = await followUser(user.uid, id);
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+    following = result.following;
   }
 
   const [followerCount, followingCount] = await Promise.all([
@@ -44,5 +48,5 @@ export async function POST(req, { params }) {
     getFollowingCount(id),
   ]);
 
-  return NextResponse.json({ following: !currentlyFollowing, followerCount, followingCount });
+  return NextResponse.json({ following, followerCount, followingCount });
 }

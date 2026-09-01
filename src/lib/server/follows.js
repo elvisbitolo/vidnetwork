@@ -4,20 +4,23 @@ export async function followUser(followerId, followingId) {
   if (followerId === followingId) return { ok: false, error: "Cannot follow yourself" };
   const docId = `${followerId}_${followingId}`;
   const ref = adminDb().collection("follows").doc(docId);
-  const snap = await ref.get();
-  if (snap.exists) return { ok: false, error: "Already following" };
-  await ref.set({
-    followerId,
-    followingId,
-    createdAt: new Date(),
-  });
-  return { ok: true };
+  try {
+    await ref.create({
+      followerId,
+      followingId,
+      createdAt: new Date(),
+    });
+  } catch (err) {
+    if (err.code === "already-exists") return { ok: true, following: true };
+    throw err;
+  }
+  return { ok: true, following: true };
 }
 
 export async function unfollowUser(followerId, followingId) {
   const docId = `${followerId}_${followingId}`;
   await adminDb().collection("follows").doc(docId).delete();
-  return { ok: true };
+  return { ok: true, following: false };
 }
 
 export async function isFollowing(followerId, followingId) {

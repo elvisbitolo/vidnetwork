@@ -22,6 +22,8 @@ export default function EventDetail({ event, uid, userName }) {
   const [attendees, setAttendees] = useState({ count: 0, names: [], mine: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [rsvpMsg, setRsvpMsg] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [purchasedKeys, setPurchasedKeys] = useState(new Set());
 
   const loadAttendees = useCallback(async () => {
@@ -49,6 +51,7 @@ export default function EventDetail({ event, uid, userName }) {
   async function handleRsvp() {
     setBusy(true);
     setError("");
+    setConfirming(false);
     try {
       const res = await fetch("/api/rsvps", {
         method: "POST",
@@ -60,6 +63,7 @@ export default function EventDetail({ event, uid, userName }) {
         setError(data.error || (res.status === 409 ? "This event is full." : "RSVP failed"));
         return;
       }
+      setRsvpMsg(data.joined ? "You're going!" : "RSVP removed.");
       await loadAttendees();
     } finally {
       setBusy(false);
@@ -117,14 +121,30 @@ export default function EventDetail({ event, uid, userName }) {
           <p className={styles.capacityFull}>This event is full.</p>
         )}
         {error && <p className={styles.error}>{error}</p>}
+        {rsvpMsg && <p className={styles.success}>{rsvpMsg}</p>}
         <div className={styles.actions}>
-          <button
-            className={attendees.mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
-            onClick={handleRsvp}
-            disabled={joinDisabled}
-          >
-            {busy ? "Saving…" : attendees.mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
-          </button>
+          {attendees.mine && confirming ? (
+            <span className={styles.rsvpConfirm}>
+              <button
+                className={`${styles.rsvp} ${styles.rsvpRemove}`}
+                onClick={handleRsvp}
+                disabled={busy}
+              >
+                {busy ? "Canceling…" : "Cancel RSVP"}
+              </button>
+              <button className={styles.rsvpKeep} onClick={() => setConfirming(false)} disabled={busy}>
+                Keep
+              </button>
+            </span>
+          ) : (
+            <button
+              className={attendees.mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+              onClick={() => (attendees.mine ? setConfirming(true) : handleRsvp())}
+              disabled={joinDisabled}
+            >
+              {busy ? "Saving…" : attendees.mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+            </button>
+          )}
           <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
             Add to calendar
           </a>

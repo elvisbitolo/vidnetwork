@@ -74,6 +74,8 @@ export default function ChatbotGuide() {
   const [pos, setPos] = useState({ x: null, y: null });
   const [dragging, setDragging] = useState(false);
   const [idle, setIdle] = useState(false);
+  const [maximized, setMaximized] = useState(false);
+  const [userName, setUserName] = useState("");
   const dragRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
   const idleTimer = useRef(null);
@@ -81,7 +83,12 @@ export default function ChatbotGuide() {
 
   const currentStep = GUIDE_STEPS[step];
   const currentMessages = currentStep?.messages || [];
-  const displayedMessages = currentMessages.slice(0, msgIndex + 1);
+  const displayedMessages = currentMessages.slice(0, msgIndex + 1).map((msg, i) => {
+    if (i === 0 && userName) {
+      return { ...msg, text: `Hey ${userName}! Welcome to Yarnery Lounge! I'm your friendly guide, and I'll help you get settled in.` };
+    }
+    return msg;
+  });
 
   const resetIdleTimer = useCallback(() => {
     setIdle(false);
@@ -112,19 +119,35 @@ export default function ChatbotGuide() {
   }, [resetIdleTimer]);
 
   useEffect(() => {
+    let guideData = null;
+    let resumeStep = 0;
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.name) setUserName(data.name.split(" ")[0]);
+      })
+      .catch(() => {});
     fetch("/api/guide")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        guideData = data;
         if (data?.guideCompleted) {
           setAllDone(true);
         } else if (typeof data?.guideStep === "number" && data.guideStep > 0) {
+          resumeStep = data.guideStep;
           setStep(data.guideStep);
         }
       })
       .catch(() => {})
       .finally(() => {
         setLoading(false);
-        setTimeout(() => setVisible(true), 500);
+        setTimeout(() => {
+          setVisible(true);
+          if (guideData && !guideData.guideCompleted && !sessionStorage.getItem("guideDismissed")) {
+            setIsOpen(true);
+            if (GUIDE_STEPS[resumeStep]?.messages.length) setTyping(true);
+          }
+        }, 500);
       });
   }, []);
 
@@ -172,6 +195,7 @@ export default function ChatbotGuide() {
   }
 
   function handleMinimize() {
+    sessionStorage.setItem("guideDismissed", "1");
     setIsOpen(false);
   }
 
@@ -277,22 +301,22 @@ export default function ChatbotGuide() {
 
   const panelStyle = {
     position: "fixed",
-    bottom: pos.y !== null ? "auto" : 24,
-    right: pos.x !== null ? "auto" : 24,
-    top: pos.y !== null ? pos.y : "auto",
-    left: pos.x !== null ? pos.x : "auto",
-    width: 380,
-    maxWidth: "calc(100vw - 48px)",
-    height: 500,
-    maxHeight: "calc(100vh - 100px)",
+    bottom: pos.y !== null && !maximized ? "auto" : maximized ? 0 : 24,
+    right: pos.x !== null && !maximized ? "auto" : maximized ? 0 : 24,
+    top: pos.y !== null && !maximized ? pos.y : maximized ? 0 : "auto",
+    left: pos.x !== null && !maximized ? pos.x : maximized ? 0 : "auto",
+    width: maximized ? "min(94vw, 1400px)" : 380,
+    maxWidth: maximized ? "94vw" : "calc(100vw - 48px)",
+    height: maximized ? "min(92vh, 900px)" : 500,
+    maxHeight: maximized ? "92vh" : "calc(100vh - 100px)",
     background: "#1a1a1a",
     border: "1px solid rgba(167,139,250,0.25)",
-    borderRadius: 20,
+    borderRadius: maximized ? 0 : 20,
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    zIndex: 1000,
-    boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+    zIndex: maximized ? 1001 : 1000,
+    boxShadow: maximized ? "none" : "0 12px 40px rgba(0,0,0,0.6)",
     animation: "guideSlideUp 0.25s ease",
     userSelect: dragging ? "none" : "auto",
   };
@@ -315,19 +339,19 @@ export default function ChatbotGuide() {
       `}</style>
 
       <div
-        onMouseDown={onDragStart}
-        onTouchStart={onDragStart}
+        onMouseDown={maximized ? undefined : onDragStart}
+        onTouchStart={maximized ? undefined : onDragStart}
         style={{
           padding: "14px 18px",
           background: "linear-gradient(135deg, var(--secondary), #8b5cf6)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          cursor: dragging ? "grabbing" : "grab",
+          cursor: maximized ? "default" : dragging ? "grabbing" : "grab",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 20 }}>🧶</span>
+          <span style={{ fontSize: maximized ? 24 : 20 }}>🧶</span>
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: "#fff", margin: 0 }}>Yarnery Lounge Guide</p>
             <p style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", margin: 0 }}>
@@ -335,25 +359,46 @@ export default function ChatbotGuide() {
             </p>
           </div>
         </div>
-        <button
-          onClick={(e) => { e.stopPropagation(); handleMinimize(); }}
-          style={{
-            background: "rgba(255,255,255,0.15)",
-            border: "none",
-            borderRadius: 8,
-            width: 28,
-            height: 28,
-            color: "#fff",
-            fontSize: 14,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          aria-label="Minimize"
-        >
-          —
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMaximized((m) => !m); }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              borderRadius: 8,
+              width: 28,
+              height: 28,
+              color: "#fff",
+              fontSize: 14,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            aria-label={maximized ? "Restore" : "Full screen"}
+          >
+            {maximized ? "⤡" : "⤢"}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleMinimize(); }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              borderRadius: 8,
+              width: 28,
+              height: 28,
+              color: "#fff",
+              fontSize: 14,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            aria-label="Minimize"
+          >
+            —
+          </button>
+        </div>
       </div>
 
       <div style={{

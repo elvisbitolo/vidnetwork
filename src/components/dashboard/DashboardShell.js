@@ -18,7 +18,6 @@ import {
 } from "./Sections";
 import { CardSkeleton, SectionError } from "./Section";
 import styles from "./dashboard.module.css";
-import DashboardTour from "../DashboardTour";
 import DashboardThemePicker from "../DashboardThemePicker";
 
 function formatMoney(cents) {
@@ -326,7 +325,6 @@ export default function DashboardShell() {
           </div>
         </div>
       </div>
-      <DashboardTour />
     </div>
   );
 }

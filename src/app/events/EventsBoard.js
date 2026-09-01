@@ -24,6 +24,8 @@ export default function EventsBoard({ events, uid, userName }) {
   const [rsvpData, setRsvpData] = useState({});
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
+  const [rsvpMsg, setRsvpMsg] = useState("");
+  const [confirmingId, setConfirmingId] = useState("");
   const [purchasedKeys, setPurchasedKeys] = useState(new Set());
 
   useEffect(() => {
@@ -74,23 +76,24 @@ export default function EventsBoard({ events, uid, userName }) {
   async function handleRsvp(eventId, occurrenceId) {
     if (!uid) return;
     setBusyId(`${occurrenceId || eventId}`);
+    setConfirmingId("");
     try {
       const res = await fetch("/api/rsvps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ eventId, occurrenceId: occurrenceId || "" }),
       });
+      const data = await res.json();
       if (res.status === 409) {
-        const data = await res.json();
         setError(data.error || "This event is full.");
         return;
       }
       if (!res.ok) {
-        const data = await res.json();
         setError(data.error || "RSVP failed");
         return;
       }
       setError("");
+      setRsvpMsg(data.joined ? "You're going!" : "RSVP removed.");
       const event = events.find((e) => (e.occurrenceId || e.id) === (occurrenceId || eventId));
       if (event) loadAttendees(event);
     } finally {
@@ -165,13 +168,32 @@ export default function EventsBoard({ events, uid, userName }) {
             <p className={styles.capacityFull}>This event is full.</p>
           )}
           <div className={styles.actions}>
-            <button
-              className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
-              onClick={() => handleRsvp(event.id, event.occurrenceId)}
-              disabled={joinDisabled}
-            >
-              {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
-            </button>
+            {mine && confirmingId === key ? (
+              <span className={styles.rsvpConfirm}>
+                <button
+                  className={`${styles.rsvp} ${styles.rsvpRemove}`}
+                  onClick={() => handleRsvp(event.id, event.occurrenceId)}
+                  disabled={joinDisabled}
+                >
+                  {busyId === key ? "Canceling…" : "Cancel RSVP"}
+                </button>
+                <button
+                  className={styles.rsvpKeep}
+                  onClick={() => setConfirmingId("")}
+                  disabled={!!busyId}
+                >
+                  Keep
+                </button>
+              </span>
+            ) : (
+              <button
+                className={mine ? `${styles.rsvp} ${styles.rsvpActive}` : styles.rsvp}
+                onClick={() => (mine ? setConfirmingId(key) : handleRsvp(event.id, event.occurrenceId))}
+                disabled={joinDisabled}
+              >
+                {busyId === key ? "Saving…" : mine ? "Going ✓" : atCapacity ? "Full" : "RSVP"}
+              </button>
+            )}
             <a className={styles.calendar} href={`/api/events/${event.id}/ics`}>
               Add to calendar
             </a>
@@ -188,6 +210,7 @@ export default function EventsBoard({ events, uid, userName }) {
   return (
     <div>
       {error && <p className={styles.error}>{error}</p>}
+      {rsvpMsg && <p className={styles.success}>{rsvpMsg}</p>}
       {upcoming.length === 0 && past.length === 0 ? (
         <p className={styles.empty}>No events scheduled yet — check back soon.</p>
       ) : (

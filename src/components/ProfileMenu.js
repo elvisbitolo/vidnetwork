@@ -61,7 +61,7 @@ export default function ProfileMenu() {
   }, [open]);
 
   return (
-    <div className={styles.profileWrap} ref={menuRef}>
+    <div className={styles.profileWrap} ref={menuRef} data-tour="tour-profile">
       <button
         type="button"
         className={styles.profileBtn}

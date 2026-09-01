@@ -43,30 +43,44 @@
 }
 
 .statCard {
-  background: #ffffff;
-  border: 1px solid #e6e6ef;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e6e6ef);
   border-radius: 14px;
   padding: 20px;
   text-decoration: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.statCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 a.statCard:hover {
-  border-color: var(--primary);
+  border-color: var(--card-accent, var(--primary));
   box-shadow: 0 6px 18px rgba(37, 99, 235, 0.1);
 }
 
 .statValue {
   font-size: 28px;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--card-title, var(--primary));
   margin: 0 0 4px;
 }
 
 .statLabel {
   font-size: 13px;
   font-weight: 600;
-  color: #6b6b7b;
+  color: var(--card-muted, #6b6b7b);
   margin: 0;
 }
 
@@ -85,29 +99,43 @@ a.statCard:hover {
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e6e6ef;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e6e6ef);
   border-radius: 14px;
   padding: 20px;
+  position: relative;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .cardTitle {
   font-size: 15px;
   font-weight: 700;
-  color: #17171c;
+  color: var(--card-title, #17171c);
   margin: 0 0 12px;
 }
 
 .cardStat {
   font-size: 14px;
   font-weight: 600;
-  color: #34344a;
+  color: var(--card-text, #34344a);
   margin: 0 0 6px;
 }
 
 .cardMeta {
   font-size: 12px;
-  color: #9b9bab;
+  color: var(--card-muted, #9b9bab);
   margin: 4px 0 0;
 }
 

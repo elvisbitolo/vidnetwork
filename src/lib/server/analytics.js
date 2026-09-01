@@ -279,67 +279,6 @@ export async function getRevenueAnalytics() {
   }));
 }
 
-export async function getRetentionAnalytics() {
-  const [usersSnap, gamificationSnap] = await Promise.all([
-    adminDb().collection("users").get(),
-    adminDb().collection("gamification").get(),
-  ]);
-
-  const gamificationByUid = {};
-  gamificationSnap.docs.forEach((doc) => {
-    gamificationByUid[doc.id] = doc.data();
-  });
-
-  const now = Date.now();
-  const DAY = 24 * 60 * 60 * 1000;
-  const cohorts = {};
-
-  usersSnap.docs.forEach((doc) => {
-    const user = doc.data();
-    const created = toMillis(user.createdAt);
-    if (!created) return;
-    const key = monthKey(new Date(created));
-    const g = gamificationByUid[doc.id] || {};
-    const visits = new Set([g.lastVisitDate, ...(Array.isArray(g.recentVisits) ? g.recentVisits : [])].filter(Boolean));
-
-    const cohort = cohorts[key] || (cohorts[key] = {
-      cohort: key,
-      size: 0,
-      week1: 0,
-      week2: 0,
-      week4: 0,
-      week8: 0,
-    });
-    cohort.size += 1;
-
-    const active = (week) => {
-      const start = created;
-      const end = start + week * 7 * DAY;
-      for (const v of visits) {
-        const [y, m, d] = String(v).split("-").map(Number);
-        const ts = new Date(y, (m || 1) - 1, d || 1).getTime();
-        if (ts >= start && ts <= end) return true;
-      }
-      return false;
-    };
-    if (active(1)) cohort.week1 += 1;
-    if (active(2)) cohort.week2 += 1;
-    if (active(4)) cohort.week4 += 1;
-    if (active(8)) cohort.week8 += 1;
-  });
-
-  return Object.values(cohorts)
-    .sort((a, b) => (a.cohort < b.cohort ? 1 : -1))
-    .map((c) => ({
-      cohort: c.cohort,
-      size: c.size,
-      week1: c.week1,
-      week2: c.week2,
-      week4: c.week4,
-      week8: c.week8,
-    }));
-}
-
 export async function getSpaceAnalytics(spaceId) {
   const space = await getSpace(spaceId);
   if (!space) return null;

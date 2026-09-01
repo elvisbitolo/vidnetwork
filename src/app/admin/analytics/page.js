@@ -6,11 +6,14 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
 import Nav from "@/components/Nav";
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "./analytics.module.css";
 
 function formatMoney(cents) {
   return `$${((Number(cents) || 0) / 100).toFixed(2)}`;
 }
+
+const STAT_THEMES = ["indigo", "sky", "emerald", "amber", "violet", "rose", "teal", "fuchsia", "slate"];
 
 export default function AdminAnalyticsPage() {
   const router = useRouter();
@@ -73,14 +76,23 @@ export default function AdminAnalyticsPage() {
         ) : (
           <>
             <div className={styles.statGrid}>
-              {statCards.map((card) =>
+              {statCards.map((card, i) =>
                 card.href ? (
-                  <Link key={card.label} href={card.href} className={styles.statCard}>
+                  <Link
+                    key={card.label}
+                    href={card.href}
+                    className={styles.statCard}
+                    style={cardThemeVars(STAT_THEMES[i % STAT_THEMES.length], { light: true })}
+                  >
                     <p className={styles.statValue}>{card.value}</p>
                     <p className={styles.statLabel}>{card.label}</p>
                   </Link>
                 ) : (
-                  <div key={card.label} className={styles.statCard}>
+                  <div
+                    key={card.label}
+                    className={styles.statCard}
+                    style={cardThemeVars(STAT_THEMES[i % STAT_THEMES.length], { light: true })}
+                  >
                     <p className={styles.statValue}>{card.value}</p>
                     <p className={styles.statLabel}>{card.label}</p>
                   </div>
@@ -90,20 +102,20 @@ export default function AdminAnalyticsPage() {
 
             <h2 className={styles.listTitle}>Growth</h2>
             <div className={styles.grid}>
-              <div className={styles.card}>
+              <div className={styles.card} style={cardThemeVars("indigo", { light: true })}>
                 <h3 className={styles.cardTitle}>Signups</h3>
                 <p className={styles.cardStat}>Total {data.members.signups.total}</p>
                 <p className={styles.cardStat}>Last 7 days {data.members.signups.last7}</p>
                 <p className={styles.cardStat}>Last 30 days {data.members.signups.last30}</p>
               </div>
-              <div className={styles.card}>
+              <div className={styles.card} style={cardThemeVars("emerald", { light: true })}>
                 <h3 className={styles.cardTitle}>Activity</h3>
                 <p className={styles.cardStat}>Active members (7d) {data.members.active7}</p>
                 <p className={styles.cardStat}>Contributing members {data.members.contributing}</p>
                 <p className={styles.cardStat}>Posts (7d) {data.engagement.posts7}</p>
                 <p className={styles.cardStat}>Members who RSVP&apos;d {data.engagement.rsvpMembers}</p>
               </div>
-              <div className={styles.card}>
+              <div className={styles.card} style={cardThemeVars("sky", { light: true })}>
                 <h3 className={styles.cardTitle}>Courses</h3>
                 <p className={styles.cardStat}>Courses {data.courses.total}</p>
                 <p className={styles.cardStat}>Lessons {data.courses.lessons}</p>
@@ -117,7 +129,7 @@ export default function AdminAnalyticsPage() {
 
             <h2 className={styles.listTitle}>Revenue</h2>
             <div className={styles.grid}>
-              <div className={styles.card}>
+              <div className={styles.card} style={cardThemeVars("violet", { light: true })}>
                 <h3 className={styles.cardTitle}>Subscriptions</h3>
                 <p className={styles.cardStat}>
                   Active {sub.active} of {sub.total}
@@ -143,7 +155,7 @@ export default function AdminAnalyticsPage() {
                   </p>
                 </div>
               </div>
-              <div className={styles.card}>
+              <div className={styles.card} style={cardThemeVars("amber", { light: true })}>
                 <h3 className={styles.cardTitle}>One-time purchases</h3>
                 <p className={styles.cardStat}>Total {purchases.total}</p>
                 <p className={styles.cardStat}>Revenue {formatMoney(purchases.revenueCents)}</p>

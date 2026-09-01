@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import StatCard from "./StatCard";
 import AudienceChart from "./AudienceChart";
 import RevenueChart from "./RevenueChart";
-import RetentionChart from "./RetentionChart";
 import {
   WelcomeBanner,
   QuickActions,
@@ -164,14 +163,15 @@ export default function DashboardShell() {
         value={statsValue.members.total.toLocaleString()}
         delta={statsValue.members.total ? Math.round((statsValue.members.new30 / statsValue.members.total) * 100) : 0}
         deltaLabel={t("newIn30d")}
-      />
-    );
+        theme="indigo"
+      />    );
     kpis.push(
       <StatCard
         key="live"
         label={t("liveViewers")}
         value={statsValue.live.viewers.toLocaleString()}
         deltaLabel={t("roomsLive", { count: statsValue.live.rooms })}
+        theme="rose"
       />
     );
     if (isStaff && statsValue.revenue) {
@@ -181,11 +181,12 @@ export default function DashboardShell() {
           label={t("estMonthlyRevenue")}
           value={formatMoney(statsValue.revenue.estMonthlyCents)}
           deltaLabel={t("activeSubscribers", { count: statsValue.revenue.activeSubs })}
+          theme="amber"
         />
       );
     } else {
       kpis.push(
-        <StatCard key="points" label={t("yourPoints")} value={(user.points || 0).toLocaleString()} deltaLabel={t("communityRecognition")} />
+        <StatCard key="points" label={t("yourPoints")} value={(user.points || 0).toLocaleString()} deltaLabel={t("communityRecognition")} theme="emerald" />
       );
     }
     kpis.push(
@@ -194,6 +195,7 @@ export default function DashboardShell() {
         label={t("engagement")}
         value={`${statsValue.engagement.contributionRate}%`}
         deltaLabel={t("activeThisWeek", { count: statsValue.engagement.active7 })}
+        theme="sky"
       />
     );
   }
@@ -262,11 +264,6 @@ export default function DashboardShell() {
           {isStaff && (
             <div className={styles.card}>
               <RevenueChart />
-            </div>
-          )}
-          {isStaff && (
-            <div className={styles.card}>
-              <RetentionChart />
             </div>
           )}
 

@@ -127,10 +127,24 @@
 }
 
 .kpi {
-  background: var(--dash-surface, #24242a);
-  border: 1px solid var(--dash-border, #2e2e38);
+  background: var(--card-bg, var(--dash-surface, #24242a));
+  border: 1px solid var(--card-border, var(--dash-border, #2e2e38));
   border-radius: 14px;
   padding: 18px;
+  position: relative;
+}
+
+.kpi::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .quickActions {
@@ -163,7 +177,7 @@
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--dash-text, #f5f5f5);
+  color: var(--card-title, var(--dash-text, #f5f5f5));
 }
 
 .kpiDelta {
@@ -219,6 +233,19 @@
   position: relative;
 }
 
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .card :is(.cardTitle, .itemTitle, .attentionText) {
   color: var(--card-text, var(--dash-text, #f5f5f5));
 }
@@ -244,17 +271,17 @@
 .cardTitle {
   font-size: 15px;
   font-weight: 700;
-  color: var(--dash-text, #f5f5f5);
+  color: var(--card-title, var(--dash-text, #f5f5f5));
 }
 
 .cardLink {
   font-size: 13px;
   font-weight: 600;
-  color: var(--dash-accent, var(--secondary-light));
+  color: var(--card-accent, var(--dash-accent, var(--secondary-light)));
 }
 
 .cardLink:hover {
-  color: var(--dash-accent, #c4b5fd);
+  color: var(--card-accent, #c4b5fd);
 }
 
 .list {
@@ -516,46 +543,6 @@
 .exportBtn:disabled {
   opacity: 0.6;
   cursor: default;
-}
-
-.retentionTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.retentionTable th {
-  text-align: left;
-  font-weight: 600;
-  color: var(--dash-muted, #8b8b9b);
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--dash-border, #2e2e38);
-  white-space: nowrap;
-}
-
-.retentionTable td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--dash-border, #2e2e38);
-  color: var(--dash-text, #f5f5f5);
-  white-space: nowrap;
-}
-
-.retentionCell {
-  text-align: center;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.retentionScroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.retentionEmpty {
-  padding: 18px 10px;
-  text-align: center;
-  color: var(--dash-muted, #6b6b7b);
-  font-size: 14px;
 }
 
 .skeleton {

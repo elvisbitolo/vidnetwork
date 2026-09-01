@@ -8,29 +8,43 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #ffffff;
-  border: 1px solid #e6e6ef;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e6e6ef);
   border-radius: 14px;
   padding: 24px;
   text-decoration: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .card:hover {
-  border-color: #d8d8e3;
+  border-color: var(--card-accent, #d8d8e3);
   box-shadow: 0 6px 20px rgba(23, 23, 28, 0.05);
 }
 
 .cardName {
   font-size: 18px;
   font-weight: 700;
-  color: #17171c;
+  color: var(--card-title, #17171c);
   margin: 0;
 }
 
 .cardDesc {
   font-size: 14px;
-  color: #6b6b7b;
+  color: var(--card-muted, #6b6b7b);
   margin: 0;
   line-height: 1.5;
 }
@@ -38,33 +52,47 @@
 .cardMeta {
   font-size: 13px;
   font-weight: 600;
-  color: #7c3aed;
+  color: var(--card-accent, #7c3aed);
   margin: 4px 0 0;
 }
 
 .spaceCard {
-  background: #faf9ff;
-  border: 1px solid #e0d4f7;
+  background: var(--card-bg, #faf9ff);
+  border: 1px solid var(--card-border, #e0d4f7);
   border-radius: 12px;
   padding: 16px;
   text-decoration: none;
   transition: border-color 0.15s ease;
+  position: relative;
+}
+
+.spaceCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .spaceCard:hover {
-  border-color: #7c3aed;
+  border-color: var(--card-accent, #7c3aed);
 }
 
 .spaceName {
   font-size: 15px;
   font-weight: 700;
-  color: #17171c;
+  color: var(--card-title, #17171c);
   margin: 0 0 4px;
 }
 
 .spaceDesc {
   font-size: 13px;
-  color: #6b6b7b;
+  color: var(--card-muted, #6b6b7b);
   margin: 0 0 8px;
   line-height: 1.4;
 }

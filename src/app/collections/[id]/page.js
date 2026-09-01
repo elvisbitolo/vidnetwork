@@ -4,7 +4,10 @@ import BackButton from "@/components/BackButton";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getSpace } from "@/lib/server/spaces";
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "../collections.module.css";
+
+const SPACE_THEMES = ["indigo", "teal", "violet", "amber", "emerald", "sky", "rose"];
 
 export const dynamic = "force-dynamic";
 
@@ -71,11 +74,12 @@ export default async function CollectionDetailPage({ params }) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {spaces.map((space) => (
+            {spaces.map((space, i) => (
               <Link
                 key={space.id}
                 href={`/spaces/${space.slug || space.id}`}
                 className={styles.spaceCard}
+                style={cardThemeVars(SPACE_THEMES[i % SPACE_THEMES.length], { light: true })}
               >
                 <h3 className={styles.spaceName}>{space.name}</h3>
                 {space.description && <p className={styles.spaceDesc}>{space.description}</p>}

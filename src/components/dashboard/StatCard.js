@@ -1,8 +1,9 @@
 "use client";
 
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "./dashboard.module.css";
 
-export default function StatCard({ label, value, delta, deltaLabel, accent }) {
+export default function StatCard({ label, value, delta, deltaLabel, theme = "indigo" }) {
   const deltaClass = !delta
     ? styles.kpiDelta
     : delta > 0
@@ -12,7 +13,7 @@ export default function StatCard({ label, value, delta, deltaLabel, accent }) {
         : styles.kpiDelta;
 
   return (
-    <div className={styles.kpi}>
+    <div className={styles.kpi} style={cardThemeVars(theme)}>
       <p className={styles.kpiLabel}>{label}</p>
       <p className={styles.kpiValue}>{value}</p>
       <p className={deltaClass}>

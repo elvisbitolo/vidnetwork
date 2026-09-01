@@ -158,16 +158,23 @@ export default function LoginPage() {
               </a>
             </p>
           </div>
-          <div className={styles.authImage}>
-            <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
-            <div className={styles.authImageOverlay}>
-              <p className={styles.authImageText}>Welcome back to your creative community.</p>
-            </div>
+<div className={styles.authImage}>
+          <Image src="/images/crochet/model_in_shop_05.jpeg" alt="Welcome back" fill sizes="(max-width: 768px) 0px, 460px" style={{ objectFit: "cover" }} />
+          <div className={styles.authImageOverlay}>
+            <p className={styles.authImageText}>Welcome back to your creative community.</p>
           </div>
         </div>
-      </main>
-    );
-  }
+      </div>
+
+      {busy && (
+        <div className={styles.loadOverlay} role="status" aria-live="polite">
+          <div className={styles.spinner} />
+          <p className={styles.loadText}>{busy === "verify" ? t("resending") : t("sendResetLink")}</p>
+        </div>
+      )}
+    </main>
+  );
+}
 
   return (
     <main className={styles.page}>
@@ -228,6 +235,13 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {busy && (
+        <div className={styles.loadOverlay} role="status" aria-live="polite">
+          <div className={styles.spinner} />
+          <p className={styles.loadText}>{t("signingIn")}</p>
+        </div>
+      )}
     </main>
   );
 }

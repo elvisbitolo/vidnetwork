@@ -16,6 +16,7 @@ import {
 import { auth, db } from "@/lib/firebase/client";
 import ReportModal from "./ReportModal";
 import MentionInput from "@/components/MentionInput";
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "./feed.module.css";
 
 function resizeImage(file, maxSize = 1600) {
@@ -89,6 +90,20 @@ function renderHashtags(text) {
       </span>
     );
   });
+}
+
+const POST_KIND_THEMES = {
+  poll: "amber",
+  question: "indigo",
+  win: "emerald",
+  article: "violet",
+  event: "rose",
+  text: "sky",
+  default: "slate",
+};
+
+function postCardStyle(kind) {
+  return cardThemeVars(POST_KIND_THEMES[kind] || POST_KIND_THEMES.default, { light: true });
 }
 
 function LikeButton({ postId, likes, uid, disabled }) {
@@ -811,7 +826,7 @@ const trimmed = text.trim();
       ) : (
         <div className={styles.postList}>
           {filtered.map((post) => (
-            <article key={post.id} className={styles.post}>
+            <article key={post.id} className={styles.post} style={postCardStyle(post.kind)}>
               <div className={styles.postHeader}>
                 <div className={styles.avatar}>
                   {(post.authorName || "?").slice(0, 1).toUpperCase()}

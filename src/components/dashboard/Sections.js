@@ -115,7 +115,7 @@ export function QuickActions() {
     { key: "shareWin", href: "/feed?kind=win", icon: "shareWin" },
   ];
   return (
-    <Card title={t("quickActions")}>
+    <Card title={t("quickActions")} theme="sky">
       <div
         className={styles.quickActions}
         style={{
@@ -154,7 +154,7 @@ export function CommunityHub() {
     { href: "/leaderboard", key: "leaderboard", icon: "★" },
   ];
   return (
-    <Card title={t("communityHub")} linkLabel={t("exploreCommunity")} linkHref="/members">
+    <Card title={t("communityHub")} linkLabel={t("exploreCommunity")} linkHref="/members" theme="violet">
       <div
         style={{
           display: "grid",
@@ -182,7 +182,7 @@ export function CommunityHub() {
 export function RecentActivity({ data }) {
   const t = useTranslations("dashboard");
   return (
-    <Card title={t("recentActivity")} linkLabel={t("openFeed")} linkHref="/feed">
+    <Card title={t("recentActivity")} linkLabel={t("openFeed")} linkHref="/feed" theme="sky">
       {data.length === 0 ? (
         <EmptyState text={t("noActivity")} />
       ) : (
@@ -209,7 +209,7 @@ export function RecentActivity({ data }) {
 export function UpcomingRooms({ data }) {
   const t = useTranslations("dashboard");
   return (
-    <Card title={t("liveAndUpcoming")} linkLabel={t("allRooms")} linkHref="/rooms">
+    <Card title={t("liveAndUpcoming")} linkLabel={t("allRooms")} linkHref="/rooms" theme="amber">
       {data.length === 0 ? (
         <EmptyState text={t("noRooms")} />
       ) : (
@@ -245,7 +245,7 @@ export function UpcomingRooms({ data }) {
 
 export function RecentMessages({ data }) {
   return (
-    <Card title="Recent messages" linkLabel="Open chat" linkHref="/chat">
+    <Card title="Recent messages" linkLabel="Open chat" linkHref="/chat" theme="teal">
       {data.length === 0 ? (
         <EmptyState text="No messages yet. Start a conversation in Chat." />
       ) : (
@@ -270,7 +270,7 @@ export function RecentMessages({ data }) {
 export function ContentPerformance({ data }) {
   const t = useTranslations("dashboard");
   return (
-    <Card title={t("topContent")} linkLabel={t("explore")} linkHref="/feed">
+    <Card title={t("topContent")} linkLabel={t("explore")} linkHref="/feed" theme="emerald">
       {!data || data.items.length === 0 ? (
         <EmptyState text={t("sharePosts")} />
       ) : (
@@ -301,7 +301,7 @@ export function ContentPerformance({ data }) {
 export function NotificationsPanel({ data }) {
   const unread = data.filter((n) => !n.read).length;
   return (
-    <Card title="Notifications" linkLabel="View all" linkHref="/notifications">
+    <Card title="Notifications" linkLabel="View all" linkHref="/notifications" theme="fuchsia">
       {data.length === 0 ? (
         <EmptyState text="No notifications yet." />
       ) : (
@@ -326,7 +326,7 @@ export function NotificationsPanel({ data }) {
 export function NeedsAttention({ data }) {
   const t = useTranslations("dashboard");
   return (
-    <Card title={t("needsAttention")}>
+    <Card title={t("needsAttention")} theme="rose">
       {data.length === 0 ? (
         <EmptyState text={t("allCaughtUp")} />
       ) : (
@@ -352,7 +352,7 @@ export function OnboardingProgress({ data }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   if (total === 0) return null;
   return (
-    <Card title={data.complete ? "Onboarding complete" : "Getting started"}>
+    <Card title={data.complete ? "Onboarding complete" : "Getting started"} theme="emerald">
       <p className={styles.chartCaption}>
         {done} of {total} steps complete
       </p>

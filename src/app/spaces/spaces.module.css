@@ -92,15 +92,29 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 16px;
-  background: #ffffff;
-  border: 1px solid #e6e6ef;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e6e6ef);
   border-radius: 14px;
   padding: 24px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, var(--card-accent, transparent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .card:hover {
-  border-color: #d8d8e3;
+  border-color: var(--card-accent, #d8d8e3);
   box-shadow: 0 6px 20px rgba(23, 23, 28, 0.05);
 }
 
@@ -111,17 +125,17 @@
 .cardTitle {
   font-size: 18px;
   font-weight: 700;
-  color: #17171c;
+  color: var(--card-title, #17171c);
   margin: 0 0 6px;
 }
 
 .cardTitle:hover {
-  color: var(--primary);
+  color: var(--card-accent, var(--primary));
 }
 
 .cardDesc {
   font-size: 14px;
-  color: #6b6b7b;
+  color: var(--card-muted, #6b6b7b);
   margin: 0 0 12px;
   line-height: 1.5;
 }

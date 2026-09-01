@@ -3,7 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "./spaces.module.css";
+
+const SPACE_THEMES = ["indigo", "violet", "teal", "amber", "sky", "emerald", "rose", "fuchsia"];
 
 const FEATURE_ICONS = {
   feed: "💬",
@@ -46,10 +49,14 @@ export default function SpacesBoard({ spaces, uid }) {
     <div>
       {error && <p className={styles.error}>{error}</p>}
       <div className={styles.grid}>
-        {spaces.map((space) => {
+        {spaces.map((space, i) => {
           const features = enabledFeatures(space.features);
           return (
-            <div key={space.id} className={styles.card}>
+            <div
+              key={space.id}
+              className={styles.card}
+              style={cardThemeVars(SPACE_THEMES[i % SPACE_THEMES.length], { light: true })}
+            >
               <div className={styles.cardBody}>
                 <Link className={styles.cardLink} href={`/spaces/${space.slug}`}>
                   <h2 className={styles.cardTitle}>{space.name}</h2>

@@ -2,7 +2,10 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getCollectionsWithSpaces } from "@/lib/server/collections";
+import { cardThemeVars } from "@/lib/card-themes";
 import styles from "./collections.module.css";
+
+const COLLECTION_THEMES = ["violet", "teal", "indigo", "rose", "amber", "emerald", "sky"];
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +38,13 @@ export default async function CollectionsPage() {
           </div>
         ) : (
           <div className={styles.grid}>
-            {collections.map((col) => (
-              <Link key={col.id} href={`/collections/${col.id}`} className={styles.card}>
+            {collections.map((col, i) => (
+              <Link
+                key={col.id}
+                href={`/collections/${col.id}`}
+                className={styles.card}
+                style={cardThemeVars(COLLECTION_THEMES[i % COLLECTION_THEMES.length], { light: true })}
+              >
                 <h2 className={styles.cardName}>{col.name}</h2>
                 {col.description && <p className={styles.cardDesc}>{col.description}</p>}
                 <p className={styles.cardMeta}>

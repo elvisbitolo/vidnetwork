@@ -180,7 +180,7 @@ export async function POST(req, { params }) {
       .collection("messages")
       .doc(parentId);
     await parentRef.update({
-      replyCount: adminDb.FieldValue.increment(1),
+      replyCount: adminDb().FieldValue.increment(1),
     }).catch(() => {});
   }
 

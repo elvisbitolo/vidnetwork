@@ -42,7 +42,7 @@ export async function createRecognition({ fromUid, fromName, toUid, value, note 
       createdAt: new Date(),
     });
     tx.update(toUserRef, {
-      recognitionCount: adminDb.FieldValue.increment(1),
+      recognitionCount: adminDb().FieldValue.increment(1),
     });
   });
 

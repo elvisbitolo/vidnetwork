@@ -22,7 +22,7 @@ const QUESTIONS_PER_PAGE = 3;
 const QUIZ_PAGE_COUNT = Math.ceil(QUIZ_QUESTIONS.length / QUESTIONS_PER_PAGE);
 
 const STEP_LABELS = [
-  "About you",
+  "Bio",
   "Colours & links",
   "Yarn story",
   "Your makes",
@@ -334,6 +334,7 @@ export default function ProfileEditor({ initial }) {
   }
 
   function handleCropPointerDown(e) {
+    e.preventDefault();
     const img = cropImgRef.current;
     if (!img) return;
     const imgRect = img.getBoundingClientRect();
@@ -341,8 +342,15 @@ export default function ProfileEditor({ initial }) {
     const x = (e.clientX - imgRect.left) * scale;
     const y = (e.clientY - imgRect.top) * scale;
     const rect = cropRect;
-    if (x < rect.x || x > rect.x + rect.w || y < rect.y || y > rect.y + rect.h) return;
     const tolerance = Math.max(24 * scale, 24);
+    if (
+      x < rect.x - tolerance ||
+      x > rect.x + rect.w + tolerance ||
+      y < rect.y - tolerance ||
+      y > rect.y + rect.h + tolerance
+    ) {
+      return;
+    }
     const mode = getResizeMode(x, y, rect, img, tolerance);
     cropDragRef.current = {
       mode: mode || "move",
@@ -351,9 +359,17 @@ export default function ProfileEditor({ initial }) {
       startRect: rect,
       scale,
     };
+    if (e.currentTarget.setPointerCapture) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* older browsers */
+      }
+    }
   }
 
   function handleCropPointerMove(e) {
+    e.preventDefault();
     const drag = cropDragRef.current;
     if (!drag) return;
     const img = cropImgRef.current;
@@ -461,8 +477,15 @@ export default function ProfileEditor({ initial }) {
     setCropRect({ x: nx, y: ny, w: finalW, h: finalH });
   }
 
-  function handleCropPointerUp() {
+  function handleCropPointerUp(e) {
     cropDragRef.current = null;
+    if (e?.currentTarget?.releasePointerCapture) {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        /* already released */
+      }
+    }
   }
 
   function goToCropConfirm() {
@@ -615,7 +638,7 @@ export default function ProfileEditor({ initial }) {
       return;
     }
     if (normalize(bio).length > LIMITS.bio) {
-      setError(`About you must be ${LIMITS.bio} characters or fewer.`);
+      setError(`Bio must be ${LIMITS.bio} characters or fewer.`);
       return;
     }
     if (normalize(goToYarn).length > LIMITS.yarn) {
@@ -935,7 +958,7 @@ export default function ProfileEditor({ initial }) {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.fieldLabel} htmlFor="profile-bio">About you</label>
+        <label className={styles.fieldLabel} htmlFor="profile-bio">Bio</label>
         <textarea
           id="profile-bio"
           className={styles.textarea}
@@ -1382,13 +1405,12 @@ export default function ProfileEditor({ initial }) {
                 corner to resize. Select the part of the photo you want to
                 keep, then press Next.
               </p>
-              <div
-                className={coverStyles.cropWrap}
-                onPointerDown={handleCropPointerDown}
-                onPointerMove={handleCropPointerMove}
-                onPointerUp={handleCropPointerUp}
-                onPointerLeave={handleCropPointerUp}
-              >
+<div
+            className={coverStyles.cropWrap}
+            onPointerDown={handleCropPointerDown}
+            onPointerMove={handleCropPointerMove}
+            onPointerUp={handleCropPointerUp}
+          >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={cropImgRef}

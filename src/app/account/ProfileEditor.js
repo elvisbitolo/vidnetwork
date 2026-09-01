@@ -99,50 +99,17 @@ function resizeImage(file, maxSize = 256) {
   });
 }
 
-function cropCoverToBanner(file) {
+function loadImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const sourceWidth = img.naturalWidth;
-        const sourceHeight = img.naturalHeight;
-        const targetRatio = 4 / 1;
-        const targetWidth = Math.min(1200, sourceWidth);
-
-        let sourceX = 0;
-        let sourceY = 0;
-        let cropWidth = sourceWidth;
-        let cropTotalHeight = sourceHeight;
-
-        if (sourceWidth / sourceHeight > targetRatio) {
-          // Image is wider than the banner ratio: crop the left/right sides.
-          cropTotalHeight = sourceHeight;
-          cropWidth = cropTotalHeight * targetRatio;
-          sourceX = (sourceWidth - cropWidth) / 2;
-        } else {
-          // Image is taller than the banner ratio (e.g. a passport photo):
-          // crop vertically, favoring the top portion where a face usually is.
-          cropTotalHeight = sourceWidth / targetRatio;
-          sourceY = 0; // keep the top so the face stays visible
-        }
-
-        const scale = targetWidth / cropWidth;
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(cropWidth * scale);
-        canvas.height = Math.round(cropTotalHeight * scale);
-        canvas.getContext("2d").drawImage(
-          img,
-          sourceX,
-          sourceY,
-          cropWidth,
-          cropTotalHeight,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
+        resolve({
+          dataUrl: reader.result,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
       };
       img.onerror = () => reject(new Error("Couldn't read that image"));
       img.src = reader.result;
@@ -150,6 +117,26 @@ function cropCoverToBanner(file) {
     reader.onerror = () => reject(new Error("Couldn't read that file"));
     reader.readAsDataURL(file);
   });
+}
+
+function cropImageToBanner(img, rect) {
+  const targetRatio = 16 / 5;
+  const scale = Math.min(1, 1200 / rect.w);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(rect.w * scale);
+  canvas.height = Math.round(rect.w * scale / targetRatio);
+  canvas.getContext("2d").drawImage(
+    img,
+    rect.x,
+    rect.y,
+    rect.w,
+    rect.w / targetRatio,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+  return canvas.toDataURL("image/jpeg", 0.85);
 }
 
 function toHandledLinks(links) {
@@ -220,8 +207,13 @@ export default function ProfileEditor({ initial }) {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState(null);
+  const [cropRect, setCropRect] = useState(null);
   const fileRef = useRef(null);
   const coverRef = useRef(null);
+  const cropImgRef = useRef(null);
+  const cropDragRef = useRef(null);
 
   async function handlePhoto(e) {
     const file = e.target.files?.[0];
@@ -303,10 +295,86 @@ export default function ProfileEditor({ initial }) {
       return;
     }
     setError("");
+    const img = await loadImage(file);
+    setCropImage(img);
+    setCropRect(initialCropRect(img.width, img.height));
+    setCropOpen(true);
+  }
+
+  function initialCropRect(width, height) {
+    const ratio = 16 / 5;
+    let w = width;
+    let h = height;
+    if (w / h > ratio) {
+      w = h * ratio;
+    } else {
+      h = w / ratio;
+    }
+    return { x: (width - w) / 2, y: height * 0.18, w, h };
+  }
+
+  function handleCropPointerDown(e) {
+    const img = cropImgRef.current;
+    if (!img) return;
+    const imgRect = img.getBoundingClientRect();
+    const scale = img.naturalWidth / imgRect.width;
+    const x = (e.clientX - imgRect.left) * scale;
+    const y = (e.clientY - imgRect.top) * scale;
+    const rect = cropRect;
+    if (x < rect.x || x > rect.x + rect.w || y < rect.y || y > rect.y + rect.h) return;
+    const nearCorner =
+      x > rect.x + rect.w - 28 * scale && y > rect.y + rect.h - 28 * scale;
+    cropDragRef.current = {
+      mode: nearCorner ? "resize" : "move",
+      startX: x,
+      startY: y,
+      startRect: rect,
+    };
+  }
+
+  function handleCropPointerMove(e) {
+    const drag = cropDragRef.current;
+    if (!drag) return;
+    const img = cropImgRef.current;
+    if (!img) return;
+    const imgRect = img.getBoundingClientRect();
+    const scale = img.naturalWidth / imgRect.width;
+    const x = (e.clientX - imgRect.left) * scale;
+    const y = (e.clientY - imgRect.top) * scale;
+    const ratio = 16 / 5;
+    const { mode, startX, startY, startRect } = drag;
+    if (mode === "move") {
+      let nx = startRect.x + (x - startX);
+      let ny = startRect.y + (y - startY);
+      nx = Math.max(0, Math.min(img.naturalWidth - startRect.w, nx));
+      ny = Math.max(0, Math.min(img.naturalHeight - startRect.h, ny));
+      setCropRect({ ...startRect, x: nx, y: ny });
+    } else {
+      let newW = startRect.w + (x - startX);
+      newW = Math.max(120 * scale, Math.min(img.naturalWidth, newW));
+      let newH = newW / ratio;
+      if (newH > img.naturalHeight) {
+        newH = img.naturalHeight;
+        newW = newH * ratio;
+      }
+      let nx = startRect.x;
+      let ny = startRect.y;
+      if (nx + newW > img.naturalWidth) nx = img.naturalWidth - newW;
+      if (ny + newH > img.naturalHeight) ny = img.naturalHeight - newH;
+      setCropRect({ x: nx, y: ny, w: newW, h: newH });
+    }
+  }
+
+  function handleCropPointerUp() {
+    cropDragRef.current = null;
+  }
+
+  async function applyCoverCrop() {
+    const img = cropImgRef.current;
+    if (!img || !cropRect) return;
     setUploadingCover(true);
     try {
-      const dataUrl = await cropCoverToBanner(file);
-      let coverPhotoURL = dataUrl;
+      const dataUrl = cropImageToBanner(img, cropRect);
       const fd = new FormData();
       const blob = await (await fetch(dataUrl)).blob();
       fd.append("file", blob, "cover.jpg");
@@ -318,7 +386,7 @@ export default function ProfileEditor({ initial }) {
       if (!up.ok || (!upData.url && !upData.dataUrl)) {
         throw new Error(upData.error || "Failed to upload cover photo");
       }
-      coverPhotoURL = upData.url || upData.dataUrl;
+      const coverPhotoURL = upData.url || upData.dataUrl;
       const res = await fetch("/api/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -330,11 +398,20 @@ export default function ProfileEditor({ initial }) {
       }
       setCoverPhotoURL(coverPhotoURL);
       setSaved(true);
+      setCropOpen(false);
+      setCropImage(null);
+      setCropRect(null);
     } catch (err) {
       setError(err.message || "Failed to upload cover photo");
     } finally {
       setUploadingCover(false);
     }
+  }
+
+  function cancelCoverCrop() {
+    setCropOpen(false);
+    setCropImage(null);
+    setCropRect(null);
   }
 
   async function handleRemoveCover() {
@@ -555,7 +632,8 @@ export default function ProfileEditor({ initial }) {
   }
 
   return (
-    <form className={styles.card} id="profile" onSubmit={handleSave}>
+    <>
+      <form className={styles.card} id="profile" onSubmit={handleSave}>
       <h2 className={styles.cardTitle}>Edit profile</h2>
       <div className={styles.identityLine}>
         <p className={styles.usernamePill}>
@@ -1165,5 +1243,72 @@ export default function ProfileEditor({ initial }) {
         )}
       </nav>
     </form>
+
+    {cropOpen && (
+      <div
+        className={coverStyles.cropOverlay}
+        onClick={cancelCoverCrop}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Crop cover photo"
+      >
+        <div
+          className={coverStyles.cropModal}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className={coverStyles.cropTitle}>Crop cover photo</h3>
+          <p className={coverStyles.cropHint}>
+            Drag the box to reposition it, or drag the handle in the bottom-right corner to resize. Your face will stay visible.
+          </p>
+          <div
+            className={coverStyles.cropWrap}
+            onPointerDown={handleCropPointerDown}
+            onPointerMove={handleCropPointerMove}
+            onPointerUp={handleCropPointerUp}
+            onPointerLeave={handleCropPointerUp}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={cropImgRef}
+              className={coverStyles.cropImage}
+              src={cropImage?.dataUrl}
+              alt="Cover preview"
+              draggable={false}
+            />
+            {cropRect && (
+              <span
+                className={coverStyles.cropRect}
+                style={{
+                  left: `${(cropRect.x / cropImage.width) * 100}%`,
+                  top: `${(cropRect.y / cropImage.height) * 100}%`,
+                  width: `${(cropRect.w / cropImage.width) * 100}%`,
+                  height: `${(cropRect.h / cropImage.height) * 100}%`,
+                }}
+              >
+                <span className={coverStyles.cropResizeHandle} />
+              </span>
+            )}
+          </div>
+          <div className={coverStyles.cropActions}>
+            <button
+              type="button"
+              className={coverStyles.coverButton}
+              onClick={cancelCoverCrop}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={coverStyles.cropApply}
+              disabled={uploadingCover}
+              onClick={applyCoverCrop}
+            >
+              {uploadingCover ? "Saving…" : "Use this crop"}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

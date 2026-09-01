@@ -9,7 +9,6 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
 import SidebarProfile from "./SidebarProfile";
 import LiveNowBanner from "./LiveNowBanner";
-import ChatbotGuide from "./ChatbotGuide";
 import OnboardingTour from "./OnboardingTour";
 import styles from "./Nav.module.css";
 const CHEVRON = (
@@ -329,7 +328,6 @@ export default function Nav({ role, children }) {
           {!isRoomPage && <LiveNowBanner />}
           {children}
         </div>
-        <ChatbotGuide />
         <OnboardingTour />
       </div>
     </>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { canAccessPost } from "@/lib/server/posts";
 import { createNotification } from "@/lib/server/notifications";
 import { sendEmail } from "@/lib/server/email";
@@ -44,7 +45,7 @@ export async function POST(req, { params }) {
     .collection("posts")
     .doc(postId)
     .update({
-      commentCount: adminDb().FieldValue.increment(1),
+      commentCount: FieldValue.increment(1),
       lastActivityAt: new Date(),
     })
     .catch(() => {});

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function POST(req, { params }) {
@@ -23,7 +24,7 @@ export async function POST(req, { params }) {
   const likes = data.likes || {};
   const already = Object.prototype.hasOwnProperty.call(likes, user.uid);
   const update = already
-    ? { [`likes.${user.uid}`]: adminDb().FieldValue.delete() }
+    ? { [`likes.${user.uid}`]: FieldValue.delete() }
     : { [`likes.${user.uid}`]: new Date() };
 
   await ref.update(update);

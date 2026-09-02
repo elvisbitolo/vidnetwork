@@ -5,6 +5,7 @@ import { addMessage, getConversation } from "@/lib/server/chat";
 import { createNotification } from "@/lib/server/notifications";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { sendEmail } from "@/lib/server/email";
 import { logError } from "@/lib/server/log";
 import { validateReplyText } from "@/lib/server/chat-core";
@@ -183,7 +184,7 @@ export async function POST(req, { params }) {
       .collection("messages")
       .doc(parentId);
     await parentRef.update({
-      replyCount: adminDb().FieldValue.increment(1),
+      replyCount: FieldValue.increment(1),
     }).catch(() => {});
   }
 

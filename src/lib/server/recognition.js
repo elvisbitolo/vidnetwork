@@ -1,4 +1,5 @@
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import {
   RECOGNITION_POINTS,
   validateRecognition,
@@ -42,7 +43,7 @@ export async function createRecognition({ fromUid, fromName, toUid, value, note 
       createdAt: new Date(),
     });
     tx.update(toUserRef, {
-      recognitionCount: adminDb().FieldValue.increment(1),
+      recognitionCount: FieldValue.increment(1),
     });
   });
 

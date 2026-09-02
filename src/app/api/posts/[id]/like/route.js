@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { canAccessPost, nextLikeState } from "@/lib/server/posts";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
@@ -24,7 +25,7 @@ export async function POST(req, { params }) {
   const { already, liked, count } = nextLikeState(data.likes, user.uid);
   const update = already
     ? {
-        [`likes.${user.uid}`]: adminDb().FieldValue.delete(),
+        [`likes.${user.uid}`]: FieldValue.delete(),
         lastActivityAt: new Date(),
       }
     : {

@@ -4,24 +4,9 @@ import { getAccessSub, isActiveSub } from "@/lib/server/subscription";
 import { createRecognition } from "@/lib/server/recognition";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { logError } from "@/lib/server/log";
+import { isTransientErrorCode as isTransient, httpStatusFor } from "@/lib/server/http-errors";
 
 export const dynamic = "force-dynamic";
-
-function isTransient(err) {
-  const code = String(err?.code || "");
-  return code === "" || code.includes("unavailable") || code.includes("deadline-exceeded");
-}
-
-function httpStatusFor(err) {
-  if (typeof err?.code === "number" && Number.isInteger(err.code)) return err.code;
-  const code = String(err?.code || "");
-  if (code.includes("not-found")) return 404;
-  if (code.includes("already-exists")) return 409;
-  if (code.includes("permission-denied") || code.includes("aborted")) return 403;
-  if (code.includes("unauthenticated")) return 401;
-  if (code.includes("resource-exhausted")) return 429;
-  return 500;
-}
 
 export async function POST(req) {
   const user = await getCurrentUser();

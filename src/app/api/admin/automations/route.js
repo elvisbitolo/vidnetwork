@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { createAutomation, listAutomations } from "@/lib/server/automations";
 import { normalizeAutomation } from "@/lib/server/automations-core";
+import { httpStatusFor } from "@/lib/server/http-errors";
 
 export async function GET() {
   const auth = await requireOwner();
@@ -32,7 +33,7 @@ export async function POST(req) {
     const result = await createAutomation({ ...normalized, createdBy: auth.user.uid });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
-    const status = err.code || 500;
+    const status = httpStatusFor(err);
     return NextResponse.json(
       { error: status === 400 ? err.message : "Could not create automation" },
       { status }

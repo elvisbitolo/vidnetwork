@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { listCollections, createCollection } from "@/lib/server/collections";
 import { serialize } from "@/lib/server/serialize";
+import { httpStatusFor } from "@/lib/server/http-errors";
 
 export async function GET() {
   const auth = await requireOwner();
@@ -26,7 +27,7 @@ export async function POST(req) {
     });
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
-    const status = err.code || 500;
+    const status = httpStatusFor(err);
     return NextResponse.json(
       { error: status === 500 ? "Could not create collection" : err.message },
       { status }

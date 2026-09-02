@@ -9,6 +9,7 @@ import { awardPoints, POINTS } from "@/lib/server/gamification";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { applyRsvpCounts } from "@/lib/server/events-core";
 import { runAutomations } from "@/lib/server/automations";
+import { httpStatusFor } from "@/lib/server/http-errors";
 
 export async function POST(req) {
   const user = await getCurrentUser();
@@ -87,7 +88,7 @@ export async function POST(req) {
       return true;
     });
   } catch (err) {
-    const status = err.code || 500;
+    const status = httpStatusFor(err);
     if (status === 409) {
       return NextResponse.json({ error: err.message }, { status: 409 });
     }

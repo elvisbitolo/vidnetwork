@@ -6,6 +6,7 @@ import { canManageScope } from "@/lib/server/hosts";
 import { getAccessSub, isActiveSub, isStaff } from "@/lib/server/subscription";
 import { getQuiz, updateQuiz, deleteQuiz } from "@/lib/server/quizzes";
 import { logAudit } from "@/lib/server/audit";
+import { httpStatusFor } from "@/lib/server/http-errors";
 
 async function canReadQuiz(user, userDoc, quiz) {
   if (quiz.createdBy === user.uid) return true;
@@ -61,7 +62,7 @@ export async function PUT(req, { params }) {
   } catch (err) {
     return NextResponse.json(
       { error: err.message || "Failed to update quiz" },
-      { status: err.code || 500 }
+      { status: httpStatusFor(err) }
     );
   }
 

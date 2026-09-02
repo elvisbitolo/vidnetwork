@@ -3,6 +3,7 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { canAccessPost } from "@/lib/server/posts";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
+import { httpStatusFor } from "@/lib/server/http-errors";
 
 export async function POST(req, { params }) {
   const { id } = await params;
@@ -66,7 +67,7 @@ export async function POST(req, { params }) {
     });
     return NextResponse.json({ counts, votedOption });
   } catch (err) {
-    const status = err.code || 500;
+    const status = httpStatusFor(err);
     return NextResponse.json(
       { error: status === 409 ? "You already voted" : err.message || "Vote failed" },
       { status }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
+import { adminDb } from "@/lib/firebase/admin";
 import { getCourse } from "@/lib/server/courses";
 import { getProgress } from "@/lib/server/courses";
 import { generateCertificate, getCertificateByUserAndCourse } from "@/lib/server/certificates";
@@ -33,8 +34,11 @@ export async function POST(req, { params }) {
   const progress = await getProgress(courseId, user.uid);
   const completedLessons = progress.completedLessons || [];
 
-  const modules = course.moduleCount || 0;
-  const lessonCount = course.lessonCount || 0;
+  const lessonsSnap = await adminDb()
+    .collection("lessons")
+    .where("courseId", "==", courseId)
+    .get();
+  const lessonCount = lessonsSnap.size;
   if (lessonCount > 0 && completedLessons.length < lessonCount) {
     return NextResponse.json({ error: "Course not yet completed" }, { status: 400 });
   }

@@ -23,8 +23,14 @@ export async function POST(req, { params }) {
 
   const { already, liked, count } = nextLikeState(data.likes, user.uid);
   const update = already
-    ? { [`likes.${user.uid}`]: adminDb().FieldValue.delete() }
-    : { [`likes.${user.uid}`]: new Date() };
+    ? {
+        [`likes.${user.uid}`]: adminDb().FieldValue.delete(),
+        lastActivityAt: new Date(),
+      }
+    : {
+        [`likes.${user.uid}`]: new Date(),
+        lastActivityAt: new Date(),
+      };
 
   await ref.update(update);
 

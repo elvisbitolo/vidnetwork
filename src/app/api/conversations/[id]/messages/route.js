@@ -62,6 +62,9 @@ function validateAttachment(attachment) {
       name: name.slice(0, 120),
       mime: cleanMime.slice(0, 100),
       kind: isImage ? "image" : "file",
+      size: Number.isFinite(attachment.size) && attachment.size > 0
+        ? Math.round(Math.min(attachment.size, 50 * 1024 * 1024))
+        : 0,
       dataUrl,
     },
   };

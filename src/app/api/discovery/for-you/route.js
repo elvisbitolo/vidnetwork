@@ -11,12 +11,29 @@ export async function GET(req) {
   const userDoc = await adminDb().collection("users").doc(user.uid).get();
   const userData = userDoc.exists ? userDoc.data() : {};
   const interests = [
-    ...(userData.crafts || []),
-    ...(userData.interests || []),
-    ...(userData.hashtags || []),
+    ...(Array.isArray(userData.crafts) ? userData.crafts : []),
+    ...(Array.isArray(userData.interests) ? userData.interests : []),
+    ...(Array.isArray(userData.hashtags) ? userData.hashtags : []),
   ].map((s) => String(s).toLowerCase().trim()).filter(Boolean);
 
-  const interestsSet = new Set(interests);
+  const ownHashtags = [];
+  const ownPostsSnap = await adminDb()
+    .collection("posts")
+    .where("authorId", "==", user.uid)
+    .limit(50)
+    .get();
+  for (const d of ownPostsSnap.docs) {
+    const tags = d.data().hashtags;
+    if (!Array.isArray(tags)) continue;
+    for (const t of tags) {
+      const clean = String(t).toLowerCase().trim();
+      if (clean && ownHashtags.indexOf(clean) === -1 && ownHashtags.length < 8) {
+        ownHashtags.push(clean);
+      }
+    }
+  }
+  const allInterests = [...interests, ...ownHashtags];
+  const interestsSet = new Set(allInterests);
 
   const [postsSnap, spacesSnap, coursesSnap] = await Promise.all([
     adminDb().collection("posts").orderBy("createdAt", "desc").limit(100).get(),
@@ -35,13 +52,12 @@ export async function GET(req) {
       if (interestsSet.has(String(tag).toLowerCase())) score += 5;
     }
     if (item.likes) score += Object.keys(item.likes).length * 0.5;
-    if (item.memberCount) score += item.memberCount * 0.1;
     return score;
   }
 
   function getReason(item) {
     const text = ((item.text || "") + " " + (item.description || "") + " " + (item.title || "")).toLowerCase();
-    for (const interest of interests) {
+    for (const interest of allInterests) {
       if (text.includes(interest)) {
         const label = interest.charAt(0).toUpperCase() + interest.slice(1);
         return `Because you like ${label}`;

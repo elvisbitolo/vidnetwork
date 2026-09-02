@@ -28,6 +28,11 @@ service firebase.storage {
       return isSignedIn() && u.exists && u.data.role == 'owner';
     }
 
+    function ownsPost(postId) {
+      let p = get(/databases/(default)/documents/posts/$(postId));
+      return isSignedIn() && p.exists && p.data.authorId == request.auth.uid;
+    }
+
     function meetsTier(requiredTier) {
       return requiredTier == null || requiredTier == '' || requiredTier == 'standard'
         || subTier() == 'premium';
@@ -44,11 +49,10 @@ service firebase.storage {
 
     match /posts/{postId}/{fileName} {
       allow read: if isSignedIn() && isActiveSub();
-      allow create, update: if isSignedIn() && isActiveSub()
+      allow create, update: if isSignedIn() && isActiveSub() && ownsPost(postId)
         && request.resource.contentType.matches('image/.*')
         && request.resource.size < 10 * 1024 * 1024;
-      allow delete: if isSignedIn()
-        && (resource.metadata.uid == request.auth.uid || isOwner());
+      allow delete: if ownsPost(postId) || isOwner();
     }
 
     match /lessons/{lessonId}/{fileName} {

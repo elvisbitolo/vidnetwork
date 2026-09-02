@@ -23,7 +23,7 @@ export async function PATCH(req, { params }) {
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  const { role, suspended } = await req.json();
+  const { role, suspended, foundingMember } = await req.json();
   const ref = adminDb().collection("users").doc(id);
   const snap = await ref.get();
   if (!snap.exists) {
@@ -49,15 +49,26 @@ export async function PATCH(req, { params }) {
     }
     update.suspended = Boolean(suspended);
   }
+  if (foundingMember !== undefined) {
+    if (auth.userDoc.role !== "owner") {
+      return NextResponse.json({ error: "Only the owner can change founding member status" }, { status: 403 });
+    }
+    update.foundingMember = Boolean(foundingMember);
+  }
 
   await ref.update(update);
 
   await logAudit({
     actorId: auth.user.uid,
     actorName: auth.userDoc?.name || auth.user.email || "",
-    action: role !== undefined ? "member.role_changed" : "member.suspended",
+    action:
+      role !== undefined
+        ? "member.role_changed"
+        : foundingMember !== undefined
+          ? "member.founding_changed"
+          : "member.suspended",
     targetId: id,
-    metadata: { role, suspended, prevRole: snap.data().role },
+    metadata: { role, suspended, foundingMember, prevRole: snap.data().role },
   });
 
   return NextResponse.json({ ok: true });

@@ -11,7 +11,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  deleteDoc,
+  getDoc,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import ReportModal from "./ReportModal";
@@ -196,16 +196,26 @@ function BookmarkButton({ postId, bookmarks, uid, disabled }) {
 function PollBlock({ postId, post, uid, disabled }) {
   const [counts, setCounts] = useState(post.pollCounts || {});
   const [total, setTotal] = useState(
-    post.pollTotal ?? (post.pollVotes ? Object.keys(post.pollVotes).length : 0)
+    post.pollTotal ?? Object.values(post.pollCounts || {}).reduce((a, b) => a + b, 0)
   );
-  const [votedOption, setVotedOption] = useState(
-    post.pollVotes && post.pollVotes[uid] !== undefined
-      ? post.pollVotes[uid]
-      : undefined
-  );
+  const [votedOption, setVotedOption] = useState(undefined);
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(() => (typeof window !== "undefined" ? Date.now() : 0));
   const options = post.pollOptions || [];
+
+  useEffect(() => {
+    let active = true;
+    getDoc(doc(db, "pollVotes", `${postId}_${uid}`))
+      .then((snap) => {
+        if (active && snap.exists()) {
+          setVotedOption(snap.data().option);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [postId, uid]);
 
   const deadlineMs = post.pollDeadline ? new Date(post.pollDeadline).getTime() : 0;
   const isExpired = deadlineMs > 0 && now >= deadlineMs;
@@ -348,7 +358,13 @@ function CommentList({ postId, uid, canModerate }) {
   }
 
   async function handleDelete(commentId) {
-    await deleteDoc(doc(db, "posts", postId, "comments", commentId));
+    const res = await fetch(`/api/posts/${postId}/comments/${commentId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Failed to delete comment");
+    }
   }
 
   return (

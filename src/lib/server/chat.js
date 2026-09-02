@@ -268,6 +268,9 @@ export async function addMessage(conversationId, sender, text, attachment = null
       name: String(attachment.name || "").slice(0, 120),
       mime: String(attachment.mime || "").slice(0, 100),
       kind: attachment.kind === "image" ? "image" : "file",
+      size: Number.isFinite(attachment.size) && attachment.size > 0
+        ? Math.round(attachment.size)
+        : 0,
       dataUrl: encryptText(attachment.dataUrl),
     };
     message.hasAttachment = true;

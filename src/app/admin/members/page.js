@@ -148,6 +148,13 @@ export default function AdminMembersPage() {
                     Host
                   </a>
                   <button
+                    className={member.foundingMember ? styles.submit : styles.toggle}
+                    style={{ height: 36, padding: "0 14px", fontSize: 13 }}
+                    onClick={() => updateMember(member.id, { foundingMember: !member.foundingMember })}
+                  >
+                    {member.foundingMember ? "Unmark 🧶" : "Mark founding"}
+                  </button>
+                  <button
                     className={member.suspended ? styles.submit : styles.delete}
                     style={{ height: 36, padding: "0 14px", fontSize: 13 }}
                     onClick={() => updateMember(member.id, { suspended: !member.suspended })}

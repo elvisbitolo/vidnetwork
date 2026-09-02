@@ -40,6 +40,15 @@ export async function POST(req, { params }) {
     createdAt: new Date(),
   });
 
+  await adminDb()
+    .collection("posts")
+    .doc(postId)
+    .update({
+      commentCount: adminDb().FieldValue.increment(1),
+      lastActivityAt: new Date(),
+    })
+    .catch(() => {});
+
   await awardPoints(user.uid, POINTS.COMMENT, authorName);
   await awardBadge(user.uid, "first_comment", authorName);
 

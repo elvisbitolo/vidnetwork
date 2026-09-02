@@ -35,7 +35,7 @@ export async function POST(req) {
   } = await req.json();
 
   let cleanText = typeof text === "string" ? text.trim() : "";
-  const postKind = ["post", "poll", "question"].includes(kind) ? kind : "post";
+  const postKind = ["post", "poll", "question", "win"].includes(kind) ? kind : "post";
   if (postKind === "poll") {
     const cleanOptions = (Array.isArray(pollOptions) ? pollOptions : [])
       .map((opt) => (typeof opt === "string" ? opt.trim() : ""))
@@ -75,16 +75,20 @@ export async function POST(req) {
 
   const userDoc = await getUserDoc(user.uid);
   const authorName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
+  const authorRole = userDoc?.role || "member";
 
   const data = {
     authorId: user.uid,
     authorName,
+    authorRole,
     text: cleanText,
     likes: {},
     pinned: false,
     kind: postKind,
     hashtags: extractHashtags(cleanText),
     bookmarks: {},
+    commentCount: 0,
+    lastActivityAt: new Date(),
     createdAt: new Date(),
   };
   if (imageUrl && typeof imageUrl === "string") {

@@ -28,7 +28,7 @@ export async function POST(req, { params }) {
   const bookmarks = { ...(post.data().bookmarks || {}) };
   const bookmarked = !bookmarks[user.uid];
   if (bookmarked) {
-    bookmarks[user.uid] = new Date().toISOString();
+    bookmarks[user.uid] = new Date();
   } else {
     delete bookmarks[user.uid];
   }

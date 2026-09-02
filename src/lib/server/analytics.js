@@ -204,7 +204,13 @@ export async function getAnalytics() {
 }
 
 function monthKey(date) {
-  const d = date instanceof Date ? date : new Date(date);
+  const ms =
+    date && typeof date.toMillis === "function"
+      ? date.toMillis()
+      : date instanceof Date
+        ? date.getTime()
+        : new Date(date).getTime();
+  const d = new Date(Number.isFinite(ms) ? ms : NaN);
   if (Number.isNaN(d.getTime())) return "";
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }

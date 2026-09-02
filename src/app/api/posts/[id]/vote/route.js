@@ -59,6 +59,7 @@ export async function POST(req, { params }) {
       tx.update(postRef, {
         pollCounts: counts,
         pollTotal: (data.pollTotal || 0) + 1,
+        lastActivityAt: new Date(),
       });
 
       return { counts, votedOption: option };

@@ -98,6 +98,8 @@ export async function postScheduledQuestion(question, now = new Date()) {
     kind: "question",
     hashtags: [],
     bookmarks: {},
+    commentCount: 0,
+    lastActivityAt: now,
     isScheduled: true,
     questionId: question.id,
     createdAt: now,

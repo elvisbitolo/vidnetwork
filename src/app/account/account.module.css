@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #1a1a1a;
+  background: #f7f1e9;
 }
 
 .container {
@@ -20,7 +20,7 @@
 .title {
   font-size: 28px;
   font-weight: 700;
-  color: #f7f7f9;
+  color: #0a0e2a;
   margin: 0;
 }
 
@@ -112,7 +112,7 @@
 .hint {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #9b9bab;
+  color: #8a7c6f;
 }
 
 .toggle {
@@ -228,7 +228,7 @@
 }
 
 .checkDone .checkLabel {
-  color: #9b9bab;
+  color: #8a7c6f;
   text-decoration: line-through;
 }
 
@@ -243,7 +243,7 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  color: #9b9bab;
+  color: #8a7c6f;
 }
 
 .checkDone .checkMark {
@@ -435,7 +435,7 @@
 
 .fieldHint {
   font-size: 12px;
-  color: #9b9bab;
+  color: #8a7c6f;
   margin: 6px 0 0;
 }
 
@@ -524,7 +524,7 @@
 
 .avatarHint {
   font-size: 12px;
-  color: #9b9bab;
+  color: #8a7c6f;
   margin-top: 2px;
 }
 
@@ -613,7 +613,7 @@
   border: 1px solid #e6e6ef;
   border-radius: 8px;
   background: #ffffff;
-  color: #9b9bab;
+  color: #8a7c6f;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
@@ -676,7 +676,7 @@
 .headerSub {
   margin: 4px 0 0;
   font-size: 14px;
-  color: #b8b8c8;
+  color: #8a7c6f;
 }
 
 .identity {
@@ -845,6 +845,18 @@
   color: #6b6b7b;
 }
 
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navActions .manage {
+  width: auto;
+  margin-top: 0;
+  padding: 0 20px;
+}
+
 @media (max-width: 560px) {
   .streakStats {
     grid-template-columns: 1fr 1fr 1fr;
@@ -936,7 +948,7 @@
   gap: 4px;
   margin: 24px 0 0;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid #eadfd2;
   overflow-x: auto;
 }
 
@@ -944,7 +956,7 @@
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
-  color: #c2c2cf;
+  color: #6b6575;
   text-decoration: none;
   border-radius: 8px 8px 0 0;
   border-bottom: 2px solid transparent;
@@ -953,14 +965,14 @@
 }
 
 .tab:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.07);
+  color: #f42e79;
+  background: rgba(244, 46, 121, 0.06);
 }
 
 .tabActive {
-  color: #ffb3c1;
-  border-bottom-color: #ff8fab;
-  background: rgba(255, 255, 255, 0.05);
+  color: #d81f66;
+  border-bottom-color: #f42e79;
+  background: rgba(244, 46, 121, 0.06);
 }
 
 .streakStats {
@@ -1013,7 +1025,7 @@
 .streakDayLabel {
   font-size: 11px;
   font-weight: 600;
-  color: #9b9bab;
+  color: #8a7c6f;
 }
 
 .streakDay {
@@ -1087,14 +1099,14 @@
 .socialPreview {
   margin: 4px 0 10px 42px;
   font-size: 12px;
-  color: #9b9bab;
+  color: #8a7c6f;
   word-break: break-all;
 }
 
 .quizMulti {
   font-size: 12px;
   font-weight: 600;
-  color: #9b9bab;
+  color: #8a7c6f;
 }
 
 @media (max-width: 560px) {

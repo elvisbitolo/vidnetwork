@@ -1403,19 +1403,20 @@ export default function ProfileEditor({ initial }) {
         <span className={styles.quizCounter}>
           {step + 1} of {STEP_LABELS.length}
         </span>
-        {step < STEP_LABELS.length - 1 ? (
-          <button
-            type="button"
-            className={styles.quizNavBtn}
-            onClick={() => setStep((s) => Math.min(STEP_LABELS.length - 1, s + 1))}
-          >
-            Next ›
-          </button>
-        ) : (
+        <div className={styles.navActions}>
+          {step < STEP_LABELS.length - 1 && (
+            <button
+              type="button"
+              className={styles.quizNavBtn}
+              onClick={() => setStep((s) => Math.min(STEP_LABELS.length - 1, s + 1))}
+            >
+              Next ›
+            </button>
+          )}
           <button className={styles.manage} type="submit" disabled={busy}>
             {busy ? "Saving…" : "Save profile"}
           </button>
-        )}
+        </div>
       </nav>
     </form>
 

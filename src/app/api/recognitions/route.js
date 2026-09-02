@@ -7,6 +7,22 @@ import { logError } from "@/lib/server/log";
 
 export const dynamic = "force-dynamic";
 
+function isTransient(err) {
+  const code = String(err?.code || "");
+  return code === "" || code.includes("unavailable") || code.includes("deadline-exceeded");
+}
+
+function httpStatusFor(err) {
+  if (typeof err?.code === "number" && Number.isInteger(err.code)) return err.code;
+  const code = String(err?.code || "");
+  if (code.includes("not-found")) return 404;
+  if (code.includes("already-exists")) return 409;
+  if (code.includes("permission-denied") || code.includes("aborted")) return 403;
+  if (code.includes("unauthenticated")) return 401;
+  if (code.includes("resource-exhausted")) return 429;
+  return 500;
+}
+
 export async function POST(req) {
   const user = await getCurrentUser();
   if (!user) {
@@ -24,7 +40,13 @@ export async function POST(req) {
   const limited = rateLimitGuard(`recognition:${user.uid}`, { limit: 5 });
   if (limited) return limited;
 
-  const { toUid, value, note = "" } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { toUid, value, note = "" } = body;
   const userDoc = await getUserDoc(user.uid);
   const fromName = userDoc?.name || user.name || user.email?.split("@")[0] || "Member";
 
@@ -39,12 +61,20 @@ export async function POST(req) {
       });
       return NextResponse.json(result, { status: 201 });
     } catch (err) {
-      logError("recognition.failed", { error: err.message, fromUid: user.uid, toUid, value, attempt });
-      if (attempt === 0 && (err.code === 500 || !err.code)) {
+      logError("recognition.failed", {
+        error: err.message,
+        code: err?.code || null,
+        stack: err?.stack,
+        fromUid: user.uid,
+        toUid,
+        value,
+        attempt,
+      });
+      if (attempt === 0 && isTransient(err)) {
         await new Promise((r) => setTimeout(r, 1000));
         continue;
       }
-      const status = err.code || 500;
+      const status = httpStatusFor(err);
       return NextResponse.json(
         { error: status === 500 ? "Something went wrong. Please try again." : err.message },
         { status }

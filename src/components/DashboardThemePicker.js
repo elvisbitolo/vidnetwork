@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 
 const PRESETS = [
-  { name: "Default", bg: "#12121a", surface: "#1c1c26", border: "#2a2a38", text: "#f5f5f7", muted: "#9a9ab0", accent: "#f42e79" },
-  { name: "Midnight", bg: "#0a0a14", surface: "#14141f", border: "#1f1f2e", text: "#e8e8f5", muted: "#6b6b85", accent: "#f42e79" },
-  { name: "Navy", bg: "#0a0d24", surface: "#12163a", border: "#222b52", text: "#eef1ff", muted: "#8d94bd", accent: "#f42e79" },
-  { name: "Violet", bg: "#140f26", surface: "#1d1534", border: "#2a1f45", text: "#f0e8ff", muted: "#8a78b8", accent: "#f42e79" },
-  { name: "Ink", bg: "#0e1322", surface: "#151c30", border: "#202a44", text: "#e2e8f0", muted: "#64748b", accent: "#ff6fa9" },
+  { name: "Cream", bg: "#f7f1e9", surface: "#ffffff", border: "#eadfd2", text: "#171a33", muted: "#8a7c6f", accent: "#f42e79" },
+  { name: "Linen", bg: "#fbf7f1", surface: "#ffffff", border: "#f0e8dd", text: "#0a0e2a", muted: "#9c8f82", accent: "#f42e79" },
+  { name: "Blush", bg: "#faefe9", surface: "#ffffff", border: "#f0dfd4", text: "#3a2e28", muted: "#a08a78", accent: "#d81f66" },
+  { name: "Sand", bg: "#f3eadf", surface: "#fffdf9", border: "#e7dccb", text: "#34302a", muted: "#8f8475", accent: "#f42e79" },
+  { name: "Mist", bg: "#eef2f7", surface: "#ffffff", border: "#dde5ee", text: "#1d2433", muted: "#76808f", accent: "#f42e79" },
   { name: "Arctic", bg: "#f4f6fc", surface: "#ffffff", border: "#d8e0ec", text: "#1a2233", muted: "#5a6578", accent: "#f42e79" },
 ];
 
@@ -15,7 +15,7 @@ function Swatch({ color, size = 28 }) {
   return (
     <span style={{
       width: size, height: size, borderRadius: 8,
-      background: color, border: "2px solid rgba(255,255,255,0.15)",
+      background: color, border: "1px solid #eadfd2",
       flexShrink: 0,
     }} />
   );
@@ -24,7 +24,7 @@ function Swatch({ color, size = 28 }) {
 function ColorRow({ label, value, onChange }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-      <label style={{ flex: 1, fontSize: 12, color: "#a0a0ac", fontWeight: 500 }}>{label}</label>
+      <label style={{ flex: 1, fontSize: 12, color: "#8a7c6f", fontWeight: 500 }}>{label}</label>
       <div style={{ position: "relative" }}>
         <input
           type="color"
@@ -38,8 +38,8 @@ function ColorRow({ label, value, onChange }) {
         value={value}
         onChange={(e) => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) onChange(e.target.value); }}
         style={{
-          width: 78, padding: "5px 8px", borderRadius: 8, border: "1px solid #2e2e38",
-          background: "#1a1a1f", color: "#e0e0e8", fontSize: 11, fontFamily: "monospace",
+          width: 78, padding: "5px 8px", borderRadius: 8, border: "1px solid #eadfd2",
+          background: "#ffffff", color: "#171a33", fontSize: 11, fontFamily: "monospace",
           outline: "none",
         }}
       />
@@ -164,13 +164,13 @@ export default function DashboardThemePicker() {
         title="Customize theme"
         aria-expanded={open}
         style={{
-          width: 36, height: 36, borderRadius: 10, border: "1px solid #2e2e38",
-          background: "#24242a", color: "#a0a0ac", cursor: "pointer",
+          width: 36, height: 36, borderRadius: 10, border: "1px solid #eadfd2",
+          background: "#ffffff", color: "#8a7c6f", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "background 0.15s, border-color 0.15s",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#a78bfa"; e.currentTarget.style.color = "#f5f5f5"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2e2e38"; e.currentTarget.style.color = "#a0a0ac"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#f42e79"; e.currentTarget.style.color = "#f42e79"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#eadfd2"; e.currentTarget.style.color = "#8a7c6f"; }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M12 2a5 5 0 0 1 5 5c0 2-1 3-2 4l-1 1a1 1 0 0 0-.3.7V14a1 1 0 0 1-1 1h-1.4a1 1 0 0 0-.7.3l-.7.7a1 1 0 0 1-.7.3H9a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3z" />
@@ -186,14 +186,14 @@ export default function DashboardThemePicker() {
           position: "fixed", left: panelPos.left, top: panelPos.top, zIndex: 200,
           width: "min(340px, calc(100vw - 24px))",
           maxHeight: panelMaxHeight, overflowY: "auto",
-          background: "#1a1a1f", border: "1px solid #2e2e38", borderRadius: 16,
-          padding: 18, boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
+          background: "#ffffff", border: "1px solid #eadfd2", borderRadius: 16,
+          padding: 18, boxShadow: "0 16px 48px rgba(9,12,38,0.16)",
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#f5f5f5", marginBottom: 14, textAlign: "center" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#171a33", marginBottom: 14, textAlign: "center" }}>
             Customize Dashboard
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#6b6b7b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#8a7c6f", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
             Presets
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 18 }}>
@@ -206,8 +206,9 @@ export default function DashboardThemePicker() {
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     padding: "8px 10px", borderRadius: 10,
-                    border: isActive ? "2px solid #a78bfa" : "1px solid #2e2e38",
+                    border: isActive ? "2px solid #f42e79" : "1px solid #eadfd2",
                     background: p.surface, cursor: "pointer",
+                    boxShadow: isActive ? "0 0 0 1px rgba(244,46,121,0.25)" : "none",
                     transition: "border-color 0.15s",
                   }}
                 >
@@ -218,7 +219,7 @@ export default function DashboardThemePicker() {
             })}
           </div>
 
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#6b6b7b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#8a7c6f", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
             Custom Colors
           </div>
           <ColorRow label="Background" value={theme.bg} onChange={(v) => updateColor("bg", v)} />
@@ -232,8 +233,8 @@ export default function DashboardThemePicker() {
             onClick={() => applyPreset(PRESETS[0])}
             style={{
               width: "100%", marginTop: 12, padding: "8px 0", borderRadius: 10,
-              border: "1px solid #2e2e38", background: "transparent",
-              color: "#8b8b9b", fontSize: 12, fontWeight: 600, cursor: "pointer",
+              border: "1px solid #eadfd2", background: "transparent",
+              color: "#8a7c6f", fontSize: 12, fontWeight: 600, cursor: "pointer",
             }}
           >
             Reset to Default

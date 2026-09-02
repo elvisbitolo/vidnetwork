@@ -7,8 +7,8 @@
   justify-content: space-between;
   height: 60px;
   padding: 0 16px;
-  background: var(--dash-bg, #1a1a1a);
-  border-bottom: 1px solid var(--dash-border, rgba(255, 255, 255, 0.12));
+  background: #fbf7f1;
+  border-bottom: 1px solid #eadfd2;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
@@ -28,7 +28,7 @@
 .brand {
   font-size: 18px;
   font-weight: 800;
-  color: #ffffff;
+  color: #0a0e2a;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -42,7 +42,7 @@
   height: 40px;
   padding: 0 8px;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(9, 12, 38, 0.16);
   border-radius: 10px;
   cursor: pointer;
 }
@@ -51,7 +51,7 @@
   display: block;
   height: 2px;
   border-radius: 2px;
-  background: #ffffff;
+  background: #0a0e2a;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
@@ -80,8 +80,8 @@
   bottom: 0;
   z-index: 60;
   width: 250px;
-  background: var(--dash-surface, #000000);
-  border-right: 1px solid var(--dash-border, rgba(255, 255, 255, 0.12));
+  background: #ffffff;
+  border-right: 1px solid #eadfd2;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -96,12 +96,12 @@
   right: 0;
   bottom: 0;
   z-index: 58;
-  background: rgba(23, 23, 28, 0.35);
+  background: rgba(9, 12, 38, 0.35);
 }
 
 .sidebarOpen {
   transform: translateX(0);
-  box-shadow: 8px 0 24px rgba(23, 23, 28, 0.12);
+  box-shadow: 8px 0 24px rgba(9, 12, 38, 0.12);
 }
 
 .sidebarInner {
@@ -139,7 +139,7 @@
 }
 
 .groupToggle:hover {
-  background: var(--dash-border, rgba(255, 255, 255, 0.06));
+  background: rgba(9, 12, 38, 0.05);
 }
 
 .groupLabel {
@@ -148,14 +148,14 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--dash-muted, rgba(255, 255, 255, 0.55));
+  color: #8a7c6f;
   flex: 1;
   text-align: left;
   pointer-events: none;
 }
 
 .groupChevron {
-  color: var(--dash-muted, rgba(255, 255, 255, 0.35));
+  color: #b3a392;
   transition: transform 0.2s ease;
   flex-shrink: 0;
   pointer-events: none;
@@ -188,7 +188,7 @@
   padding: 4px 14px 2px;
   font-size: 12px;
   font-weight: 800;
-  color: var(--dash-text, #ffffff);
+  color: #0a0e2a;
 }
 
 .sidebarLinkNested {
@@ -199,14 +199,14 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--dash-text, #e6e6e6);
+  color: #3a3f5c;
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebarLinkNested:hover {
-  background: var(--dash-border, rgba(255, 255, 255, 0.14));
-  color: var(--dash-text, #ffffff);
+  background: #f7f1e9;
+  color: #0a0e2a;
 }
 
 .sidebarLink {
@@ -217,14 +217,14 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--dash-text, #ffffff);
+  color: #171a33;
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebarLink:hover {
-  background: var(--dash-border, rgba(255, 255, 255, 0.14));
-  color: var(--dash-text, #ffffff);
+  background: #f7f1e9;
+  color: #0a0e2a;
 }
 
 .sidebarCollapsed {
@@ -235,12 +235,12 @@
 .content {
   flex: 1;
   min-width: 0;
-  background: var(--dash-bg, #1a1a1a);
+  background: #f7f1e9;
   transition: background 0.2s ease;
 }
 
 .liveBanner {
-  background: linear-gradient(120deg, #ff8fab, #ffb3c1);
+  background: linear-gradient(120deg, #f42e79, #ff7cab);
 }
 
 .liveLink {
@@ -315,14 +315,14 @@
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  color: #ffffff;
+  color: #0a0e2a;
   text-decoration: none;
   position: relative;
   transition: background 0.15s ease;
 }
 
 .bell:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(9, 12, 38, 0.05);
 }
 
 .bellIcon {
@@ -366,14 +366,14 @@
 }
 
 .profileBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(9, 12, 38, 0.05);
 }
 
 .profileAvatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+  background: linear-gradient(135deg, #090c26, #f42e79);
   color: #ffffff;
   font-size: 13px;
   font-weight: 700;
@@ -387,7 +387,7 @@
 .profileName {
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: #0a0e2a;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -395,7 +395,7 @@
 }
 
 .profileCaret {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(9, 12, 38, 0.5);
   flex-shrink: 0;
   transition: transform 0.15s ease;
 }
@@ -411,9 +411,9 @@
   z-index: 70;
   width: 240px;
   background: #ffffff;
-  border: 1px solid #e6e6ef;
+  border: 1px solid #eadfd2;
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(23, 23, 28, 0.14);
+  box-shadow: 0 12px 32px rgba(9, 12, 38, 0.14);
   padding: 8px;
   overflow: hidden;
 }
@@ -423,7 +423,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px 12px;
-  border-bottom: 1px solid #eef0f4;
+  border-bottom: 1px solid #f0e8dd;
   margin-bottom: 6px;
 }
 
@@ -431,7 +431,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+  background: linear-gradient(135deg, #090c26, #f42e79);
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
@@ -455,7 +455,7 @@
 .profileEmail {
   margin: 2px 0 0;
   font-size: 12px;
-  color: #9b9bab;
+  color: #8a7c6f;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -470,8 +470,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--primary);
-  background: #eef2ff;
+  color: #d81f66;
+  background: rgba(244, 46, 121, 0.12);
   border-radius: 999px;
   padding: 2px 8px;
 }
@@ -493,13 +493,13 @@
 }
 
 .profileLink:hover {
-  background: #f4f4f8;
+  background: #f7f1e9;
   color: var(--primary);
 }
 
 .profileMenuDivider {
   height: 1px;
-  background: #eef0f4;
+  background: #f0e8dd;
   margin: 6px 0;
 }
 
@@ -530,22 +530,22 @@
   height: 38px;
   padding: 0 12px 0 34px;
   box-sizing: border-box;
-  border: 1px solid var(--dash-border, rgba(255, 255, 255, 0.14));
+  border: 1px solid #eadfd2;
   border-radius: 999px;
-  background: var(--dash-surface, rgba(255, 255, 255, 0.06));
-  color: #ffffff;
+  background: #ffffff;
+  color: #171a33;
   font-size: 13px;
   outline: none;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .topbarInput::placeholder {
-  color: var(--dash-muted, rgba(255, 255, 255, 0.5));
+  color: #b3a392;
 }
 
 .topbarInput:focus {
-  border-color: var(--primary, #6c5ce7);
-  background: var(--dash-surface, rgba(255, 255, 255, 0.1));
+  border-color: var(--primary, #f42e79);
+  background: #ffffff;
 }
 
 .topbarSearchIcon {
@@ -553,7 +553,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--dash-muted, rgba(255, 255, 255, 0.5));
+  color: #b3a392;
   display: flex;
   pointer-events: none;
 }
@@ -567,7 +567,7 @@
   border: none;
   background: transparent;
   border-radius: 999px;
-  color: #ffffff;
+  color: #0a0e2a;
   cursor: pointer;
   position: relative;
   text-decoration: none;
@@ -575,7 +575,7 @@
 }
 
 .topbarIconBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(9, 12, 38, 0.05);
 }
 
 .topbarIconBtnBadge {
@@ -607,8 +607,8 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--dash-surface, #000000);
-  border-bottom: 1px solid var(--dash-border, rgba(255, 255, 255, 0.12));
+  background: #ffffff;
+  border-bottom: 1px solid #eadfd2;
 }
 
 .mobileSearchOverlay .topbarSearchWrap {
@@ -712,7 +712,7 @@
 .sidebarFooter {
   padding-top: 12px;
   margin-top: 8px;
-  border-top: 1px solid var(--dash-border, rgba(255, 255, 255, 0.12));
+  border-top: 1px solid #eadfd2;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -729,14 +729,14 @@
 }
 
 .profileCard:hover {
-  background: var(--dash-border, rgba(255, 255, 255, 0.1));
+  background: #f7f1e9;
 }
 
 .profileCardAvatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+  background: linear-gradient(135deg, #090c26, #f42e79);
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -756,7 +756,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: var(--dash-text, #ffffff);
+  color: #0a0e2a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -765,7 +765,7 @@
 .profileCardHandle {
   margin: 0;
   font-size: 12px;
-  color: var(--dash-muted, rgba(255, 255, 255, 0.55));
+  color: #8a7c6f;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -775,7 +775,7 @@
   margin: 2px 0 0;
   font-size: 11px;
   font-weight: 600;
-  color: var(--secondary-light, #ffc2d1);
+  color: #d81f66;
 }
 
 .profileViewBtn {
@@ -785,13 +785,13 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--dash-border, rgba(255, 255, 255, 0.1));
+  color: #0a0e2a;
+  background: #f5ede3;
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .profileViewBtn:hover {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, #090c26, #f42e79);
+  color: #ffffff;
 }
-

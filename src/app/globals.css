@@ -47,9 +47,9 @@
   --gradient-primary: linear-gradient(135deg, #f42e79 0%, #7c3aed 100%);
   --gradient-brand: linear-gradient(135deg, #090c26 0%, #f42e79 100%);
 
-  /* 6-10. App neutrals — existing dark-product surfacing */
-  --background: #1a1a1a;
-  --foreground: #f5f5f5;
+  /* 6-10. App neutrals — boutique neutrals */
+  --background: #f7f1e9;
+  --foreground: #171a33;
   --surface: #ffffff;
   --surface-muted: #f5f5ff;
   --text: #17181c;
@@ -72,12 +72,12 @@
   --button-accent-hover: var(--accent-hover);
   --button-accent-text: #ffffff;
 
-  /* Dashboard theme (dark shell) — accents use hot pink */
-  --dash-bg: #12121a;
-  --dash-surface: #1c1c26;
-  --dash-border: #2a2a38;
-  --dash-text: #f5f5f7;
-  --dash-muted: #9a9ab0;
+  /* Dashboard theme (light boutique shell) — accents use hot pink */
+  --dash-bg: #f7f1e9;
+  --dash-surface: #ffffff;
+  --dash-border: #eadfd2;
+  --dash-text: #171a33;
+  --dash-muted: #8a7c6f;
   --dash-accent: #f42e79;
   --dash-accent-light: #ff7cab;
   --dash-accent-hover: #d81f66;

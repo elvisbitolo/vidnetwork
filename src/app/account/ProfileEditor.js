@@ -55,6 +55,8 @@ const YEARS_OPTIONS = [
   "It's my whole personality",
 ];
 
+const COVER_RATIO = 4 / 1;
+
 const PALETTE_PRESETS = [
   { name: "Sunset Glow", colors: ["#ff6f61", "#ffb37b", "#ff8fab"] },
   { name: "Ocean Waves", colors: ["#14b8a6", "#06b6d4", "#0ea5e9"] },
@@ -71,32 +73,6 @@ function initials(name) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
-}
-
-function resizeImage(file, maxSize = 256) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxSize || height > maxSize) {
-          const scale = Math.min(maxSize / width, maxSize / height, 1);
-          width = Math.round(width * scale);
-          height = Math.round(height * scale);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.onerror = () => reject(new Error("Couldn't read that image"));
-      img.src = reader.result;
-    };
-    reader.onerror = () => reject(new Error("Couldn't read that file"));
-    reader.readAsDataURL(file);
-  });
 }
 
 function loadImage(file) {
@@ -143,8 +119,7 @@ function loadImage(file) {
   });
 }
 
-function coverWindow(width, height) {
-  const ratio = 16 / 5;
+function coverWindow(width, height, ratio = COVER_RATIO) {
   const winW = Math.min(width, height * ratio);
   const winH = Math.min(height, width / ratio);
   const offX = (width - winW) / 2;
@@ -153,7 +128,7 @@ function coverWindow(width, height) {
 }
 
 function cropImageToBanner(img, rect) {
-  const targetRatio = 16 / 5;
+  const targetRatio = COVER_RATIO;
   const scale = Math.min(1, 1200 / rect.w);
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(rect.w * scale);
@@ -172,8 +147,30 @@ function cropImageToBanner(img, rect) {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-function toHandledLinks(links) {
-  if (!Array.isArray(links) || links.length === 0) return [];
+function cropImageToAvatar(img, rect) {
+  const target = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = target;
+  canvas.height = target;
+  canvas.getContext("2d").drawImage(
+    img,
+    rect.x,
+    rect.y,
+    rect.w,
+    rect.h,
+    0,
+    0,
+    target,
+    target
+  );
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+function cropRatioFor(kind) {
+  return kind === "avatar" ? 1 : COVER_RATIO;
+}
+
+function toHandledLinks(links) {  if (!Array.isArray(links) || links.length === 0) return [];
   return links
     .map((l) => {
       const platform = l.platform || "other";
@@ -244,11 +241,15 @@ export default function ProfileEditor({ initial }) {
   const [cropImage, setCropImage] = useState(null);
   const [cropRect, setCropRect] = useState(null);
   const [cropStage, setCropStage] = useState("adjust");
+  const [cropKind, setCropKind] = useState("cover");
   const previewCover = useMemo(() => {
     if (cropStage !== "confirm" && cropStage !== "save") return "";
     if (!cropImage?.element || !cropRect) return "";
+    if (cropKind === "avatar") {
+      return cropImageToAvatar(cropImage.element, cropRect);
+    }
     return cropImageToBanner(cropImage.element, cropRect);
-  }, [cropStage, cropImage, cropRect]);
+  }, [cropStage, cropImage, cropRect, cropKind]);
   const fileRef = useRef(null);
   const coverRef = useRef(null);
   const cropImgRef = useRef(null);
@@ -266,38 +267,12 @@ export default function ProfileEditor({ initial }) {
       return;
     }
     setError("");
-    setUploading(true);
-    try {
-      const dataUrl = await resizeImage(file);
-      let photoURL = dataUrl;
-      const fd = new FormData();
-      const blob = await (await fetch(dataUrl)).blob();
-      fd.append("file", blob, "avatar.jpg");
-      const up = await fetch("/api/upload?kind=avatar", {
-        method: "POST",
-        body: fd,
-      });
-      const upData = await up.json().catch(() => ({}));
-      if (!up.ok || (!upData.url && !upData.dataUrl)) {
-        throw new Error(upData.error || "Failed to upload photo");
-      }
-      photoURL = upData.url || upData.dataUrl;
-      const res = await fetch("/api/me", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoURL }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save photo");
-      }
-      setPhotoURL(photoURL);
-      setSaved(true);
-    } catch (err) {
-      setError(err.message || "Failed to upload photo");
-    } finally {
-      setUploading(false);
-    }
+    setCropKind("avatar");
+    const img = await loadImage(file);
+    setCropImage(img);
+    setCropRect(initialCropRectAvatar(img.width, img.height));
+    setCropStage("adjust");
+    setCropOpen(true);
   }
 
   async function handleRemovePhoto() {
@@ -334,6 +309,7 @@ export default function ProfileEditor({ initial }) {
       return;
     }
     setError("");
+    setCropKind("cover");
     const img = await loadImage(file);
     setCropImage(img);
     setCropRect(initialCropRect(img.width, img.height));
@@ -342,10 +318,16 @@ export default function ProfileEditor({ initial }) {
   }
 
   function initialCropRect(width, height) {
-    const { winW, winH, offX, offY } = coverWindow(width, height);
-    const w = winW * 0.94;
-    const h = winH * 0.94;
+    const { winW, winH, offX, offY } = coverWindow(width, height, COVER_RATIO);
+    const w = winW * 0.96;
+    const h = w / COVER_RATIO;
     return { x: offX + (winW - w) / 2, y: offY + (winH - h) / 2, w, h };
+  }
+
+  function initialCropRectAvatar(width, height) {
+    const { winW, winH, offX, offY } = coverWindow(width, height, 1);
+    const side = Math.min(winW, winH) * 0.94;
+    return { x: offX + (winW - side) / 2, y: offY + (winH - side) / 2, w: side, h: side };
   }
 
   function getResizeMode(x, y, rect, img, tolerance) {
@@ -369,7 +351,11 @@ export default function ProfileEditor({ initial }) {
     const img = cropImgRef.current;
     if (!img) return null;
     const imgRect = img.getBoundingClientRect();
-    const { winW, winH, offX, offY } = coverWindow(img.naturalWidth, img.naturalHeight);
+    const { winW, winH, offX, offY } = coverWindow(
+      img.naturalWidth,
+      img.naturalHeight,
+      cropRatioFor(cropKind)
+    );
     const sx = winW / imgRect.width;
     const sy = winH / imgRect.height;
     const x = Math.max(offX, Math.min(offX + winW, offX + (e.clientX - imgRect.left) * sx));
@@ -418,8 +404,12 @@ export default function ProfileEditor({ initial }) {
     if (!img) return;
     const pos = pointerToImage(e);
     if (!pos) return;
-    const { winW, winH, offX, offY } = coverWindow(img.naturalWidth, img.naturalHeight);
-    const ratio = 16 / 5;
+    const { winW, winH, offX, offY } = coverWindow(
+      img.naturalWidth,
+      img.naturalHeight,
+      cropRatioFor(cropKind)
+    );
+    const ratio = cropRatioFor(cropKind);
     const { mode, startRect } = drag;
     const right = startRect.x + startRect.w;
     const bottom = startRect.y + startRect.h;
@@ -537,7 +527,11 @@ export default function ProfileEditor({ initial }) {
 
   async function applyCoverCrop() {
     setCropStage("save");
-    await applyCoverCropSave();
+    if (cropKind === "avatar") {
+      await applyAvatarCropSave();
+    } else {
+      await applyCoverCropSave();
+    }
   }
 
   async function applyCoverCropSave() {
@@ -579,6 +573,48 @@ export default function ProfileEditor({ initial }) {
       setCropStage("confirm");
     } finally {
       setUploadingCover(false);
+    }
+  }
+
+  async function applyAvatarCropSave() {
+    const img = cropImage?.element;
+    if (!img || !cropRect) return;
+    setUploading(true);
+    try {
+      const dataUrl = cropImageToAvatar(img, cropRect);
+      const fd = new FormData();
+      const blob = await (await fetch(dataUrl)).blob();
+      fd.append("file", blob, "avatar.jpg");
+      const up = await fetch("/api/upload?kind=avatar", {
+        method: "POST",
+        body: fd,
+      });
+      const upData = await up.json().catch(() => ({}));
+      if (!up.ok || (!upData.url && !upData.dataUrl)) {
+        throw new Error(upData.error || "Failed to upload photo");
+      }
+      const photoURL = upData.url || upData.dataUrl;
+      const res = await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoURL }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save photo");
+      }
+      setPhotoURL(photoURL);
+      setSaved(true);
+      setNotice("Profile photo saved.");
+      setCropOpen(false);
+      setCropImage(null);
+      setCropRect(null);
+      setCropStage("adjust");
+    } catch (err) {
+      setError(err.message || "Failed to save photo");
+      setCropStage("confirm");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -877,7 +913,10 @@ export default function ProfileEditor({ initial }) {
             type="file"
             accept="image/*"
             style={{ display: "none" }}
-            onChange={handleCoverPhoto}
+            onChange={(e) => {
+              handleCoverPhoto(e);
+              e.currentTarget.value = "";
+            }}
           />
         </div>
       </div>
@@ -919,7 +958,10 @@ export default function ProfileEditor({ initial }) {
             type="file"
             accept="image/*"
             style={{ display: "none" }}
-            onChange={handlePhoto}
+            onChange={(e) => {
+              handlePhoto(e);
+              e.currentTarget.value = "";
+            }}
           />
         </div>
       </div>
@@ -1422,7 +1464,7 @@ export default function ProfileEditor({ initial }) {
 
     {(() => {
       const coverWin = cropImage
-        ? coverWindow(cropImage.width, cropImage.height)
+        ? coverWindow(cropImage.width, cropImage.height, cropRatioFor(cropKind))
         : { winW: 1, winH: 1, offX: 0, offY: 0 };
       return (
     cropOpen && (
@@ -1439,29 +1481,57 @@ export default function ProfileEditor({ initial }) {
         >
           {cropStage === "adjust" ? (
             <>
-              <h3 className={coverStyles.cropTitle}>Crop cover photo</h3>
+              <h3 className={coverStyles.cropTitle}>
+                {cropKind === "avatar"
+                  ? "Crop your profile photo"
+                  : "Crop your cover photo"}
+              </h3>
               <p className={coverStyles.cropHint}>
-                Drag anywhere inside the outline to move it. Drag any edge or
-                corner to resize. Select the part of the photo you want to
-                keep, then press Next.
+                {cropKind === "avatar"
+                  ? "Keep your face centered near the middle so it stays visible when the photo is shown as a small circle. Drag to move, drag a corner or edge to resize, then press Next."
+                  : "This banner shows full-width on desktop but gets cropped on mobile, and your profile photo overlaps the bottom-left corner. Keep important content near the middle and out of the bottom-left and far-right edges."}
               </p>
-<div
-            className={coverStyles.cropWrap}
-            onPointerDown={handleCropPointerDown}
-            onPointerMove={handleCropPointerMove}
-            onPointerUp={handleCropPointerUp}
-          >
+              <div
+                className={
+                  cropKind === "avatar"
+                    ? `${coverStyles.cropWrap} ${coverStyles.cropWrapAvatar}`
+                    : coverStyles.cropWrap
+                }
+                onPointerDown={handleCropPointerDown}
+                onPointerMove={handleCropPointerMove}
+                onPointerUp={handleCropPointerUp}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   ref={cropImgRef}
                   className={coverStyles.cropImage}
                   src={cropImage?.dataUrl}
-                  alt="Cover preview"
+                  alt={
+                    cropKind === "avatar"
+                      ? "Profile photo preview"
+                      : "Cover preview"
+                  }
                   draggable={false}
                 />
+                {cropKind === "avatar" && (
+                  <span className={coverStyles.cropCircleMask} />
+                )}
+                {cropKind === "cover" && (
+                  <>
+                    <span className={coverStyles.safeZoneNote}>
+                      <span className={coverStyles.safeZoneAvatar} />
+                      profile photo covers this corner
+                    </span>
+                    <span className={coverStyles.safeZoneSkirt} />
+                  </>
+                )}
                 {cropRect && (
                   <span
-                    className={coverStyles.cropRect}
+                    className={
+                      cropKind === "avatar"
+                        ? `${coverStyles.cropRect} ${coverStyles.cropRectAvatar}`
+                        : coverStyles.cropRect
+                    }
                     style={{
                       left: `${((cropRect.x - coverWin.offX) / coverWin.winW) * 100}%`,
                       top: `${((cropRect.y - coverWin.offY) / coverWin.winH) * 100}%`,
@@ -1469,14 +1539,28 @@ export default function ProfileEditor({ initial }) {
                       height: `${(cropRect.h / coverWin.winH) * 100}%`,
                     }}
                   >
+                    {cropKind === "avatar" && (
+                      <svg
+                        className={coverStyles.safeRings}
+                        viewBox="0 0 100 100"
+                        aria-hidden="true"
+                      >
+                        <circle cx="50" cy="50" r="46" />
+                        <circle cx="50" cy="50" r="30" />
+                      </svg>
+                    )}
                     <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleNw}`} />
                     <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleNe}`} />
                     <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleSw}`} />
                     <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleSe}`} />
-                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleN}`} />
-                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleS}`} />
-                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleW}`} />
-                    <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleE}`} />
+                    {cropKind === "cover" && (
+                      <>
+                        <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleN}`} />
+                        <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleS}`} />
+                        <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleW}`} />
+                        <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleE}`} />
+                      </>
+                    )}
                   </span>
                 )}
               </div>
@@ -1499,19 +1583,38 @@ export default function ProfileEditor({ initial }) {
             </>
           ) : (
             <>
-              <h3 className={coverStyles.cropTitle}>Preview your cover</h3>
+              <h3 className={coverStyles.cropTitle}>
+                {cropKind === "avatar"
+                  ? "Preview your profile photo"
+                  : "Preview your cover"}
+              </h3>
               <p className={coverStyles.cropHint}>
-                This is how your cover photo will look. When you&apos;re
-                happy, select &quot;Done&quot; to save it.
+                {cropKind === "avatar"
+                  ? "Your photo is shown as a circle. When you&apos;re happy, select &quot;Done&quot; to save it."
+                  : "Keep the bottom-left corner clear so it isn&apos;t hidden by your profile photo. When you&apos;re happy, select &quot;Done&quot; to save it."}
               </p>
-              <div className={coverStyles.previewBanner}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewCover}
-                  alt="Cover photo preview"
-                  draggable={false}
-                />
-              </div>
+              {cropKind === "avatar" ? (
+                <div className={coverStyles.previewAvatar}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewCover}
+                    alt="Profile photo preview"
+                    draggable={false}
+                  />
+                </div>
+              ) : (
+                <div className={coverStyles.previewBanner}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewCover}
+                    alt="Cover photo preview"
+                    draggable={false}
+                  />
+                  <span className={coverStyles.previewOverlayAvatar}>
+                    {initials(name || initial.name)}
+                  </span>
+                </div>
+              )}
               <div className={coverStyles.cropActions}>
                 <button
                   type="button"
@@ -1523,10 +1626,15 @@ export default function ProfileEditor({ initial }) {
                 <button
                   type="button"
                   className={coverStyles.cropApply}
-                  disabled={uploadingCover || cropStage === "save"}
+                  disabled={
+                    (cropKind === "cover" && (uploadingCover || cropStage === "save")) ||
+                    (cropKind === "avatar" && (uploading || cropStage === "save"))
+                  }
                   onClick={applyCoverCrop}
                 >
-                  {uploadingCover || cropStage === "save" ? "Saving…" : "Done"}
+                  {cropStage === "save" || (cropKind === "cover" && uploadingCover) || (cropKind === "avatar" && uploading)
+                    ? "Saving…"
+                    : "Done"}
                 </button>
               </div>
             </>

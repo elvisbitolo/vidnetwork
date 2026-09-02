@@ -158,7 +158,7 @@ export default async function MemberProfilePage({ params }) {
 const coverUrl = member.coverPhotoURL || "";
   const bannerBackground = coverUrl
     ? `url(${coverUrl}) center / cover no-repeat`
-    : "linear-gradient(135deg, #ececf4, #f7f7fb)";
+    : "linear-gradient(135deg, #fdf1f3, #fbe3ec, #efd9d6)";
 
   return (
       <Nav role={viewerDoc?.role}>
@@ -169,7 +169,12 @@ const coverUrl = member.coverPhotoURL || "";
           {bannerBackground && <div className={styles.banner} style={{ background: bannerBackground }} />}
           <div className={styles.header}>
           <div className={styles.avatar}>
-            {(member.name || "?").slice(0, 1).toUpperCase()}
+            {member.photoURL ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className={styles.avatarImg} src={member.photoURL} alt={member.name || "Member"} />
+            ) : (
+              (member.name || "?").slice(0, 1).toUpperCase()
+            )}
           </div>
           <div className={styles.headerBody}>
             <h1 className={styles.title}>

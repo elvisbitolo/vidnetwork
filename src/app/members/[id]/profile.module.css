@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #1a1a1a;
+  background: #f7f1e9;
 }
 
 .container {
@@ -11,35 +11,44 @@
 
 .profileCard {
   background: #ffffff;
-  border: 1px solid #e6e6ef;
+  border: 1px solid #eadfd2;
   border-radius: 16px;
   overflow: hidden;
   margin: 20px 0 32px;
 }
 
 .banner {
-  height: 110px;
+  height: 180px;
 }
 
 .header {
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  padding: 24px 28px 28px;
+  padding: 0 28px 28px;
+  margin-top: -44px;
 }
 
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 96px;
+  height: 96px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
+  background: linear-gradient(135deg, #090c26, #f42e79);
   color: #ffffff;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 700;
-  border-radius: 16px;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  overflow: hidden;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .headerBody {

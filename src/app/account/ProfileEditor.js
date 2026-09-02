@@ -541,7 +541,7 @@ export default function ProfileEditor({ initial }) {
   }
 
   async function applyCoverCropSave() {
-    const img = cropImgRef.current;
+    const img = cropImage?.element;
     if (!img || !cropRect) return;
     setUploadingCover(true);
     try {

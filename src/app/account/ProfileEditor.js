@@ -120,6 +120,24 @@ function loadImage(file) {
   });
 }
 
+function coverWindow(width, height) {
+  const ratio = 16 / 5;
+  let winW;
+  let winH;
+  let offX = 0;
+  let offY = 0;
+  if (width / height >= ratio) {
+    winW = width;
+    winH = width / ratio;
+    offY = (height - winH) / 2;
+  } else {
+    winW = height * ratio;
+    winH = height;
+    offX = (width - winW) / 2;
+  }
+  return { winW, winH, offX, offY };
+}
+
 function cropImageToBanner(img, rect) {
   const targetRatio = 16 / 5;
   const scale = Math.min(1, 1200 / rect.w);
@@ -305,15 +323,10 @@ export default function ProfileEditor({ initial }) {
   }
 
   function initialCropRect(width, height) {
-    const ratio = 16 / 5;
-    let w = width;
-    let h = height;
-    if (w / h > ratio) {
-      w = h * ratio;
-    } else {
-      h = w / ratio;
-    }
-    return { x: (width - w) / 2, y: height * 0.18, w, h };
+    const { winW, winH, offX, offY } = coverWindow(width, height);
+    const w = winW * 0.94;
+    const h = winH * 0.94;
+    return { x: offX + (winW - w) / 2, y: offY + (winH - h) / 2, w, h };
   }
 
   function getResizeMode(x, y, rect, img, tolerance) {
@@ -333,31 +346,41 @@ export default function ProfileEditor({ initial }) {
     return null;
   }
 
+  function pointerToImage(e) {
+    const img = cropImgRef.current;
+    if (!img) return null;
+    const imgRect = img.getBoundingClientRect();
+    const { winW, winH, offX, offY } = coverWindow(img.naturalWidth, img.naturalHeight);
+    const sx = winW / imgRect.width;
+    const sy = winH / imgRect.height;
+    const x = Math.max(offX, Math.min(offX + winW, offX + (e.clientX - imgRect.left) * sx));
+    const y = Math.max(offY, Math.min(offY + winH, offY + (e.clientY - imgRect.top) * sy));
+    return { x, y, scale: (sx + sy) / 2 };
+  }
+
   function handleCropPointerDown(e) {
     e.preventDefault();
     const img = cropImgRef.current;
     if (!img) return;
-    const imgRect = img.getBoundingClientRect();
-    const scale = img.naturalWidth / imgRect.width;
-    const x = (e.clientX - imgRect.left) * scale;
-    const y = (e.clientY - imgRect.top) * scale;
+    const pos = pointerToImage(e);
+    if (!pos) return;
     const rect = cropRect;
-    const tolerance = Math.max(24 * scale, 24);
+    const tolerance = Math.max(24 * pos.scale, 24);
     if (
-      x < rect.x - tolerance ||
-      x > rect.x + rect.w + tolerance ||
-      y < rect.y - tolerance ||
-      y > rect.y + rect.h + tolerance
+      pos.x < rect.x - tolerance ||
+      pos.x > rect.x + rect.w + tolerance ||
+      pos.y < rect.y - tolerance ||
+      pos.y > rect.y + rect.h + tolerance
     ) {
       return;
     }
-    const mode = getResizeMode(x, y, rect, img, tolerance);
+    const mode = getResizeMode(pos.x, pos.y, rect, img, tolerance);
     cropDragRef.current = {
       mode: mode || "move",
-      startX: x,
-      startY: y,
+      startX: pos.x,
+      startY: pos.y,
       startRect: rect,
-      scale,
+      scale: pos.scale,
     };
     if (e.currentTarget.setPointerCapture) {
       try {
@@ -374,20 +397,19 @@ export default function ProfileEditor({ initial }) {
     if (!drag) return;
     const img = cropImgRef.current;
     if (!img) return;
-    const imgRect = img.getBoundingClientRect();
-    const scale = img.naturalWidth / imgRect.width;
-    const x = (e.clientX - imgRect.left) * scale;
-    const y = (e.clientY - imgRect.top) * scale;
+    const pos = pointerToImage(e);
+    if (!pos) return;
+    const { winW, winH, offX, offY } = coverWindow(img.naturalWidth, img.naturalHeight);
     const ratio = 16 / 5;
     const { mode, startRect } = drag;
     const right = startRect.x + startRect.w;
     const bottom = startRect.y + startRect.h;
 
     if (mode === "move") {
-      let nx = startRect.x + (x - drag.startX);
-      let ny = startRect.y + (y - drag.startY);
-      nx = Math.max(0, Math.min(img.naturalWidth - startRect.w, nx));
-      ny = Math.max(0, Math.min(img.naturalHeight - startRect.h, ny));
+      let nx = startRect.x + (pos.x - drag.startX);
+      let ny = startRect.y + (pos.y - drag.startY);
+      nx = Math.max(offX, Math.min(offX + winW - startRect.w, nx));
+      ny = Math.max(offY, Math.min(offY + winH - startRect.h, ny));
       setCropRect({ ...startRect, x: nx, y: ny });
       return;
     }
@@ -397,7 +419,7 @@ export default function ProfileEditor({ initial }) {
     const usesTop = mode === "n" || mode === "nw" || mode === "ne";
     const usesBottom = mode === "s" || mode === "sw" || mode === "se";
 
-    const minW = Math.max(120 * drag.scale, 120 * scale);
+    const minW = Math.max(120 * drag.scale, 120 * pos.scale);
     const anchorX = usesRight
       ? startRect.x
       : usesLeft
@@ -411,15 +433,13 @@ export default function ProfileEditor({ initial }) {
 
     let finalW = startRect.w;
     if (usesLeft || usesRight) {
-      const dist = Math.abs(x - anchorX) * 2;
+      const dist = Math.abs(pos.x - anchorX) * 2;
       finalW = Math.max(startRect.w / 2, dist);
     } else if (usesTop || usesBottom) {
-      const dist = Math.abs(y - anchorY);
+      const dist = Math.abs(pos.y - anchorY);
       finalW = Math.max(startRect.w / 2, dist * ratio);
     }
-    const maxW = img.naturalWidth;
-    const maxH = img.naturalHeight;
-    finalW = Math.max(minW, Math.min(maxW, finalW));
+    finalW = Math.max(minW, Math.min(winW, finalW));
 
     let nx = usesRight
       ? anchorX
@@ -433,10 +453,10 @@ export default function ProfileEditor({ initial }) {
       ? anchorY - finalH
       : anchorY - finalH / 2;
 
-    const maxWByH = maxH * ratio;
+    const maxWByH = winH * ratio;
     if (finalW > maxWByH) {
       finalW = maxWByH;
-      finalH = maxH;
+      finalH = winH;
       nx = usesLeft
         ? right - finalW
         : usesRight
@@ -449,30 +469,30 @@ export default function ProfileEditor({ initial }) {
         : anchorY - finalH / 2;
     }
 
-    if (nx < 0) {
-      finalW = Math.max(minW, finalW + nx);
+    if (nx < offX) {
+      finalW = Math.max(minW, finalW + (nx - offX));
       finalH = finalW / ratio;
-      nx = 0;
+      nx = offX;
       if (usesTop) ny = bottom - finalH;
       else if (usesBottom) ny = startRect.y;
       else ny = anchorY - finalH / 2;
     }
-    if (ny < 0) {
-      finalH = Math.max(minW / ratio, finalH + ny);
+    if (ny < offY) {
+      finalH = Math.max(minW / ratio, finalH + (ny - offY));
       finalW = finalH * ratio;
-      ny = 0;
+      ny = offY;
       if (usesLeft) nx = right - finalW;
       else if (usesRight) nx = startRect.x;
       else nx = anchorX - finalW / 2;
     }
-    if (nx + finalW > maxW) {
-      nx = usesLeft ? right - finalW : Math.max(0, maxW - finalW);
+    if (nx + finalW > offX + winW) {
+      nx = usesLeft ? right - finalW : Math.max(offX, offX + winW - finalW);
     }
-    if (ny + finalH > maxH) {
-      ny = usesTop ? bottom - finalH : Math.max(0, maxH - finalH);
+    if (ny + finalH > offY + winH) {
+      ny = usesTop ? bottom - finalH : Math.max(offY, offY + winH - finalH);
     }
-    if (nx < 0) nx = 0;
-    if (ny < 0) ny = 0;
+    if (nx < offX) nx = offX;
+    if (ny < offY) ny = offY;
 
     setCropRect({ x: nx, y: ny, w: finalW, h: finalH });
   }
@@ -1385,7 +1405,12 @@ export default function ProfileEditor({ initial }) {
       </nav>
     </form>
 
-    {cropOpen && (
+    {(() => {
+      const coverWin = cropImage
+        ? coverWindow(cropImage.width, cropImage.height)
+        : { winW: 1, winH: 1, offX: 0, offY: 0 };
+      return (
+    cropOpen && (
       <div
         className={coverStyles.cropOverlay}
         onClick={cancelCoverCrop}
@@ -1423,10 +1448,10 @@ export default function ProfileEditor({ initial }) {
                   <span
                     className={coverStyles.cropRect}
                     style={{
-                      left: `${(cropRect.x / cropImage.width) * 100}%`,
-                      top: `${(cropRect.y / cropImage.height) * 100}%`,
-                      width: `${(cropRect.w / cropImage.width) * 100}%`,
-                      height: `${(cropRect.h / cropImage.height) * 100}%`,
+                      left: `${((cropRect.x - coverWin.offX) / coverWin.winW) * 100}%`,
+                      top: `${((cropRect.y - coverWin.offY) / coverWin.winH) * 100}%`,
+                      width: `${(cropRect.w / coverWin.winW) * 100}%`,
+                      height: `${(cropRect.h / coverWin.winH) * 100}%`,
                     }}
                   >
                     <span className={`${coverStyles.cropHandle} ${coverStyles.cropHandleNw}`} />
@@ -1493,7 +1518,9 @@ export default function ProfileEditor({ initial }) {
           )}
         </div>
       </div>
-    )}
+    )
+  );
+      })()}
     </>
   );
 }

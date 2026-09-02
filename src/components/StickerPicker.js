@@ -11,7 +11,7 @@ const STICKERS = [
   { type: "clap", emoji: "👏", label: "Clap" },
 ];
 
-export default function StickerPicker({ toUid, toName }) {
+export default function StickerPicker({ toUid, toName, onSent }) {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(null);
   const [error, setError] = useState("");
@@ -31,6 +31,7 @@ export default function StickerPicker({ toUid, toName }) {
     }
     setSent(type);
     setOpen(false);
+    if (typeof onSent === "function") onSent(type);
     setTimeout(() => setSent(null), 2500);
   }
 
@@ -41,13 +42,13 @@ export default function StickerPicker({ toUid, toName }) {
         style={{
           padding: "8px 14px",
           borderRadius: 10,
-          border: "1px solid rgba(255,255,255,0.15)",
-          background: "rgba(255,255,255,0.06)",
-          color: "#ffffff",
+          border: "1px solid #eadfd2",
+          background: "#ffffff",
+          color: "#171a33",
           fontSize: 13,
           fontWeight: 600,
           cursor: "pointer",
-          transition: "background 0.15s ease",
+          transition: "background 0.15s ease, border-color 0.15s ease",
         }}
       >
         🎉 Send sticker
@@ -60,11 +61,11 @@ export default function StickerPicker({ toUid, toName }) {
             top: "calc(100% + 8px)",
             left: 0,
             zIndex: 50,
-            background: "#1f1f1f",
-            border: "1px solid rgba(255,255,255,0.14)",
+            background: "#ffffff",
+            border: "1px solid #eadfd2",
             borderRadius: 14,
             padding: "10px 12px",
-            boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+            boxShadow: "0 12px 32px rgba(9,12,38,0.14)",
             display: "flex",
             gap: 6,
           }}
@@ -79,17 +80,17 @@ export default function StickerPicker({ toUid, toName }) {
                 height: 44,
                 borderRadius: 10,
                 border: "none",
-                background: "rgba(255,255,255,0.06)",
+                background: "#f7f1e9",
                 fontSize: 22,
                 cursor: "pointer",
                 transition: "background 0.15s ease, transform 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(167,139,250,0.2)";
+                e.currentTarget.style.background = "rgba(244,46,121,0.15)";
                 e.currentTarget.style.transform = "scale(1.15)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.background = "#f7f1e9";
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
@@ -104,7 +105,7 @@ export default function StickerPicker({ toUid, toName }) {
           marginLeft: 10,
           fontSize: 13,
           fontWeight: 600,
-          color: "var(--secondary-light)",
+          color: "#d81f66",
         }}>
           Sent {STICKERS.find((s) => s.type === sent)?.emoji} to {toName}!
         </span>

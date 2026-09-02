@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import StickerPicker from "@/components/StickerPicker";
 
 export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }) {
   const [summary, setSummary] = useState(initialSummary || {});
   const total = Object.values(summary).reduce((a, b) => a + b, 0);
+
+  async function refresh() {
+    try {
+      const res = await fetch(`/api/stickers?toUid=${encodeURIComponent(toUid)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.summary) setSummary(data.summary);
+    } catch {}
+  }
 
   const STICKER_EMOJIS = {
     trophy: "🏆",
@@ -23,8 +32,8 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
   if (total === 0 && isSelf) {
     return (
       <div style={{ margin: "0 0 20px" }}>
-        <StickerPicker toUid={toUid} toName={toName} />
-        <p style={{ fontSize: 12, color: "#9b9bab", marginTop: 8 }}>
+        <StickerPicker toUid={toUid} toName={toName} onSent={refresh} />
+        <p style={{ fontSize: 12, color: "#8a7c6f", marginTop: 8 }}>
           You haven&apos;t received any stickers yet. They&apos;ll appear here!
         </p>
       </div>
@@ -34,7 +43,7 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
   if (total === 0 && !isSelf) {
     return (
       <div style={{ margin: "0 0 20px" }}>
-        <StickerPicker toUid={toUid} toName={toName} />
+        <StickerPicker toUid={toUid} toName={toName} onSent={refresh} />
       </div>
     );
   }
@@ -43,14 +52,14 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
     <div style={{
       margin: "0 0 20px",
       padding: "14px 16px",
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(255,255,255,0.08)",
+      background: "#ffffff",
+      border: "1px solid #eadfd2",
       borderRadius: 14,
     }}>
       <p style={{
         fontSize: 12,
         fontWeight: 700,
-        color: "#9b9bab",
+        color: "#8a7c6f",
         textTransform: "uppercase",
         letterSpacing: "0.04em",
         margin: "0 0 10px",
@@ -68,8 +77,8 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
                 right: -6,
                 fontSize: 10,
                 fontWeight: 800,
-                color: "var(--secondary-light)",
-                background: "#1f1f1f",
+                color: "#ffffff",
+                background: "#f42e79",
                 borderRadius: 999,
                 padding: "1px 5px",
               }}>
@@ -81,7 +90,7 @@ export default function StickerDisplay({ toUid, toName, isSelf, initialSummary }
       </div>
       {!isSelf && (
         <div style={{ marginTop: 12 }}>
-          <StickerPicker toUid={toUid} toName={toName} />
+          <StickerPicker toUid={toUid} toName={toName} onSent={refresh} />
         </div>
       )}
     </div>

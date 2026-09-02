@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse, getModules } from "@/lib/server/courses";
 import { canManageScope } from "@/lib/server/hosts";
+import { clean } from "@/lib/server/validate";
 
 export async function POST(req, { params }) {
   const { id: courseId } = await params;
@@ -19,7 +20,8 @@ export async function POST(req, { params }) {
   }
 
   const { moduleId, title, body = "", kind = "text", videoUrl = "", releaseAt = "" } = await req.json();
-  if (!moduleId || !title || typeof title !== "string") {
+  const lessonTitle = clean(title, 120);
+  if (!moduleId || !lessonTitle) {
     return NextResponse.json({ error: "Lesson title and module required" }, { status: 400 });
   }
 
@@ -42,8 +44,8 @@ export async function POST(req, { params }) {
   const data = {
     courseId,
     moduleId,
-    title,
-    body: body || "",
+    title: lessonTitle,
+    body: clean(body, 100000) || "",
     kind: lessonKind,
     position,
     createdAt: new Date(),

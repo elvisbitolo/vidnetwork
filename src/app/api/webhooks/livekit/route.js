@@ -15,7 +15,11 @@ export async function POST(req) {
     const body = await req.text();
     const authHeader = req.headers.get("authorization") || "";
     const receiver = new WebhookReceiver(apiKey, apiSecret);
-    receiver.receive(body, authHeader);
+    const event = await receiver.receive(body, authHeader);
+    if (!event) {
+      logError("webhook.livekit.invalid", { error: "Verifier returned no event" });
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
   } catch (err) {
     logError("webhook.livekit.invalid", { error: err.message });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });

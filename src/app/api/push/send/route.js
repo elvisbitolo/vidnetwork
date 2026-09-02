@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { logAudit } from "@/lib/server/audit";
+import { clean } from "@/lib/server/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,10 @@ export async function POST(req) {
   if (limited) return limited;
 
   const { title, body, url } = await req.json();
-  if (!title || !body) {
+  const cleanTitle = clean(title, 100);
+  const cleanBody = clean(body, 500);
+  const cleanUrl = clean(url, 500);
+  if (!cleanTitle || !cleanBody) {
     return NextResponse.json({ error: "title and body required" }, { status: 400 });
   }
 
@@ -32,8 +36,8 @@ export async function POST(req) {
 
   webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
-  const snap = await adminDb().collection("pushSubscriptions").get();
-  const payload = JSON.stringify({ title, body, url: url || "/" });
+  const snap = await adminDb().collection("pushSubscriptions").limit(5000).get();
+  const payload = JSON.stringify({ title: cleanTitle, body: cleanBody, url: cleanUrl || "/" });
 
   let sent = 0;
   let failed = 0;
@@ -57,7 +61,7 @@ export async function POST(req) {
     actorId: auth.user.uid,
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "push.announcement_sent",
-    metadata: { title, sent, failed },
+    metadata: { title: cleanTitle, sent, failed },
   });
 
   return NextResponse.json({ sent, failed });

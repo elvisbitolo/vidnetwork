@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireUser, guardJson } from "@/lib/server/authorize";
 
 export async function GET() {
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
   const snap = await adminDb()
     .collection("posts")
     .orderBy("createdAt", "desc")

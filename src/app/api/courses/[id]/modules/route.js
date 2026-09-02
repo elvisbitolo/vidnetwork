@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse, getModules } from "@/lib/server/courses";
 import { canManageScope } from "@/lib/server/hosts";
+import { clean } from "@/lib/server/validate";
 
 export async function GET(req, { params }) {
   const { id: courseId } = await params;
@@ -42,7 +43,8 @@ export async function POST(req, { params }) {
   }
 
   const { title } = await req.json();
-  if (!title || typeof title !== "string") {
+  const moduleTitle = clean(title, 120);
+  if (!moduleTitle) {
     return NextResponse.json({ error: "Module title required" }, { status: 400 });
   }
 
@@ -50,7 +52,7 @@ export async function POST(req, { params }) {
   const position = existing.length ? Math.max(...existing.map((m) => m.position)) + 1 : 1;
   const ref = await adminDb().collection("modules").add({
     courseId,
-    title,
+    title: moduleTitle,
     position,
     createdAt: new Date(),
   });

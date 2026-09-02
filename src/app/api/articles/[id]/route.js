@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireUser, guardJson } from "@/lib/server/authorize";
 
 export async function GET(req, { params }) {
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
   const { id } = await params;
   const doc = await adminDb().collection("articles").doc(id).get();
   if (!doc.exists) {

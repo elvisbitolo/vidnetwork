@@ -3,6 +3,7 @@ import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getCourse } from "@/lib/server/courses";
 import { canManageScope } from "@/lib/server/hosts";
+import { clean } from "@/lib/server/validate";
 
 export async function GET(req, { params }) {
   const { id } = await params;
@@ -40,8 +41,12 @@ export async function PATCH(req, { params }) {
 
   const { title, description, status, requiredTier, purchasePriceCents, publicPreview } = await req.json();
   const patch = {};
-  if (title !== undefined) patch.title = String(title);
-  if (description !== undefined) patch.description = String(description);
+  if (title !== undefined) {
+    const t = clean(title, 120);
+    if (!t) return NextResponse.json({ error: "Title cannot be empty" }, { status: 400 });
+    patch.title = t;
+  }
+  if (description !== undefined) patch.description = clean(description, 20000);
   if (publicPreview !== undefined) patch.publicPreview = !!publicPreview;
   if (requiredTier !== undefined) {
     if (!["standard", "premium"].includes(requiredTier)) {

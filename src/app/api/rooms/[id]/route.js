@@ -4,6 +4,7 @@ import { requireUser, guardJson } from "@/lib/server/authorize";
 import { getScopedHostRights } from "@/lib/server/hosts";
 import { logAudit } from "@/lib/server/audit";
 import { deleteRoom } from "@/lib/server/rooms";
+import { clean } from "@/lib/server/validate";
 
 function isStaff(auth) {
   return auth.userDoc?.role === "owner" || auth.userDoc?.role === "moderator";
@@ -61,12 +62,15 @@ export async function PATCH(req, { params }) {
     update.replayVisibility = body.replayVisibility;
     changed.push("replayVisibility");
   }
-  if (typeof body.name === "string" && body.name.trim()) {
-    update.name = body.name.trim();
-    changed.push("name");
+  if (typeof body.name === "string") {
+    const n = clean(body.name, 80);
+    if (n) {
+      update.name = n;
+      changed.push("name");
+    }
   }
   if (typeof body.description === "string") {
-    update.description = body.description;
+    update.description = clean(body.description, 5000);
     changed.push("description");
   }
   if (body.opensAt !== undefined) {

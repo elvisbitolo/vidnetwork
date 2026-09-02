@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
+import { requireOwner, guardJson } from "@/lib/server/authorize";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +8,10 @@ const ALWAYS_ON_SLUG = "community-lounge-247";
 const ALWAYS_ON_NAME = "Community Lounge";
 
 export async function GET() {
+  const auth = await requireOwner();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
   const snap = await adminDb()
     .collection("rooms")
     .where("slug", "==", ALWAYS_ON_SLUG)

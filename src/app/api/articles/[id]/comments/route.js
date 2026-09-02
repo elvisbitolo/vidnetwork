@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
+import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { validateCommentText } from "@/lib/server/posts-core";
 import { createNotification } from "@/lib/server/notifications";
 
 export async function GET(req, { params }) {
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
   const { id } = await params;
   const snap = await adminDb()
     .collection("articles")

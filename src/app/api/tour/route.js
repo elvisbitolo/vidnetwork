@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
+import { logError } from "@/lib/server/log";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,12 @@ export async function POST(req) {
     update[`tours.${tour}`] = { completed: true, at: new Date() };
   }
 
-  await adminDb().collection("users").doc(auth.user.uid).set(update, { merge: true });
+  try {
+    await adminDb().collection("users").doc(auth.user.uid).set(update, { merge: true });
+  } catch (err) {
+    logError("tour.update_failed", { error: err.message, uid: auth.user.uid });
+    return NextResponse.json({ error: "Could not save tour state" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

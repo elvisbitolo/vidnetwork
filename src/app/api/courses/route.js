@@ -7,6 +7,7 @@ import { canManageScope, userHasHostRights } from "@/lib/server/hosts";
 import { logAudit } from "@/lib/server/audit";
 import { getSpace } from "@/lib/server/spaces";
 import { serialize } from "@/lib/server/serialize";
+import { clean } from "@/lib/server/validate";
 
 export async function GET() {
   const auth = await requireUser();
@@ -25,6 +26,11 @@ export async function POST(req) {
 
   const { title, description = "", status = "draft", spaceId = "", purchasePriceCents = 0, publicPreview = false } = await req.json();
   if (!title || typeof title !== "string") {
+    return NextResponse.json({ error: "Course title required" }, { status: 400 });
+  }
+  const courseTitle = clean(title, 120);
+  const courseDesc = clean(description, 20000);
+  if (!courseTitle) {
     return NextResponse.json({ error: "Course title required" }, { status: 400 });
   }
   if (!["draft", "published"].includes(status)) {
@@ -57,8 +63,8 @@ export async function POST(req) {
   }
 
   const ref = await adminDb().collection("courses").add({
-    title,
-    description,
+    title: courseTitle,
+    description: courseDesc,
     status,
     spaceId: spaceId || "",
     purchasePriceCents: price,
@@ -72,7 +78,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "course.created",
     targetId: ref.id,
-    metadata: { title, status, spaceId, purchasePriceCents: price },
+    metadata: { title: courseTitle, status, spaceId, purchasePriceCents: price },
   });
 
   return NextResponse.json({ id: ref.id });

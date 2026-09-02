@@ -39,24 +39,41 @@ export async function POST(req) {
     return NextResponse.json({ error: `File too large (max ${maxBytes / 1024 / 1024} MB)` }, { status: 400 });
   }
 
-  // Graceful degradation: without a Blob token, keep storing base64 in Firestore.
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const mime = file.type || "application/octet-stream";
-    const dataUrl = `data:${mime};base64,${bytes.toString("base64")}`;
-    return NextResponse.json({ dataUrl });
+  if (isAvatar || isCover) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!isSafeImage(file.type, bytes)) {
+      return NextResponse.json({ error: "Image file could not be verified" }, { status: 400 });
+    }
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      const mime = file.type || "application/octet-stream";
+      const dataUrl = `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`;
+      return NextResponse.json({ dataUrl });
+    }
+    const { put } = await import("@vercel/blob");
+    let ext = (file.name || "").split(".").pop() || "bin";
+    ext = (ext.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "bin").toLowerCase();
+    const pathname = `uploads/${kind}/${auth.user.uid}/${Date.now()}.${ext}`;
+
+    const blob = await put(pathname, file, {
+      access: "public",
+      contentType: file.type || "application/octet-stream",
+      addRandomSuffix: true,
+    });
+
+    return NextResponse.json({ url: blob.url });
   }
 
-  const { put } = await import("@vercel/blob");
-  let ext = (file.name || "").split(".").pop() || "bin";
-  ext = (ext.replace(/[^a-z0-9]/gi, "").slice(0, 8) || "bin").toLowerCase();
-  const pathname = `uploads/${kind}/${auth.user.uid}/${Date.now()}.${ext}`;
+  return NextResponse.json({ error: "Unsupported upload kind" }, { status: 400 });
+}
 
-  const blob = await put(pathname, file, {
-    access: "public",
-    contentType: file.type || "application/octet-stream",
-    addRandomSuffix: true,
-  });
-
-  return NextResponse.json({ url: blob.url });
+function isSafeImage(mime, bytes) {
+  const sig = (expected, offset = 0) =>
+    expected.every((b, i) => bytes.length > offset + i && bytes[offset + i] === b);
+  if (mime === "image/png") return sig([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (mime === "image/jpeg") return sig([0xff, 0xd8, 0xff]);
+  if (mime === "image/gif") return sig([0x47, 0x49, 0x46, 0x38]);
+  if (mime === "image/webp") return sig([0x52, 0x49, 0x46, 0x46]) && sig([0x57, 0x45, 0x42, 0x50], 8);
+  if (mime === "image/avif") return sig([0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70]);
+  // All other image/* types (including SVG, which can carry scripts) are rejected.
+  return false;
 }

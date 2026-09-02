@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { logError } from "@/lib/server/log";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -36,9 +37,14 @@ export async function PUT(req) {
     automations: !!body.automations,
   };
 
-  await adminDb().collection("users").doc(user.uid).update({
-    notificationPreferences: prefs,
-  });
+  try {
+    await adminDb().collection("users").doc(user.uid).update({
+      notificationPreferences: prefs,
+    });
+  } catch (err) {
+    logError("prefs.update_failed", { error: err.message, uid: user.uid });
+    return NextResponse.json({ error: "Could not save preferences" }, { status: 500 });
+  }
 
   return NextResponse.json(prefs);
 }

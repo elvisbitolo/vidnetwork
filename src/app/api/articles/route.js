@@ -6,6 +6,10 @@ import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { isValidImageUrl } from "@/lib/server/posts-core";
 
 export async function GET(req) {
+  const auth = await requireUser();
+  const denied = guardJson(auth);
+  if (denied) return denied;
+
   const { searchParams } = new URL(req.url);
   const authorId = searchParams.get("authorId");
   const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 50);

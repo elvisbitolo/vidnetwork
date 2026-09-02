@@ -8,6 +8,7 @@ import {
 } from "@/lib/server/spaces";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { logAudit } from "@/lib/server/audit";
+import { clean } from "@/lib/server/validate";
 
 export async function GET(req) {
   const isAdmin = new URL(req.url).searchParams.get("admin") === "1";
@@ -47,7 +48,9 @@ export async function POST(req) {
   if (denied) return denied;
 
   const { name, description = "", features = {}, access = "public", requiredTier = "", purchasePriceCents = 0, publicPreview = false } = await req.json();
-  if (!name || typeof name !== "string") {
+  const spaceName = clean(name, 80);
+  const spaceDesc = clean(description, 10000);
+  if (!spaceName) {
     return NextResponse.json({ error: "Space name required" }, { status: 400 });
   }
   if (!SPACE_ACCESS.includes(access)) {
@@ -59,8 +62,8 @@ export async function POST(req) {
   }
 
   const space = await createSpace({
-    name,
-    description,
+    name: spaceName,
+    description: spaceDesc,
     features,
     access,
     requiredTier,

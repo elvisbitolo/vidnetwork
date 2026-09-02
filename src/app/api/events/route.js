@@ -7,6 +7,7 @@ import { getRoomBySlug } from "@/lib/server/rooms";
 import { logAudit } from "@/lib/server/audit";
 import { getSpace } from "@/lib/server/spaces";
 import { serialize } from "@/lib/server/serialize";
+import { clean } from "@/lib/server/validate";
 
 export async function GET() {
   const auth = await requireUser();
@@ -22,7 +23,9 @@ export async function POST(req) {
   if (denied) return denied;
 
   const { title, description = "", startTime, endTime = null, roomSlug = "", capacity = 0, recurrence = null, spaceId = "", purchasePriceCents = 0, publicPreview = false } = await req.json();
-  if (!title || typeof title !== "string") {
+  const eventTitle = clean(title, 140);
+  const eventDesc = clean(description, 20000);
+  if (!eventTitle) {
     return NextResponse.json({ error: "Event title required" }, { status: 400 });
   }
   const parsed = Date.parse(startTime);
@@ -56,8 +59,8 @@ export async function POST(req) {
   }
 
   const event = await createEvent({
-    title,
-    description,
+    title: eventTitle,
+    description: eventDesc,
     startTime,
     endTime,
     roomSlug,
@@ -74,7 +77,7 @@ export async function POST(req) {
     actorName: auth.userDoc?.name || auth.user.email || "",
     action: "event.created",
     targetId: event.id,
-    metadata: { title, startTime, spaceId, recurrence, purchasePriceCents: price },
+    metadata: { title: eventTitle, startTime, spaceId, recurrence, purchasePriceCents: price },
   });
 
   return NextResponse.json({ event });

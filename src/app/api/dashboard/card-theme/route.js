@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { getCurrentUser } from "@/lib/server/auth";
+import { logError } from "@/lib/server/log";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
@@ -38,10 +39,15 @@ export async function POST(req) {
 
   const cleaned = sanitizeTheme(theme);
   const ref = adminDb().collection("users").doc(user.uid);
-  if (cleaned) {
-    await ref.set({ cardThemes: { [cardId]: cleaned } }, { merge: true });
-  } else {
-    await ref.set({ cardThemes: { [cardId]: FieldValue.delete() } }, { merge: true });
+  try {
+    if (cleaned) {
+      await ref.set({ cardThemes: { [cardId]: cleaned } }, { merge: true });
+    } else {
+      await ref.set({ cardThemes: { [cardId]: FieldValue.delete() } }, { merge: true });
+    }
+  } catch (err) {
+    logError("card-theme.save_failed", { error: err.message, uid: user.uid });
+    return NextResponse.json({ error: "Could not save theme" }, { status: 500 });
   }
   return NextResponse.json({ ok: true, theme: cleaned });
 }

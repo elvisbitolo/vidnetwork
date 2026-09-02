@@ -12,6 +12,61 @@ import { logError } from "@/lib/server/log";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { validatePostText, isValidImageUrl, POST_TEXT_MAX } from "@/lib/server/posts-core";
 
+export const dynamic = "force-dynamic";
+
+function toMillis(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (value instanceof Date) return value.getTime();
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function serializePost(data, id) {
+  const post = { id, ...data };
+  for (const key of ["createdAt", "lastActivityAt", "pollDeadline"]) {
+    post[key] = toMillis(data[key]);
+  }
+  return post;
+}
+
+export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  const sub = await getAccessSub(user.uid);
+  if (!isActiveSub(sub)) {
+    return NextResponse.json({ error: "Active membership required" }, { status: 403 });
+  }
+  const [spaceSnap, groupSnap, postsSnap] = await Promise.all([
+    adminDb().collection("spaceMembers").where("userId", "==", user.uid).get().catch(() => null),
+    adminDb().collection("groupMembers").where("userId", "==", user.uid).get().catch(() => null),
+    adminDb().collection("posts").orderBy("createdAt", "desc").limit(300).get(),
+  ]);
+
+  const spaceIds = new Set();
+  spaceSnap?.docs.forEach((doc) => {
+    const spaceId = doc.data().spaceId;
+    if (spaceId) spaceIds.add(spaceId);
+  });
+  const groupIds = new Set();
+  groupSnap?.docs.forEach((doc) => {
+    const groupId = doc.data().groupId;
+    if (groupId) groupIds.add(groupId);
+  });
+
+  const posts = [];
+  postsSnap.docs.forEach((doc) => {
+    const data = doc.data();
+    if (data.spaceId && !spaceIds.has(data.spaceId) && data.authorId !== user.uid) return;
+    if (data.groupId && !groupIds.has(data.groupId) && data.authorId !== user.uid) return;
+    posts.push(serializePost(data, doc.id));
+  });
+
+  return NextResponse.json({ posts });
+}
+
 export async function POST(req) {
   const user = await getCurrentUser();
   if (!user) {

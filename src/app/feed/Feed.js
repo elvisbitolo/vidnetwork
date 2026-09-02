@@ -8,8 +8,6 @@ import {
   doc,
   query,
   where,
-  orderBy,
-  limit,
   onSnapshot,
   getDoc,
 } from "firebase/firestore";
@@ -415,6 +413,7 @@ const EMPTY_POLL = ["", ""];
 export default function Feed({ uid, userName, role, groupId, spaceId, initialKind }) {
   const canModerate = role === "owner" || role === "moderator";
   const [posts, setPosts] = useState([]);
+  const [loadError, setLoadError] = useState(false);
   const [text, setText] = useState("");
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState(false);
@@ -431,37 +430,61 @@ export default function Feed({ uid, userName, role, groupId, spaceId, initialKin
   const [sort, setSort] = useState("newest");
   const fileInputRef = useRef(null);
 
+  const sortFeedPosts = useCallback(
+    (list) =>
+      [...list].sort((a, b) => {
+        const ap = a.pinned ? 1 : 0;
+        const bp = b.pinned ? 1 : 0;
+        if (ap !== bp) return bp - ap;
+        const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
+        const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
+        return bt - at;
+      }),
+    []
+  );
+
+  const loadCommunityPosts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/posts");
+      if (!res.ok) throw new Error("Feed read failed");
+      const data = await res.json();
+      setPosts(sortFeedPosts(data.posts || []));
+      setLoadError(false);
+    } catch (err) {
+      console.error("Feed read failed", err);
+      setLoadError(true);
+    }
+  }, [sortFeedPosts]);
+
   useEffect(() => {
+    const isCommunity = !groupId && !spaceId;
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
         window.location.assign("/login");
+        return;
       }
+      if (isCommunity) loadCommunityPosts();
     });
+
+    if (isCommunity) {
+      const interval = setInterval(loadCommunityPosts, 25000);
+      return () => {
+        clearInterval(interval);
+        unsubAuth();
+      };
+    }
+
     const base = collection(db, "posts");
     let q;
     if (spaceId) {
       q = query(base, where("spaceId", "==", spaceId));
-    } else if (groupId) {
-      q = query(base, where("groupId", "==", groupId));
     } else {
-      q = query(base, orderBy("createdAt", "desc"), limit(100));
+      q = query(base, where("groupId", "==", groupId));
     }
     const unsubPosts = onSnapshot(
       q,
-      (snap) =>
-        setPosts(
-          snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => {
-              const ap = a.pinned ? 1 : 0;
-              const bp = b.pinned ? 1 : 0;
-              if (ap !== bp) return bp - ap;
-              const at = a.createdAt?.toMillis?.() || Number(a.createdAt) || 0;
-              const bt = b.createdAt?.toMillis?.() || Number(b.createdAt) || 0;
-              return bt - at;
-            })
-        ),
+      (snap) => setPosts(sortFeedPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })))),
       (err) => {
         console.error("Feed read failed", err);
       }
@@ -470,7 +493,7 @@ export default function Feed({ uid, userName, role, groupId, spaceId, initialKin
       unsubAuth();
       unsubPosts();
     };
-  }, [groupId, spaceId]);
+  }, [groupId, spaceId, loadCommunityPosts, sortFeedPosts]);
 
   async function handleImageUpload(e) {
     const file = e.target.files?.[0];
@@ -532,6 +555,7 @@ const trimmed = text.trim();
         setKind("post");
         setPollOptions(EMPTY_POLL);
         setPollDeadline("");
+        if (!spaceId && !groupId) loadCommunityPosts();
       } catch (err) {
         console.error(err);
         alert(err.message || "Post failed. Try again.");
@@ -539,7 +563,7 @@ const trimmed = text.trim();
         setBusy(false);
       }
     },
-    [text, imageUrl, busy, uploading, groupId, spaceId, kind, pollOptions, pollDeadline]
+    [text, imageUrl, busy, uploading, groupId, spaceId, kind, pollOptions, pollDeadline, loadCommunityPosts]
   );
 
   function setPollOption(index, value) {
@@ -829,7 +853,9 @@ const trimmed = text.trim();
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {loadError ? (
+        <p className={styles.empty}>Couldn&apos;t load the feed. Refreshing&hellip;</p>
+      ) : filtered.length === 0 ? (
         <p className={styles.empty}>
           {queryText
             ? "No posts match your search."

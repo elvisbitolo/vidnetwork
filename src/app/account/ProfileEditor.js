@@ -105,12 +105,35 @@ function loadImage(file) {
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        resolve({
-          dataUrl: reader.result,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          element: img,
-        });
+        const MAX_DIM = 1600;
+        if (img.naturalWidth <= MAX_DIM && img.naturalHeight <= MAX_DIM) {
+          resolve({
+            dataUrl: reader.result,
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+            element: img,
+          });
+          return;
+        }
+        const scale = Math.min(MAX_DIM / img.naturalWidth, MAX_DIM / img.naturalHeight, 1);
+        const width = Math.round(img.naturalWidth * scale);
+        const height = Math.round(img.naturalHeight * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        const resized = new Image();
+        resized.onload = () => {
+          resolve({
+            dataUrl,
+            width: resized.naturalWidth,
+            height: resized.naturalHeight,
+            element: resized,
+          });
+        };
+        resized.onerror = () => reject(new Error("Couldn't resize that image"));
+        resized.src = dataUrl;
       };
       img.onerror = () => reject(new Error("Couldn't read that image"));
       img.src = reader.result;

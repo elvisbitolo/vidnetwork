@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { QUIZ_QUESTIONS } from "@/lib/profile/questions";
 import { COUNTRIES, countryByCode } from "@/lib/profile/countries";
@@ -122,19 +122,10 @@ function loadImage(file) {
 
 function coverWindow(width, height) {
   const ratio = 16 / 5;
-  let winW;
-  let winH;
-  let offX = 0;
-  let offY = 0;
-  if (width / height >= ratio) {
-    winW = width;
-    winH = width / ratio;
-    offY = (height - winH) / 2;
-  } else {
-    winW = height * ratio;
-    winH = height;
-    offX = (width - winW) / 2;
-  }
+  const winW = Math.min(width, height * ratio);
+  const winH = Math.min(height, width / ratio);
+  const offX = (width - winW) / 2;
+  const offY = (height - winH) / 2;
   return { winW, winH, offX, offY };
 }
 
@@ -230,6 +221,11 @@ export default function ProfileEditor({ initial }) {
   const [cropImage, setCropImage] = useState(null);
   const [cropRect, setCropRect] = useState(null);
   const [cropStage, setCropStage] = useState("adjust");
+  const previewCover = useMemo(() => {
+    if (cropStage !== "confirm" && cropStage !== "save") return "";
+    if (!cropImage?.element || !cropRect) return "";
+    return cropImageToBanner(cropImage.element, cropRect);
+  }, [cropStage, cropImage, cropRect]);
   const fileRef = useRef(null);
   const coverRef = useRef(null);
   const cropImgRef = useRef(null);
@@ -516,11 +512,6 @@ export default function ProfileEditor({ initial }) {
     setCropStage("adjust");
   }
 
-  function previewCropDataUrl() {
-    if (!cropImage?.element || !cropRect) return "";
-    return cropImageToBanner(cropImage.element, cropRect);
-  }
-
   async function applyCoverCrop() {
     setCropStage("save");
     await applyCoverCropSave();
@@ -531,7 +522,7 @@ export default function ProfileEditor({ initial }) {
     if (!img || !cropRect) return;
     setUploadingCover(true);
     try {
-      const dataUrl = cropImageToBanner(img, cropRect);
+      const dataUrl = previewCover || cropImageToBanner(img, cropRect);
       const fd = new FormData();
       const blob = await (await fetch(dataUrl)).blob();
       fd.append("file", blob, "cover.jpg");
@@ -1492,7 +1483,7 @@ export default function ProfileEditor({ initial }) {
               <div className={coverStyles.previewBanner}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={previewCropDataUrl()}
+                  src={previewCover}
                   alt="Cover photo preview"
                   draggable={false}
                 />

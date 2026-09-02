@@ -25,13 +25,16 @@ export default function SignupPage() {
   async function handleGoogle() {
     setError("");
     setBusy("google");
+    let navigated = false;
     try {
       await signupWithGoogle();
+      navigated = true;
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
       window.location.assign("/dashboard");
     } catch (err) {
       setError(err.message || t("googleFailed"));
     } finally {
-      setBusy("");
+      if (!navigated) setBusy("");
     }
   }
 

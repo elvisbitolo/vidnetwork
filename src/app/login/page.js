@@ -41,12 +41,15 @@ export default function LoginPage() {
     setError("");
     setVerifyNotice("");
     setBusy("google");
+    let navigated = false;
     try {
       await loginWithGoogle();
+      navigated = true;
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
       window.location.assign("/dashboard");
     } catch (err) {
       if (err.code === "no_account") {
+        navigated = true;
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
         window.location.assign("/signup");
         return;
@@ -58,7 +61,7 @@ export default function LoginPage() {
         setError(err.message || t("googleFailed"));
       }
     } finally {
-      setBusy("");
+      if (!navigated) setBusy("");
     }
   }
 
@@ -67,12 +70,15 @@ export default function LoginPage() {
     setError("");
     setVerifyNotice("");
     setBusy("email");
+    let navigated = false;
     try {
       await loginWithEmail(email, password);
+      navigated = true;
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
       window.location.assign("/dashboard");
     } catch (err) {
       if (err.code === "auth/user-not-found") {
+        navigated = true;
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload so the fresh session cookie is sent
         window.location.assign("/signup");
         return;
@@ -84,7 +90,7 @@ export default function LoginPage() {
         setError(err.message || "Sign-in failed");
       }
     } finally {
-      setBusy("");
+      if (!navigated) setBusy("");
     }
   }
 

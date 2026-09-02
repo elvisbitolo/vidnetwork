@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Assistant } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "@/components/Providers";
@@ -12,6 +12,12 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const assistant = Assistant({
+  variable: "--font-assistant",
+  weight: ["300", "400", "500", "600", "700", "800"],
   subsets: ["latin"],
 });
 
@@ -63,7 +69,7 @@ export default async function RootLayout({ children }) {
     de: (await import("../../messages/de.json")).default,
   };
   return (
-    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable} ${assistant.variable}`}>
       <body>
         <Providers messages={messages} locale={locale}>
           <PushSetup />

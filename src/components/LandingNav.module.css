@@ -2,10 +2,10 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(250, 250, 252, 0.85);
+  background: rgba(251, 247, 241, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #e6e6ef;
+  border-bottom: 1px solid #eadfd2;
   box-shadow: 0 10px 30px -32px rgba(23, 23, 28, 0.4);
 }
 
@@ -27,14 +27,14 @@
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  color: #17171c;
+  color: #090c26;
 }
 
 .brandMark {
   width: 28px;
   height: 28px;
   border-radius: 9px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary-hover));
+  background: linear-gradient(135deg, #090c26, #f42e79);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -51,7 +51,7 @@
 .link {
   font-size: 14px;
   font-weight: 600;
-  color: #34344a;
+  color: #171a33;
   transition: color 0.15s ease;
 }
 
@@ -62,7 +62,7 @@
 .divider {
   width: 1px;
   height: 20px;
-  background: #e0e0ea;
+  background: #e4d8cc;
 }
 
 .cta {
@@ -72,7 +72,7 @@
   padding: 0 18px;
   background: var(--primary);
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 600;
   transition: background 0.15s ease, transform 0.15s ease;
@@ -91,7 +91,7 @@
   height: 40px;
   padding: 8px;
   background: transparent;
-  border: 1px solid #e6e6ef;
+  border: 1px solid #eadfd2;
   border-radius: 10px;
   cursor: pointer;
 }
@@ -100,7 +100,7 @@
   height: 2px;
   width: 20px;
   margin: 0 auto;
-  background: #17171c;
+  background: #171a33;
   border-radius: 2px;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -119,8 +119,8 @@
 
 .mobileMenu {
   display: none;
-  border-top: 1px solid #e6e6ef;
-  background: #1a1a1a;
+  border-top: 1px solid #eadfd2;
+  background: #ffffff;
   padding: 12px 24px 20px;
 }
 
@@ -129,8 +129,8 @@
   padding: 12px 4px;
   font-size: 15px;
   font-weight: 600;
-  color: #34344a;
-  border-bottom: 1px solid #efeff5;
+  color: #171a33;
+  border-bottom: 1px solid #f0e8dd;
 }
 
 .mobileLink:last-of-type {
@@ -145,7 +145,7 @@
   height: 44px;
   background: var(--primary);
   color: #ffffff;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 15px;
   font-weight: 600;
 }

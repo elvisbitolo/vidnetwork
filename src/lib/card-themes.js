@@ -65,11 +65,11 @@ export function cardThemeVars(name, opts = {}) {
     const accent = LIGHT_ACCENTS[name] || LIGHT_ACCENTS.indigo;
     return {
       "--card-accent": accent,
-      "--card-soft": "rgba(79, 70, 229, 0.08)",
+      "--card-soft": rgba(accent, 0.1),
       "--card-bg": "#ffffff",
-      "--card-border": "rgba(79, 70, 229, 0.22)",
-      "--card-text": "#1a1a24",
-      "--card-muted": "#6b6b7b",
+      "--card-border": rgba(accent, 0.22),
+      "--card-text": "#0a0e2a",
+      "--card-muted": "#8a7c6f",
       "--card-title": accent,
     };
   }

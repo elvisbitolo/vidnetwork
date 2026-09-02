@@ -1,27 +1,38 @@
 :root {
-  /* ================= VidNetwork color system =================
-     Analogous palette — Blue primary, Purple secondary, Cyan accent.
-     Blue   #2563EB
-     Purple #7C3AED
-     Cyan   #06B6D4
+  /* ================= Yarnery Lounge color system =================
+     Boutique palette — Hot pink primary accent, Navy secondary.
+     Pink  #F42E79
+     Navy  #090C26
   */
 
-  /* 1-2. Primary (Blue) */
-  --primary: #2563eb;
-  --primary-light: #60a5fa;
-  --primary-hover: #1d4ed8;
-  --primary-active: #1e40af;
+  /* Boutique tokens (inspired by secretyarnery.com) */
+  --navy: #090c26;
+  --navy-deep: #050814;
+  --pink: #f42e79;
+  --pink-hover: #d81f66;
+  --pink-soft: rgba(244, 46, 121, 0.1);
+  --cream: #fbf7f1;
+  --blush: rgb(243, 230, 226);
+  --rust: rgb(135, 42, 13);
+  --greige: rgb(182, 177, 164);
+  --warm-border: #eadfd2;
+
+  /* 1-2. Primary (Hot pink) */
+  --primary: #f42e79;
+  --primary-light: #ff7cab;
+  --primary-hover: #d81f66;
+  --primary-active: #b01451;
   --primary-contrast: #ffffff;
 
-  /* 3-4. Secondary (Purple) */
+  /* 3-4. Secondary (Navy) */
   --secondary: #7c3aed;
   --secondary-light: #a78bfa;
   --secondary-hover: #6d28d9;
   --secondary-contrast: #ffffff;
 
-  /* 5. Accent (Cyan) */
-  --accent: #06b6d4;
-  --accent-light: #67e8f9;
+  /* 5. Accent (Hot pink) */
+  --accent: #f42e79;
+  --accent-light: #ff7cab;
   --accent-hover: #0891b2;
 
   /* 11-13. Success / Warning / Error */
@@ -30,11 +41,11 @@
   --warning: #f59e0b;
   --error: #dc2626;
   --error-light: #ef4444;
-  --highlight: #faf100;
+  --highlight: #ffd23f;
 
   /* 16. Gradients */
-  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #06b6d4 100%);
+  --gradient-primary: linear-gradient(135deg, #f42e79 0%, #7c3aed 100%);
+  --gradient-brand: linear-gradient(135deg, #090c26 0%, #f42e79 100%);
 
   /* 6-10. App neutrals — existing dark-product surfacing */
   --background: #1a1a1a;
@@ -44,11 +55,11 @@
   --text: #17181c;
   --muted: #6b6b7b;
   --border: #e4e4ee;
-  --selection: #2563eb33;
+  --selection: #f42e7933;
 
   /* 15. Links */
-  --link: #2563eb;
-  --link-hover: #1d4ed8;
+  --link: #f42e79;
+  --link-hover: #d81f66;
 
   /* 14. Buttons */
   --button-primary-bg: var(--primary);
@@ -59,18 +70,18 @@
   --button-secondary-text: var(--secondary-contrast);
   --button-accent-bg: var(--accent);
   --button-accent-hover: var(--accent-hover);
-  --button-accent-text: #06211f;
+  --button-accent-text: #ffffff;
 
-  /* Dashboard theme (dark) — recolored to the analogous palette */
-  --dash-bg: #1a1a1a;
-  --dash-surface: #24242a;
-  --dash-border: #2e2e38;
-  --dash-text: #f5f5f5;
-  --dash-muted: #8b8b9b;
-  --dash-accent: #2563eb;
-  --dash-accent-light: #60a5fa;
-  --dash-accent-hover: #1d4ed8;
-  --dash-secondary: #7c3aed;
+  /* Dashboard theme (dark shell) — accents use hot pink */
+  --dash-bg: #12121a;
+  --dash-surface: #1c1c26;
+  --dash-border: #2a2a38;
+  --dash-text: #f5f5f7;
+  --dash-muted: #9a9ab0;
+  --dash-accent: #f42e79;
+  --dash-accent-light: #ff7cab;
+  --dash-accent-hover: #d81f66;
+  --dash-secondary: #090c26;
   --dash-secondary-light: var(--secondary-light);
   --dash-secondary-hover: var(--secondary-hover);
   --dash-cyan: #06b6d4;
@@ -97,7 +108,7 @@ body {
   flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Arial, sans-serif;
+  font-family: var(--font-assistant), var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background 0.2s ease, color 0.2s ease;

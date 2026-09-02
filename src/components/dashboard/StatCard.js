@@ -13,7 +13,7 @@ export default function StatCard({ label, value, delta, deltaLabel, theme = "ind
         : styles.kpiDelta;
 
   return (
-    <div className={styles.kpi} style={cardThemeVars(theme)}>
+    <div className={styles.kpi} style={cardThemeVars(theme, { light: true })}>
       <p className={styles.kpiLabel}>{label}</p>
       <p className={styles.kpiValue}>{value}</p>
       <p className={deltaClass}>

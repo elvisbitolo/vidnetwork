@@ -1,7 +1,16 @@
 .pageWrap {
+  /* Light boutique overrides — scoped to dashboard content only */
+  --dash-bg: #f7f1e9;
+  --dash-surface: #ffffff;
+  --dash-border: #eadfd2;
+  --dash-text: #0a0e2a;
+  --dash-muted: #8a7c6f;
+  --dash-accent: #f42e79;
+  --dash-accent-light: #ff7cab;
+  --dash-accent-hover: #d81f66;
   width: 100%;
   min-height: calc(100vh - 60px);
-  background: var(--dash-bg, #1a1a1f);
+  background: var(--dash-bg, #f7f1e9);
   transition: background 0.2s ease;
 }
 
@@ -50,18 +59,18 @@
 .searchInput {
   width: 240px;
   padding: 9px 12px 9px 34px;
-  border: 1px solid var(--dash-border, #2e2e38);
+  border: 1px solid var(--dash-border, #eadfd2);
   border-radius: 10px;
   font-size: 14px;
-  background: var(--dash-surface, #24242a);
-  color: var(--dash-text, #f5f5f5);
+  background: var(--dash-surface, #ffffff);
+  color: var(--dash-text, #0a0e2a);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .searchInput:focus {
-  border-color: var(--dash-accent, var(--secondary));
-  box-shadow: 0 0 0 3px rgba(109, 93, 246, 0.2);
+  border-color: var(--dash-accent, #f42e79);
+  box-shadow: 0 0 0 3px rgba(244, 46, 121, 0.18);
 }
 
 .searchIcon {
@@ -74,7 +83,7 @@
 }
 
 .welcome {
-  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #090c26 0%, #f42e79 120%);
   border-radius: 16px;
   padding: 24px 28px;
   color: #fff;
@@ -160,8 +169,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--secondary-light);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--dash-accent, #f42e79);
+  background: rgba(244, 46, 121, 0.1);
 }
 
 .kpiLabel {
@@ -555,7 +564,7 @@
 .skeletonLine {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, var(--dash-border, #2e2e38) 25%, #3a3a44 50%, var(--dash-border, #2e2e38) 75%);
+  background: linear-gradient(90deg, var(--dash-border, #eadfd2) 25%, #e9dfd2 50%, var(--dash-border, #eadfd2) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   margin-bottom: 12px;

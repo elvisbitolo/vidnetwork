@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import LandingNav from "@/components/LandingNav";
 import Reveal from "@/components/Reveal";
 import ThemePicker from "@/components/ThemePicker";
+import HeroSlideshow from "@/components/HeroSlideshow";
 import {
   VideoIcon,
   BookIcon,
@@ -221,34 +222,57 @@ export default function Home() {
 
       {/* ─── Hero ─── */}
       <section className={styles.hero}>
-        <div className={styles.wrap}>
-          <div className={styles.heroInner}>
-            <div className={styles.heroCopy}>
-              <span className={styles.eyebrow}>
-                <span className={styles.eyebrowDot} aria-hidden="true" />
-                {t("liveCommunities")}
-              </span>
-              <h1 className={styles.heroTitle}>{t("heroTitle")}</h1>
-              <p className={styles.heroSub}>{t("heroSub")}</p>
-              <div className={styles.heroCtas}>
-                <Link className={styles.primary} href="/signup">
-                  {t("joinYarneryLounge")}
-                </Link>
-                <Link className={styles.secondary} href="/explore">
-                  {t("exploreCommunity")}
-                </Link>
-              </div>
-              <p className={styles.heroFine}>{t("freeTrial")}</p>
+        <HeroSlideshow images={CROCHET_IMAGES.slice(0, 6)}>
+          <div className={styles.heroCopy}>
+            <span className={styles.eyebrow}>
+              <span className={styles.eyebrowDot} aria-hidden="true" />
+              {t("liveCommunities")}
+            </span>
+            <h1 className={styles.heroTitle}>{t("heroTitle")}</h1>
+            <p className={styles.heroSub}>{t("heroSub")}</p>
+            <div className={styles.heroCtas}>
+              <Link className={styles.primary} href="/signup">
+                {t("joinYarneryLounge")}
+              </Link>
+              <Link className={styles.secondary} href="/explore">
+                {t("exploreCommunity")}
+              </Link>
             </div>
-            <div className={styles.heroVisual}>
-              <div className={styles.heroGallery}>
-                {CROCHET_IMAGES.slice(0, 6).map((img, i) => (
-                  <div key={i} className={styles.heroGalleryItem}>
-                    <Image src={img.src} alt={img.alt} className={styles.heroGalleryImg} width={200} height={200} sizes="(max-width: 900px) 100vw, 200px" loading="lazy" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className={styles.heroFine}>{t("freeTrial")}</p>
+          </div>
+        </HeroSlideshow>
+      </section>
+
+      {/* ─── Marquee ─── */}
+      <section className={styles.marqueeSection} aria-hidden="true">
+        <div className={styles.marqueeTrack}>
+          <div className={styles.marqueeGroup}>
+            <span>{t("rooms")}</span>
+            <em>{'✦'}</em>
+            <span>{t("courses")}</span>
+            <em>{'✦'}</em>
+            <span>{t("events")}</span>
+            <em>{'✦'}</em>
+            <span>{t("community")}</span>
+            <em>{'✦'}</em>
+            <span>{t("learnAtOwnPace")}</span>
+            <em>{'✦'}</em>
+            <span>{t("meetFaceToFace")}</span>
+            <em>{'✦'}</em>
+          </div>
+          <div className={styles.marqueeGroup}>
+            <span>{t("rooms")}</span>
+            <em>{'✦'}</em>
+            <span>{t("courses")}</span>
+            <em>{'✦'}</em>
+            <span>{t("events")}</span>
+            <em>{'✦'}</em>
+            <span>{t("community")}</span>
+            <em>{'✦'}</em>
+            <span>{t("learnAtOwnPace")}</span>
+            <em>{'✦'}</em>
+            <span>{t("meetFaceToFace")}</span>
+            <em>{'✦'}</em>
           </div>
         </div>
       </section>

@@ -142,8 +142,8 @@ export default function AudienceChart() {
         >
           <defs>
             <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#2563eb" stopOpacity="0" />
+              <stop offset="0%" stopColor="#f42e79" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#f42e79" stopOpacity="0" />
             </linearGradient>
           </defs>
           {Array.from({ length: 4 }).map((_, i) => {
@@ -161,20 +161,20 @@ export default function AudienceChart() {
             );
           })}
           <path d={areaPath} fill="url(#chartFill)" />
-          <path d={linePath} fill="none" stroke="#2563eb" strokeWidth={2.5} strokeLinejoin="round" />
+          <path d={linePath} fill="none" stroke="#f42e79" strokeWidth={2.5} strokeLinejoin="round" />
           {hover >= 0 && hover < n && (
             <line
               x1={xFor(hover)}
               y1={pad.top}
               x2={xFor(hover)}
               y2={pad.top + innerH}
-              stroke="#2563eb"
+              stroke="#f42e79"
               strokeWidth={1.5}
               strokeDasharray="3 3"
             />
           )}
           {hover >= 0 && hover < n && (
-            <circle cx={xFor(hover)} cy={yFor(values[hover])} r={4.5} fill="#2563eb" stroke="#fff" strokeWidth={2} />
+            <circle cx={xFor(hover)} cy={yFor(values[hover])} r={4.5} fill="#f42e79" stroke="#fff" strokeWidth={2} />
           )}
         </svg>
         {hoverPoint && (

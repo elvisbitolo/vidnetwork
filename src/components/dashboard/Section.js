@@ -6,7 +6,7 @@ import styles from "./dashboard.module.css";
 
 export function Card({ title, linkLabel, linkHref, theme = "indigo", children }) {
   return (
-    <section className={styles.card} style={cardThemeVars(theme)}>
+    <section className={styles.card} style={cardThemeVars(theme, { light: true })}>
       {(title || linkLabel) && (
         <div className={styles.cardHeader}>
           {title && <h2 className={styles.cardTitle}>{title}</h2>}

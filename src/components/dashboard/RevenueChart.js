@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./dashboard.module.css";
 
-const ACCENT = "#7c3aed";
-const SUBS_COLOR = "#a78bfa";
-const PURCHASE_COLOR = "#34d399";
+const ACCENT = "#f42e79";
+const SUBS_COLOR = "#f42e79";
+const PURCHASE_COLOR = "#171a3d";
 
 function formatMoney(cents) {
   if (cents == null) return "—";
@@ -132,7 +132,7 @@ export default function RevenueChart() {
                 y1={y}
                 x2={pad.left + innerW}
                 y2={y}
-                stroke="#2e2e38"
+                stroke="#eadfd2"
                 strokeWidth={1}
               />
             );
@@ -144,7 +144,7 @@ export default function RevenueChart() {
               y={H - 6}
               textAnchor="middle"
               fontSize={10}
-              fill="#8b8b9b"
+              fill="#8a7c6f"
             >
               {monthLabel(b.month)}
             </text>

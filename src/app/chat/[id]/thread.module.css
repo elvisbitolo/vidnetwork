@@ -303,3 +303,145 @@
     font-size: 11px;
   }
 }
+
+/* Reactions */
+.reactionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.reactionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid #e0e0ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.reactionChip:hover {
+  background: #f6f6fb;
+  transform: translateY(-1px);
+}
+
+.reactionActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: #f0eaff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mine .reactionChip,
+.mine .reactionActive {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+
+.reactionPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 6px;
+  border: 1px solid #e6e6ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(9, 12, 38, 0.08);
+}
+
+.reactionPick {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.reactionPick:hover {
+  background: #f0eaff;
+  transform: scale(1.15);
+}
+
+/* Pin button */
+.pinBtnActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: none;
+  background: #fff7e6;
+  color: #d97706;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.mine .pinBtnActive {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffd98a;
+}
+
+/* Read receipt */
+.readReceipt {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #9b9bab;
+  text-align: right;
+}
+
+/* Pinned bar */
+.pinnedBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 24px;
+  border-bottom: 1px solid #e6e6ef;
+  background: #fffdf5;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.pinnedLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.pinnedChip {
+  font-size: 12px;
+  color: #8a6d3b;
+  background: #fff3d6;
+  padding: 3px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* Typing indicator */
+.typingIndicator {
+  margin: 6px 24px;
+  font-size: 12px;
+  color: #9b9bab;
+  font-style: italic;
+}
+

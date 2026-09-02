@@ -132,6 +132,11 @@ export default function Thread({ conversationId, uid, initialMessages }) {
   const bottomRef = useRef(null);
   const emojiRef = useRef(null);
   const replyInputRef = useRef(null);
+  const typingRef = useRef(null);
+
+  const [typingUsers, setTypingUsers] = useState([]);
+  const [pinnedMessages, setPinnedMessages] = useState([]);
+  const [reactionsOpen, setReactionsOpen] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -145,6 +150,14 @@ export default function Thread({ conversationId, uid, initialMessages }) {
           setMessages(Array.isArray(data.messages) ? data.messages : []);
         }
         fetch(`/api/conversations/${conversationId}/read`, { method: "POST" }).catch(() => {});
+        fetch(`/api/conversations/${conversationId}/typing`)
+          .then((r) => (r.ok ? r.json() : { typing: [] }))
+          .then((d) => active && setTypingUsers(Array.isArray(d.typing) ? d.typing : []))
+          .catch(() => {});
+        fetch(`/api/conversations/${conversationId}/pinned`)
+          .then((r) => (r.ok ? r.json() : { messages: [] }))
+          .then((d) => active && setPinnedMessages(Array.isArray(d.messages) ? d.messages : []))
+          .catch(() => {});
       } catch {
         // transient network error — the next poll will retry
       }
@@ -302,6 +315,67 @@ export default function Thread({ conversationId, uid, initialMessages }) {
     setExpandedThreads((prev) => ({ ...prev, [msgId]: !prev[msgId] }));
   }
 
+  function handleTyping() {
+    if (typingRef.current) clearTimeout(typingRef.current);
+    typingRef.current = setTimeout(() => {
+      fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {});
+    }, 400);
+  }
+
+  async function toggleReaction(msg, emoji, e) {
+    e?.stopPropagation();
+    setReactionsOpen(null);
+    try {
+      const res = await fetch(
+        `/api/conversations/${conversationId}/messages/${msg.id}/reactions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ emoji }),
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msg.id ? { ...m, reactions: data.reactions } : m))
+        );
+      }
+    } catch {
+      // transient — next poll reconciles
+    }
+  }
+
+  async function togglePin(msg) {
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/pinned`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageId: msg.id }),
+      });
+      if (res.ok) {
+        const { pinned } = await res.json();
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msg.id ? { ...m, pinned } : m))
+        );
+        const pr = await fetch(`/api/conversations/${conversationId}/pinned`).catch(() => null);
+        if (pr?.ok) {
+          const d = await pr.json();
+          setPinnedMessages(Array.isArray(d.messages) ? d.messages : []);
+        }
+      }
+    } catch {
+      // transient
+    }
+  }
+
+  function reactionSummary(msg) {
+    if (!msg.reactions) return [];
+    return Object.entries(msg.reactions).map(([emoji, users]) => {
+      const reacted = !!users[uid];
+      return { emoji, count: Object.keys(users).length, reacted };
+    });
+  }
+
   const filteredMessages = searchQuery.trim()
     ? messages.filter((m) => {
         const q = searchQuery.toLowerCase();
@@ -350,6 +424,17 @@ export default function Thread({ conversationId, uid, initialMessages }) {
           </>
         )}
       </div>
+
+      {pinnedMessages.length > 0 && (
+        <div className={tStyles.pinnedBar}>
+          <span className={tStyles.pinnedLabel}>📌 Pinned</span>
+          {pinnedMessages.slice(0, 3).map((p) => (
+            <span key={p.id} className={tStyles.pinnedChip}>
+              {p.senderName}: …
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className={styles.messages}>
         {filteredMessages.length === 0 && (
@@ -419,7 +504,57 @@ export default function Thread({ conversationId, uid, initialMessages }) {
                   >
                     ↩ Reply
                   </button>
+                  <button
+                    type="button"
+                    className={msg.pinned ? tStyles.pinBtnActive : tStyles.replyBtn}
+                    onClick={() => togglePin(msg)}
+                  >
+                    {msg.pinned ? "📌 Pinned" : "📌 Pin"}
+                  </button>
+                  <button
+                    type="button"
+                    className={tStyles.replyBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setReactionsOpen(reactionsOpen === msg.id ? null : msg.id);
+                    }}
+                  >
+                    🙂
+                  </button>
                 </div>
+                {reactionSummary(msg).length > 0 && (
+                  <div className={tStyles.reactionRow}>
+                    {reactionSummary(msg).map(({ emoji, count, reacted }) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        className={reacted ? tStyles.reactionActive : tStyles.reactionChip}
+                        onClick={(e) => toggleReaction(msg, emoji, e)}
+                      >
+                        {emoji} {count}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {reactionsOpen === msg.id && (
+                  <div className={tStyles.reactionPicker}>
+                    {["👍", "❤️", "😂", "😮", "😢", "🙏", "🔥", "🎉", "👏", "💯", "🧶", "⭐"].map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        className={tStyles.reactionPick}
+                        onClick={(e) => toggleReaction(msg, emoji, e)}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {isMine &&
+                  msg.readBy &&
+                  Object.keys(msg.readBy).some((readerId) => readerId !== uid) ? (
+                  <p className={tStyles.readReceipt}>✓✓ Read</p>
+                ) : null}
               </div>
 
               {isExpanded && replies.length > 0 && (
@@ -458,7 +593,10 @@ export default function Thread({ conversationId, uid, initialMessages }) {
                       rows={1}
                       placeholder="Write a reply…"
                       value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
+                      onChange={(e) => {
+                        setReplyText(e.target.value);
+                        handleTyping();
+                      }}
                       onKeyDown={(e) => handleReplyKeyDown(e, msg.id)}
                       maxLength={2000}
                     />
@@ -483,6 +621,11 @@ export default function Thread({ conversationId, uid, initialMessages }) {
             </div>
           );
         })}
+        {typingUsers.length > 0 && (
+          <p className={tStyles.typingIndicator}>
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing…
+          </p>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -546,7 +689,10 @@ export default function Thread({ conversationId, uid, initialMessages }) {
           rows={1}
           placeholder="Type a message…"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            handleTyping();
+          }}
           onKeyDown={handleKeyDown}
           maxLength={2000}
         />

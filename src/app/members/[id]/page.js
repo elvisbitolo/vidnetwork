@@ -338,9 +338,9 @@ const coverUrl = member.coverPhotoURL || "";
             {!isSelf && (
               <FollowButton
                 targetUserId={id}
-                initialFollowing={followData.following}
-                initialFollowerCount={followData.followerCount}
-                initialFollowingCount={followData.followingCount}
+                initialFollowing={Boolean(followData.following)}
+                initialFollowerCount={Number(followData.followerCount) || 0}
+                initialFollowingCount={Number(followData.followingCount) || 0}
                 isSelf={isSelf}
               />
             )}

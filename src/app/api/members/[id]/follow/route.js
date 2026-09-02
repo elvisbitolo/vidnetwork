@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server/auth";
-import { followUser, unfollowUser, getFollowerCount, getFollowingCount } from "@/lib/server/follows";
+import { followUser, unfollowUser, isFollowing, getFollowerCount, getFollowingCount } from "@/lib/server/follows";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
 export async function GET(req, { params }) {
@@ -48,5 +48,9 @@ export async function POST(req, { params }) {
     getFollowingCount(id),
   ]);
 
-  return NextResponse.json({ following, followerCount, followingCount });
+  return NextResponse.json({
+    following: Boolean(following),
+    followerCount: Number(followerCount) || 0,
+    followingCount: Number(followingCount) || 0,
+  });
 }

@@ -1,12 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function FollowButton({ targetUserId, initialFollowing, initialFollowerCount, initialFollowingCount, isSelf }) {
-  const [following, setFollowing] = useState(initialFollowing);
-  const [followerCount, setFollowerCount] = useState(initialFollowerCount);
-  const [followingCount, setFollowingCount] = useState(initialFollowingCount);
+  const router = useRouter();
+  const [following, setFollowing] = useState(Boolean(initialFollowing));
+  const [followerCount, setFollowerCount] = useState(Number(initialFollowerCount) || 0);
+  const [followingCount, setFollowingCount] = useState(Number(initialFollowingCount) || 0);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (isSelf) return;
+    let active = true;
+    fetch(`/api/members/${targetUserId}/follow`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data) return;
+        setFollowing(Boolean(data.following));
+        setFollowerCount(Number(data.followerCount) || 0);
+        setFollowingCount(Number(data.followingCount) || 0);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [targetUserId, isSelf]);
 
   if (isSelf) return null;
 
@@ -21,9 +40,10 @@ export default function FollowButton({ targetUserId, initialFollowing, initialFo
       });
       if (res.ok) {
         const data = await res.json();
-        setFollowing(data.following);
-        setFollowerCount(data.followerCount);
-        setFollowingCount(data.followingCount);
+        setFollowing(Boolean(data.following));
+        setFollowerCount(Number(data.followerCount) || 0);
+        setFollowingCount(Number(data.followingCount) || 0);
+        router.refresh();
       }
     } finally {
       setBusy(false);
@@ -39,9 +59,9 @@ export default function FollowButton({ targetUserId, initialFollowing, initialFo
           height: 36,
           padding: "0 20px",
           borderRadius: 999,
-          border: following ? "1px solid #d8d8e3" : "none",
-          background: following ? "#ffffff" : "#7c3aed",
-          color: following ? "#34344a" : "#ffffff",
+          border: following ? "1px solid var(--primary, #f42e79)" : "none",
+          background: following ? "#ffffff" : "var(--primary, #f42e79)",
+          color: following ? "var(--primary, #f42e79)" : "#ffffff",
           fontSize: 13,
           fontWeight: 600,
           cursor: busy ? "default" : "pointer",
@@ -51,10 +71,10 @@ export default function FollowButton({ targetUserId, initialFollowing, initialFo
       >
         {busy ? "..." : following ? "Following" : "Follow"}
       </button>
-      <span style={{ fontSize: 13, color: "#6b6b7b", fontWeight: 600 }}>
+      <span style={{ fontSize: 13, color: "#8a7c6f", fontWeight: 600 }}>
         {followerCount} {followerCount === 1 ? "follower" : "followers"}
       </span>
-      <span style={{ fontSize: 13, color: "#6b6b7b", fontWeight: 600 }}>
+      <span style={{ fontSize: 13, color: "#8a7c6f", fontWeight: 600 }}>
         {followingCount} following
       </span>
     </div>

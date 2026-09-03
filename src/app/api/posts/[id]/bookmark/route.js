@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { canAccessPost } from "@/lib/server/posts";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 
@@ -25,14 +26,12 @@ export async function POST(req, { params }) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const bookmarks = { ...(post.data().bookmarks || {}) };
+  const bookmarks = post.data().bookmarks || {};
   const bookmarked = !bookmarks[user.uid];
-  if (bookmarked) {
-    bookmarks[user.uid] = new Date();
-  } else {
-    delete bookmarks[user.uid];
-  }
-  await ref.update({ bookmarks });
+  await ref.update({
+    [`bookmarks.${user.uid}`]: bookmarked ? new Date() : FieldValue.delete(),
+  });
 
-  return NextResponse.json({ bookmarked, count: Object.keys(bookmarks).length });
+  const count = bookmarked ? Object.keys(bookmarks).length + 1 : Object.keys(bookmarks).length - 1;
+  return NextResponse.json({ bookmarked, count });
 }

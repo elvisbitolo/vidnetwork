@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { getCourse } from "@/lib/server/courses";
 import { canManageScope } from "@/lib/server/hosts";
 import { clean } from "@/lib/server/validate";
+import { serialize } from "@/lib/server/serialize";
 
 export async function GET(req, { params }) {
   const { id } = await params;
@@ -22,7 +23,7 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Course not published" }, { status: 404 });
     }
   }
-  return NextResponse.json({ course });
+  return NextResponse.json({ course: serialize(course) });
 }
 
 export async function PATCH(req, { params }) {

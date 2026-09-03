@@ -18,6 +18,10 @@ function toMillis(value) {
   if (!value) return 0;
   if (typeof value.toMillis === "function") return value.toMillis();
   if (value instanceof Date) return value.getTime();
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 }

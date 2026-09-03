@@ -3,12 +3,13 @@ import { requireOwner, guardJson } from "@/lib/server/authorize";
 import { updateCollection, deleteCollection } from "@/lib/server/collections";
 
 export async function PATCH(req, { params }) {
+  const { id } = await params;
   const auth = await requireOwner();
   const denied = guardJson(auth);
   if (denied) return denied;
 
   const body = await req.json();
-  const updated = await updateCollection(params.id, {
+  const updated = await updateCollection(id, {
     name: body.name,
     description: body.description,
     spaceIds: body.spaceIds,
@@ -20,10 +21,11 @@ export async function PATCH(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
+  const { id } = await params;
   const auth = await requireOwner();
   const denied = guardJson(auth);
   if (denied) return denied;
 
-  await deleteCollection(params.id);
+  await deleteCollection(id);
   return NextResponse.json({ ok: true });
 }

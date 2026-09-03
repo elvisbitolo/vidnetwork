@@ -35,8 +35,9 @@ export async function POST(req) {
     if (created < since) continue;
     const likeCount = Object.keys(d.likes || {}).length;
     topPosts.push({ id: doc.id, text: d.text || "", author: d.authorName || "Member", likes: likeCount });
-    if (topPosts.length >= 5) break;
   }
+  topPosts.sort((a, b) => b.likes - a.likes);
+  topPosts.length = Math.min(topPosts.length, 5);
 
   const eventsSnap = await adminDb()
     .collection("events")
@@ -47,10 +48,11 @@ export async function POST(req) {
 
   const upcomingEvents = eventsSnap.docs.map((doc) => {
     const d = doc.data();
-    const date = d.date?.toDate ? d.date.toDate() : new Date(d.date);
+    const raw = d.startTime;
+    const date = raw?.toDate ? raw.toDate() : new Date(raw);
     return {
       title: d.title || "Event",
-      date: date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+      date: isNaN(date.getTime()) ? "Date TBD" : date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
       location: d.location || "Online",
     };
   }).slice(0, 3);

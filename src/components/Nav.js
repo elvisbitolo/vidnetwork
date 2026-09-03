@@ -196,10 +196,8 @@ export default function Nav({ role, children }) {
     fetch("/api/collections")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data) {
-          setCollections(
-            data.collections.filter((collection) => collection.spaces.length > 0)
-          );
+        if (Array.isArray(data)) {
+          setCollections(data.filter((collection) => collection.spaces.length > 0));
         }
       })
       .catch(() => {});

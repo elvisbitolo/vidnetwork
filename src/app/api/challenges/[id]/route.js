@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser, guardJson } from "@/lib/server/authorize";
 import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { logError } from "@/lib/server/log";
 
 export async function GET(req, { params }) {
@@ -88,7 +89,7 @@ export async function POST(req, { params }) {
     });
 
     await doc.ref.update({
-      participantCount: (doc.data().participantCount || 0) + 1,
+      participantCount: FieldValue.increment(1),
     });
   } catch (err) {
     logError("challenge.join_failed", { error: err.message, uid: auth.user.uid, id });

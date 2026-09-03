@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { getCollectionsWithSpaces } from "@/lib/server/collections";
 import { cardThemeVars } from "@/lib/card-themes";
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CollectionsPage() {
   const user = await getCurrentUser();
+  if (!user) redirect("/login");
   const userDoc = user ? await getUserDoc(user.uid) : null;
   const collections = await getCollectionsWithSpaces();
 

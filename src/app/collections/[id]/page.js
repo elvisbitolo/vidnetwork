@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import BackButton from "@/components/BackButton";
+import { redirect } from "next/navigation";
 import { getCurrentUser, getUserDoc } from "@/lib/server/auth";
 import { adminDb } from "@/lib/firebase/admin";
 import { getSpace } from "@/lib/server/spaces";
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function CollectionDetailPage({ params }) {
   const { id } = await params;
   const user = await getCurrentUser();
+  if (!user) redirect("/login");
   const userDoc = user ? await getUserDoc(user.uid) : null;
 
   const colDoc = await adminDb().collection("collections").doc(id).get();

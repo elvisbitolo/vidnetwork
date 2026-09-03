@@ -4,7 +4,20 @@ import { getFirestore } from "firebase-admin/firestore";
 
 function getCredentials() {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    try {
+      const parsed = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      if (parsed && typeof parsed.project_id === "string") {
+        if (typeof parsed.private_key === "string") {
+          parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
+        }
+        return parsed;
+      }
+      throw new Error("Service account JSON is missing project_id.");
+    } catch (err) {
+      throw new Error(
+        `FIREBASE_SERVICE_ACCOUNT is not a valid service-account JSON: ${err.message}`
+      );
+    }
   }
 
   const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;

@@ -124,7 +124,7 @@ export function buildPatternPdf(pattern) {
   lines.push("Pattern Notes");
   pattern.tips.forEach((tip) => lines.push("  - " + tip));
   lines.push("");
-  lines.push("A Yarnery Lounge member perk. Similar pattern PDFs arrive each month.");
+  lines.push("A Secret Yarnery member perk. Similar pattern PDFs arrive each month.");
   lines.push("Happy stitching!");
   if (pattern.key) lines.push("Pattern key: " + pattern.key);
 

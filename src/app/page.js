@@ -24,30 +24,30 @@ import {
 import styles from "./page.module.css";
 
 export const metadata = {
-  title: "Yarnery Lounge — Connect, Learn & Grow Together",
+  title: "Secret Yarnery — Connect, Learn & Grow Together",
   description:
-    "Yarnery Lounge is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
+    "Secret Yarnery is a paid membership community with live video rooms, courses, events, gamification and real conversations — connect, learn and grow together in one place.",
   keywords: ["community platform", "membership site", "live video rooms", "online courses", "gamification", "creator community", "learn together"],
-  authors: [{ name: "Yarnery Lounge" }],
+  authors: [{ name: "Secret Yarnery" }],
   openGraph: {
-    title: "Yarnery Lounge — Connect, Learn & Grow Together",
+    title: "Secret Yarnery — Connect, Learn & Grow Together",
     description:
       "Live communities, courses, events, gamification and real conversations — all in one place.",
     url: "https://yarnerylounge.vercel.app",
-    siteName: "Yarnery Lounge",
+    siteName: "Secret Yarnery",
     type: "website",
     images: [
       {
         url: "/og-image.png",
         width: 1734,
         height: 907,
-        alt: "Yarnery Lounge — Connect, Learn & Grow Together",
+        alt: "Secret Yarnery — Connect, Learn & Grow Together",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Yarnery Lounge — Connect, Learn & Grow Together",
+    title: "Secret Yarnery — Connect, Learn & Grow Together",
     description:
       "Live communities, courses, events, gamification and real conversations — all in one place.",
     images: ["/og-image.png"],
@@ -150,7 +150,7 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "Yarnery Lounge",
+      name: "Secret Yarnery",
       url: "https://yarnerylounge.vercel.app",
       logo: "https://yarnerylounge.vercel.app/icon-192.png",
       description:
@@ -165,7 +165,7 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "Yarnery Lounge",
+      name: "Secret Yarnery",
       url: "https://yarnerylounge.vercel.app",
       potentialAction: {
         "@type": "SearchAction",
@@ -176,12 +176,12 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "Product",
-      name: "Yarnery Lounge Community Membership",
+      name: "Secret Yarnery Community Membership",
       description: "Access to live video rooms, courses, events, gamification and a community of creators.",
       image: "https://yarnerylounge.vercel.app/images/crochet/product_closeup_01.jpeg",
       brand: {
         "@type": "Brand",
-        name: "Yarnery Lounge",
+        name: "Secret Yarnery",
       },
       offers: [
         {
@@ -559,7 +559,7 @@ export default function Home() {
               <span className={styles.brandMark} aria-hidden="true">
                 <PlayIcon size={14} />
               </span>
-              <span className={styles.brandName}>Yarnery Lounge</span>
+              <span className={styles.brandName}>Secret Yarnery</span>
               <p className={styles.footerTagline}>{t("footerTagline")}</p>
             </div>
             <nav aria-label="Footer navigation" className={styles.footerCol}>
@@ -596,7 +596,7 @@ export default function Home() {
               </Link>
             </nav>
           </div>
-          <p className={styles.footerBottom}>© {new Date().getFullYear()} Yarnery Lounge</p>
+          <p className={styles.footerBottom}>© {new Date().getFullYear()} Secret Yarnery</p>
         </div>
       </footer>
     </main>

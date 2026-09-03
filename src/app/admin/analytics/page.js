@@ -63,7 +63,7 @@ export default function AdminAnalyticsPage() {
       ]
     : [];
 
-  const tierLabels = { lounge: "Yarnery Lounge", plus: "Yarnery Plus", host: "Yarnery Host" };
+  const tierLabels = { lounge: "Secret Yarnery", plus: "Yarnery Plus", host: "Yarnery Host" };
   const planLabels = { monthly: "Monthly", yearly: "Yearly" };
 
   return (

@@ -14,7 +14,7 @@ function normalize(tier) {
 
 export const TIER_INFO = {
   lounge: {
-    name: "Yarnery Lounge",
+    name: "Secret Yarnery",
     priceCents: 999,
     founding: { priceCents: 699, slots: 100 },
     videoChat: { canJoin: true, canHost: false, monthlyHours: 8 },
@@ -32,7 +32,7 @@ export const TIER_INFO = {
 };
 
 export function tierLabel(tier) {
-  return TIER_INFO[normalize(tier)]?.name || "Yarnery Lounge";
+  return TIER_INFO[normalize(tier)]?.name || "Secret Yarnery";
 }
 
 export function tierRank(tier) {

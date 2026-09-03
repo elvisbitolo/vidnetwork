@@ -21,10 +21,10 @@ test("tierRank maps legacy tiers", () => {
 });
 
 test("tierLabel maps tiers and defaults", () => {
-  assert.equal(tierLabel("lounge"), "Yarnery Lounge");
+  assert.equal(tierLabel("lounge"), "Secret Yarnery");
   assert.equal(tierLabel("plus"), "Yarnery Plus");
   assert.equal(tierLabel("host"), "Yarnery Host");
-  assert.equal(tierLabel("nope"), "Yarnery Lounge");
+  assert.equal(tierLabel("nope"), "Secret Yarnery");
 });
 
 test("meetsTier: no requirement or lounge requirement is always met", () => {

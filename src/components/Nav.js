@@ -230,7 +230,7 @@ export default function Nav({ role, children }) {
             <span className={styles.burgerLine} />
           </button>
           <Link className={styles.brand} href="/dashboard" onClick={close}>
-            Yarnery Lounge
+            Secret Yarnery
           </Link>
         </div>
         <div className={styles.topbarCenter}>

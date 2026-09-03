@@ -386,7 +386,7 @@ export async function buildAnalyticsCsv() {
   const revenue = await getRevenueAnalytics();
 
   const sections = [];
-  sections.push("# Yarnery Lounge Analytics Export");
+  sections.push("# Secret Yarnery Analytics Export");
   sections.push(`Generated: ${new Date().toISOString()}\n`);
 
   sections.push(

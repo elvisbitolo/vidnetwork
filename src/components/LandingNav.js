@@ -124,7 +124,7 @@ export default function LandingNav() {
             <span className={styles.brandMark} aria-hidden="true">
               <PlayIcon size={13} />
             </span>
-            Yarnery Lounge
+            Secret Yarnery
           </Link>
 
           <div className={styles.desktopLinks}>

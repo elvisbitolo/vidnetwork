@@ -4,7 +4,7 @@ import styles from "./guidelines.module.css";
 export const metadata = {
   title: "Community Guidelines",
   description:
-    "Yarnery Lounge's community guidelines — how we keep this a respectful, focused space for every member.",
+    "Secret Yarnery's community guidelines — how we keep this a respectful, focused space for every member.",
 };
 
 const SECTIONS = [
@@ -41,7 +41,7 @@ export default function GuidelinesPage() {
       <div className={styles.container}>
         <h1 className={styles.title}>Community Guidelines</h1>
         <p className={styles.lead}>
-          These guidelines keep Yarnery Lounge a respectful, valuable space for every member. By
+          These guidelines keep Secret Yarnery a respectful, valuable space for every member. By
           joining, you agree to follow them.
         </p>
 

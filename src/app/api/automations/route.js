@@ -40,7 +40,7 @@ async function sendWelcomeMessages() {
         userId: doc.id,
         type: "system",
         actorId: "system",
-        actorName: "Yarnery Lounge",
+        actorName: "Secret Yarnery",
         href: "/dashboard",
         text: "Welcome to the community! Start by introducing yourself in the Feed or exploring the Members directory.",
       });
@@ -48,8 +48,8 @@ async function sendWelcomeMessages() {
       if (data.email) {
         await sendEmail({
           to: data.email,
-          subject: "Welcome to Yarnery Lounge!",
-          text: `Hi ${data.name || "there"},\n\nWelcome to the community! We're glad you're here.\n\nStart by introducing yourself in the Feed or exploring the Members directory.\n\nSee you inside!\n— Yarnery Lounge`,
+          subject: "Welcome to Secret Yarnery!",
+          text: `Hi ${data.name || "there"},\n\nWelcome to the community! We're glad you're here.\n\nStart by introducing yourself in the Feed or exploring the Members directory.\n\nSee you inside!\n— Secret Yarnery`,
         }).catch(() => {});
       }
 
@@ -81,7 +81,7 @@ async function sendInactivityNudges() {
         userId: doc.id,
         type: "system",
         actorId: "system",
-        actorName: "Yarnery Lounge",
+        actorName: "Secret Yarnery",
         href: "/feed",
         text: "We miss you! Check out what's new in the community.",
       });
@@ -119,7 +119,7 @@ async function awardAutoBadges() {
           userId: doc.id,
           type: "system",
           actorId: "system",
-          actorName: "Yarnery Lounge",
+          actorName: "Secret Yarnery",
           href: "/leaderboard",
           text: `You earned the "${m.label}" badge for reaching ${m.at} points!`,
         }).catch(() => {});

@@ -91,7 +91,7 @@ export async function listDueQuestions(now = Date.now()) {
 export async function postScheduledQuestion(question, now = new Date()) {
   const data = {
     authorId: "system",
-    authorName: "Yarnery Lounge",
+    authorName: "Secret Yarnery",
     text: question.text,
     likes: {},
     pinned: false,

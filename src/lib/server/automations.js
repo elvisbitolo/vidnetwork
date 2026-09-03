@@ -95,7 +95,7 @@ async function executeAction(automation, context) {
       userId,
       type: "automation",
       actorId: "",
-      actorName: "Yarnery Lounge",
+      actorName: "Secret Yarnery",
       text,
       href: config.href || "/dashboard",
     });
@@ -127,15 +127,15 @@ async function executeAction(automation, context) {
     if (!conversation) return;
     await addMessage(
       conversation.id,
-      { uid: senderOwner.uid, name: senderOwner.name || "Yarnery Lounge" },
-      text || "You have a new message from Yarnery Lounge."
+      { uid: senderOwner.uid, name: senderOwner.name || "Secret Yarnery" },
+      text || "You have a new message from Secret Yarnery."
     );
   }
 
   if (action === "send_push") {
     const subjectUid = context.subjectUid || config.toUserId || "";
     if (!subjectUid) return;
-    const title = fillTemplate(config.title, values) || "Yarnery Lounge";
+    const title = fillTemplate(config.title, values) || "Secret Yarnery";
     const body = fillTemplate(config.body, values) || "You have a new notification.";
     await sendPushToUser(subjectUid, title, body, config.href || "/dashboard");
   }

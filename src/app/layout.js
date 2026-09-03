@@ -24,11 +24,11 @@ const assistant = Assistant({
 export const metadata = {
   metadataBase: new URL("https://yarnerylounge.vercel.app"),
   title: {
-    default: "Yarnery Lounge",
-    template: "%s — Yarnery Lounge",
+    default: "Secret Yarnery",
+    template: "%s — Secret Yarnery",
   },
   description:
-    "Yarnery Lounge is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
+    "Secret Yarnery is a paid membership community with live video rooms, courses, events, groups and real conversations — connect, learn and grow together in one place.",
   manifest: "/manifest.webmanifest",
   other: {
     "google-site-verification": "EO1A_95MmyPuFD2ULeSrZ2xzliMUJEdAWtRmclDUwPo",
@@ -40,14 +40,14 @@ export const metadata = {
     ],
   },
   openGraph: {
-    siteName: "Yarnery Lounge",
+    siteName: "Secret Yarnery",
     type: "website",
     images: [
       {
         url: "/og-image.png",
         width: 1734,
         height: 907,
-        alt: "Yarnery Lounge — Connect, Learn & Grow Together",
+        alt: "Secret Yarnery — Connect, Learn & Grow Together",
       },
     ],
   },

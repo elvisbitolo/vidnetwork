@@ -5,9 +5,9 @@ import styles from "./explore.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Explore — Yarnery Lounge",
+  title: "Explore — Secret Yarnery",
   description:
-    "A preview of the Yarnery Lounge community: live rooms, events, courses and spaces. Join to take part.",
+    "A preview of the Secret Yarnery community: live rooms, events, courses and spaces. Join to take part.",
 };
 
 function formatTime(millis) {
@@ -25,7 +25,7 @@ export default async function ExplorePage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/">Yarnery Lounge</Link>
+        <Link className={styles.brand} href="/">Secret Yarnery</Link>
         <nav className={styles.headerLinks}>
           <Link className={styles.headerLink} href="/login">Log in</Link>
           <Link className={styles.cta} href="/signup">Join the community</Link>
@@ -35,7 +35,7 @@ export default async function ExplorePage() {
       <div className={styles.hero}>
         <h1 className={styles.title}>Explore the community</h1>
         <p className={styles.subtitle}>
-          A glimpse of what&apos;s happening inside Yarnery Lounge. Join to take part in live rooms,
+          A glimpse of what&apos;s happening inside Secret Yarnery. Join to take part in live rooms,
           events, courses and spaces.
         </p>
       </div>
@@ -134,7 +134,7 @@ export default async function ExplorePage() {
 
         <div className={styles.join}>
           <h2 className={styles.joinTitle}>Ready to get involved?</h2>
-          <Link className={styles.joinCta} href="/signup">Join Yarnery Lounge</Link>
+          <Link className={styles.joinCta} href="/signup">Join Secret Yarnery</Link>
         </div>
       </div>
     </main>

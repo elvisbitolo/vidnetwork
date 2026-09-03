@@ -80,7 +80,10 @@ export default function SignupPage() {
       <main className={styles.page}>
         <div className={styles.authContainer}>
           <div className={styles.authForm}>
-            <p className={styles.brand}><Link href="/">Secret Yarnery</Link></p>
+            <p className={styles.brand}><Link className={styles.brandLink} href="/">
+              <Image src="/brand/secretyarnery-logo.webp" alt="" width={90} height={28} className={styles.brandLogo} />
+              <span className={styles.brandWord}>Secret Yarnery</span>
+            </Link></p>
             <h1 className={styles.title}>{t("verifyEmail")}</h1>
             <div className={styles.verifyBox}>
               <p className={styles.verifyText}>
@@ -118,7 +121,10 @@ export default function SignupPage() {
     <main className={styles.page}>
       <div className={styles.authContainer}>
         <div className={styles.authForm}>
-          <p className={styles.brand}><Link href="/">Secret Yarnery</Link></p>
+          <p className={styles.brand}><Link className={styles.brandLink} href="/">
+            <Image src="/brand/secretyarnery-logo.webp" alt="" width={90} height={28} className={styles.brandLogo} />
+            <span className={styles.brandWord}>Secret Yarnery</span>
+          </Link></p>
           <h1 className={styles.title}>{t("createAccount")}</h1>
           <p className={styles.subtitle}>{t("startConnecting")}</p>
 

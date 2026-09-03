@@ -812,16 +812,11 @@
   align-items: flex-start;
 }
 
-.brandMark {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #090c26, #f42e79);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.brandLogo {
+  width: 90px;
+  height: 28px;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .brandName {

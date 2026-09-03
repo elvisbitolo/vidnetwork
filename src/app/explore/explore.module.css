@@ -21,6 +21,14 @@
   letter-spacing: -0.02em;
 }
 
+.brandLogo {
+  display: block;
+  width: 90px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
 .headerLinks {
   display: flex;
   align-items: center;

@@ -556,9 +556,13 @@ export default function Home() {
         <div className={styles.wrap}>
           <div className={styles.footerInner}>
             <div className={styles.footerBrand}>
-              <span className={styles.brandMark} aria-hidden="true">
-                <PlayIcon size={14} />
-              </span>
+              <Image
+                src="/brand/secretyarnery-logo.webp"
+                alt="Secret Yarnery"
+                width={90}
+                height={28}
+                className={styles.brandLogo}
+              />
               <span className={styles.brandName}>Secret Yarnery</span>
               <p className={styles.footerTagline}>{t("footerTagline")}</p>
             </div>

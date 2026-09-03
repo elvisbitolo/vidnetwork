@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getExploreData } from "@/lib/server/explore";
 import styles from "./explore.module.css";
 
@@ -25,7 +26,9 @@ export default async function ExplorePage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link className={styles.brand} href="/">Secret Yarnery</Link>
+        <Link className={styles.brand} href="/">
+          <Image src="/brand/secretyarnery-logo.webp" alt="Secret Yarnery" width={90} height={28} className={styles.brandLogo} priority />
+        </Link>
         <nav className={styles.headerLinks}>
           <Link className={styles.headerLink} href="/login">Log in</Link>
           <Link className={styles.cta} href="/signup">Join the community</Link>

@@ -33,6 +33,14 @@
   white-space: nowrap;
 }
 
+.brandLogo {
+  display: block;
+  width: 90px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
 .burger {
   display: inline-flex;
   flex-direction: column;

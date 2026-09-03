@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import styles from "./LandingNav.module.css";
-import { PlayIcon } from "./LandingIcons";
 
 const LINKS = [{ href: "/explore", key: "exploreCommunity" }];
 
@@ -121,10 +121,15 @@ export default function LandingNav() {
       <nav className={styles.nav} aria-label="Main">
         <div className={styles.inner}>
           <Link href="/" className={styles.brand} onClick={() => setOpen(false)}>
-            <span className={styles.brandMark} aria-hidden="true">
-              <PlayIcon size={13} />
-            </span>
-            Secret Yarnery
+            <Image
+              src="/brand/secretyarnery-logo.webp"
+              alt="Secret Yarnery"
+              width={90}
+              height={28}
+              className={styles.brandLogo}
+              priority
+            />
+            <span className={styles.brandWord}>Secret Yarnery</span>
           </Link>
 
           <div className={styles.desktopLinks}>

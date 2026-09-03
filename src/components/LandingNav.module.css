@@ -24,22 +24,22 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.brandLogo {
+  display: block;
+  width: 90px;
+  height: 28px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.brandWord {
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.3px;
   color: #090c26;
-}
-
-.brandMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #090c26, #f42e79);
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  line-height: 1;
 }
 
 .desktopLinks {

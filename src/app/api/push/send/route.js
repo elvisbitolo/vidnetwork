@@ -36,25 +36,46 @@ export async function POST(req) {
 
   webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate);
 
-  const snap = await adminDb().collection("pushSubscriptions").limit(5000).get();
   const payload = JSON.stringify({ title: cleanTitle, body: cleanBody, url: cleanUrl || "/" });
 
   let sent = 0;
   let failed = 0;
-  for (const doc of snap.docs) {
-    const sub = doc.data();
-    try {
-      await webpush.sendNotification({
-        endpoint: sub.endpoint,
-        keys: sub.keys,
-      }, payload);
-      sent++;
-    } catch (err) {
-      failed++;
-      if (err.statusCode === 404 || err.statusCode === 410) {
-        await doc.ref.delete();
-      }
+  let lastDoc = null;
+  const PAGE = 500;
+  for (;;) {
+    let query = adminDb().collection("pushSubscriptions").orderBy("__name__").limit(PAGE);
+    if (lastDoc) query = query.startAfter(lastDoc);
+    const snap = await query.get();
+    if (snap.empty) break;
+
+    const jobs = [];
+    for (const doc of snap.docs) {
+      const sub = doc.data();
+      jobs.push(
+        webpush
+          .sendNotification(
+            { endpoint: sub.endpoint, keys: sub.keys },
+            payload
+          )
+          .then(() => {
+            sent++;
+          })
+          .catch(async (err) => {
+            failed++;
+            if (err.statusCode === 404 || err.statusCode === 410) {
+              try {
+                await doc.ref.delete();
+              } catch {
+                // ignore clean-up failures
+              }
+            }
+          })
+      );
     }
+    await Promise.all(jobs);
+
+    lastDoc = snap.docs[snap.docs.length - 1];
+    if (snap.docs.length < PAGE) break;
   }
 
   await logAudit({

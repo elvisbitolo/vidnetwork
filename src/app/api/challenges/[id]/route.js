@@ -107,30 +107,49 @@ export async function PATCH(req, { params }) {
 
   const { progress } = await req.json();
   const ref = adminDb().collection("challengeParticipants").doc(`${id}_${auth.user.uid}`);
-  const snap = await ref.get();
+  const challengeRef = adminDb().collection("challenges").doc(id);
+  const target = Math.max(0, Math.floor(Number(progress) || 0));
 
-  if (!snap.exists) {
-    return NextResponse.json({ error: "Join this challenge first" }, { status: 400 });
-  }
+  let justCompleted = false;
+  try {
+    await adminDb().runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) {
+        throw new Error("not-joined");
+      }
 
-  const current = snap.data().progress || 0;
-  await ref.update({ progress: Math.max(current, progress || 0) });
+      const current = snap.data().progress || 0;
+      const next = Math.max(current, target);
+      tx.update(ref, { progress: next });
 
-  const challenge = await adminDb().collection("challenges").doc(id).get();
-  if (challenge.exists) {
-    const goal = challenge.data().goal || 10;
-    if (current < goal && progress >= goal) {
-      const { createNotification } = await import("@/lib/server/notifications");
-      await createNotification({
-        userId: auth.user.uid,
-        type: "system",
-        actorId: "system",
-        actorName: "Yarnery Lounge",
-        href: `/challenges`,
-        text: `You completed the "${challenge.data().title}" challenge! 🎉`,
-      }).catch(() => {});
+      if (current < target) {
+        const challengeSnap = await tx.get(challengeRef);
+        if (challengeSnap.exists) {
+          const goal = challengeSnap.data().goal || 10;
+          if (current < goal && next >= goal) justCompleted = true;
+        }
+      }
+    });
+  } catch (err) {
+    if (err.message === "not-joined") {
+      return NextResponse.json({ error: "Join this challenge first" }, { status: 400 });
     }
+    logError("challenge.progress_failed", { error: err.message, uid: auth.user.uid, id });
+    return NextResponse.json({ error: "Could not update progress" }, { status: 500 });
   }
 
+  if (justCompleted) {
+    const challengeSnap = await challengeRef.get();
+    const challengeData = challengeSnap.exists ? challengeSnap.data() : {};
+    const { createNotification } = await import("@/lib/server/notifications");
+    await createNotification({
+      userId: auth.user.uid,
+      type: "system",
+      actorId: "system",
+      actorName: "Yarnery Lounge",
+      href: `/challenges`,
+      text: `You completed the "${challengeData.title || 'challenge'}" challenge! 🎉`,
+    }).catch(() => {});
+  }
   return NextResponse.json({ ok: true });
 }

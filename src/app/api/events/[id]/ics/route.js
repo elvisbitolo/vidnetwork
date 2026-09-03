@@ -55,10 +55,17 @@ export async function GET(req, { params }) {
     "END:VCALENDAR",
   ].join("\r\n");
 
+  const safeName = String(event.title || "event")
+    .replace(/[^\w .\-()]/g, "_")
+    .slice(0, 60) || "event";
+  const encoded = encodeURIComponent(safeName).replace(/['()*]/g, (c) =>
+    `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+  );
+
   return new NextResponse(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(event.title)}.ics"`,
+      "Content-Disposition": `attachment; filename="${safeName}.ics"; filename*=UTF-8''${encoded}.ics`,
     },
   });
 }

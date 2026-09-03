@@ -300,18 +300,29 @@ export async function markConversationRead(conversationId, uid) {
   const conv = convDoc.data();
   if (!conv.participantIds.includes(uid)) return false;
 
+  // Record a conversation-level read marker (unbounded, O(1)) so unreadCount
+  // never depends on scanning/limiting individual messages.
+  const now = new Date();
+  await convRef.update({ [`lastReadAt.${uid}`]: now });
+
+  // Keep per-message read receipts accurate for the just-opened window only,
+  // so the "✓✓ Read" indicator works without writing to every message ever sent.
   const snap = await convRef
     .collection("messages")
     .where("senderId", "!=", uid)
+    .orderBy("createdAt", "desc")
+    .limit(200)
     .get();
+  const writes = [];
   for (const msg of snap.docs) {
     const data = msg.data();
-    const readBy = { ...(data.readBy || {}) };
-    if (!readBy[uid]) {
-      readBy[uid] = new Date();
-      await msg.ref.update({ readBy });
+    if (!(data.readBy || {})[uid]) {
+      writes.push(
+        msg.ref.update({ [`readBy.${uid}`]: now })
+      );
     }
   }
+  if (writes.length) await Promise.all(writes);
   return true;
 }
 
@@ -321,16 +332,15 @@ export async function unreadCount(uid) {
   for (const conv of convs) {
     const doc = await adminDb().collection("conversations").doc(conv.id).get();
     const data = doc.data();
-    const snap = await doc.ref
-      .collection("messages")
-      .where("senderId", "!=", uid)
-      .limit(50)
-      .get();
-    for (const msg of snap.docs) {
-      const readBy = msg.data().readBy || {};
-      if (!readBy[uid]) count++;
-    }
-    void data;
+    const lastRead = toMillis(data.lastReadAt?.[uid]);
+    const lastMsgAt = toMillis(data.lastMessageAt);
+    if (lastMsgAt > lastRead) count++;
   }
   return count;
+}
+
+export function toMillis(value) {
+  if (!value) return 0;
+  if (value.toMillis) return value.toMillis();
+  return new Date(value).getTime();
 }

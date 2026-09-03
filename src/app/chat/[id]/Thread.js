@@ -168,8 +168,21 @@ export default function Thread({ conversationId, uid, initialMessages }) {
     return () => {
       active = false;
       clearInterval(timer);
+      if (typingRef.current) {
+        clearTimeout(typingRef.current);
+        typingRef.current = null;
+      }
     };
   }, [conversationId]);
+
+  useEffect(() => {
+    return () => {
+      if (typingRef.current) {
+        clearTimeout(typingRef.current);
+        typingRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

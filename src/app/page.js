@@ -120,14 +120,6 @@ const FEATURES = [
 ];
 
 const CROCHET_IMAGES = [
-  { src: "/images/crochet/model_portrait_studio_01.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_portrait_studio_02.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_in_shop_01.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_in_shop_02.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_in_shop_03.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_garden_yarn_01.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_pink_dress_garden_01.jpeg", alt: "Crochet work" },
-  { src: "/images/crochet/model_wearing_crochet_garden_01.jpeg", alt: "Crochet work" },
   { src: "/images/crochet/shop_interior_01.jpeg", alt: "Crochet work" },
   { src: "/images/crochet/product_closeup_01.jpeg", alt: "Crochet work" },
   { src: "/images/crochet/product_closeup_02.jpeg", alt: "Crochet work" },
@@ -222,7 +214,9 @@ export default function Home() {
 
       {/* ─── Hero ─── */}
       <section className={styles.hero}>
-        <HeroSlideshow images={CROCHET_IMAGES.slice(0, 6)}>
+        <HeroSlideshow
+          images={[{ src: "/images/crochet/model_in_shop_03.jpeg", alt: "Crochet work" }]}
+        >
           <div className={styles.heroCopy}>
             <span className={styles.eyebrow}>
               <span className={styles.eyebrowDot} aria-hidden="true" />

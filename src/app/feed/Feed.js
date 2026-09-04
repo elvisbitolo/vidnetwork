@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
@@ -106,6 +107,7 @@ function postCardStyle(kind) {
 }
 
 function LikeButton({ postId, likes, uid, disabled }) {
+  const t = useTranslations("feed");
   const [count, setCount] = useState(Object.keys(likes || {}).length);
   const [liked, setLiked] = useState(!!likes?.[uid]);
   const [busy, setBusy] = useState(false);
@@ -130,7 +132,7 @@ function LikeButton({ postId, likes, uid, disabled }) {
       className={`${styles.like} ${liked ? styles.likeActive : ""}`}
       onClick={toggle}
       disabled={busy || disabled}
-      title={liked ? "Unlike this post" : "Like this post"}
+      title={liked ? t("unlikePost") : t("likePost")}
       aria-pressed={liked}
     >
       <svg
@@ -150,7 +152,94 @@ function LikeButton({ postId, likes, uid, disabled }) {
   );
 }
 
+const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏", "🔥", "🎉", "👏", "💯", "🧶", "⭐"];
+
+function EmojiReactionBar({ postId, commentId, reactions, uid, disabled }) {
+  const t = useTranslations("feed");
+  const current = reactions || {};
+  const reactionEntries = Object.entries(current).map(([emoji, users]) => ({
+    emoji,
+    count: Object.keys(users || {}).length,
+    mine: Boolean(users?.[uid]),
+  }));
+  const [list, setList] = useState(reactionEntries.filter((r) => r.count > 0));
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle(emoji) {
+    if (busy || disabled) return;
+    setBusy(true);
+    try {
+      const path = commentId
+        ? `/api/posts/${postId}/comments/${commentId}/reactions`
+        : `/api/posts/${postId}/reactions`;
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emoji }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setList((data.reactions || []).filter((r) => r.count > 0));
+      }
+    } catch (err) {
+      console.error("Reaction failed", err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const mine = (emoji) => {
+    const entry = list.find((r) => r.emoji === emoji);
+    return entry ? entry.mine : false;
+  };
+
+  return (
+    <div className={styles.reactionRow}>
+      {list.map((r) => (
+        <button
+          key={r.emoji}
+          className={`${styles.reactionChip} ${mine(r.emoji) ? styles.reactionChipActive : ""}`}
+          onClick={() => toggle(r.emoji)}
+          disabled={busy}
+          title={`${r.emoji} · ${r.count}`}
+        >
+          <span>{r.emoji}</span>
+          <span>{r.count}</span>
+        </button>
+      ))}
+      <button
+        className={styles.reactionAdd}
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        title={t("addReaction")}
+      >
+        ☺
+      </button>
+      {open && (
+        <div className={styles.reactionPicker}>
+          {QUICK_EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              className={styles.reactionPick}
+              onClick={() => {
+                toggle(emoji);
+                setOpen(false);
+              }}
+              disabled={busy}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BookmarkButton({ postId, bookmarks, uid, disabled }) {
+  const t = useTranslations("feed");
   const [bookmarked, setBookmarked] = useState(!!bookmarks?.[uid]);
   const [busy, setBusy] = useState(false);
 
@@ -173,7 +262,7 @@ function BookmarkButton({ postId, bookmarks, uid, disabled }) {
       className={`${styles.bookmark} ${bookmarked ? styles.bookmarkActive : ""}`}
       onClick={toggle}
       disabled={busy || disabled}
-      title={bookmarked ? "Remove bookmark" : "Bookmark this post"}
+      title={bookmarked ? t("removeBookmark") : t("bookmarkPost")}
       aria-pressed={bookmarked}
     >
       <svg
@@ -193,6 +282,7 @@ function BookmarkButton({ postId, bookmarks, uid, disabled }) {
 }
 
 function PollBlock({ postId, post, uid, disabled }) {
+  const t = useTranslations("feed");
   const [counts, setCounts] = useState(post.pollCounts || {});
   const [total, setTotal] = useState(
     post.pollTotal ?? Object.values(post.pollCounts || {}).reduce((a, b) => a + b, 0)
@@ -224,9 +314,9 @@ function PollBlock({ postId, post, uid, disabled }) {
         const days = Math.floor(diff / 86400000);
         const hours = Math.floor((diff % 86400000) / 3600000);
         const mins = Math.floor((diff % 3600000) / 60000);
-        if (days > 0) return `${days}d ${hours}h remaining`;
-        if (hours > 0) return `${hours}h ${mins}m remaining`;
-        return `${mins}m remaining`;
+        if (days > 0) return t("timeRemainingDays", { days, hours });
+        if (hours > 0) return t("timeRemainingHours", { hours, mins });
+        return t("timeRemainingMins", { mins });
       })()
     : null;
 
@@ -259,8 +349,8 @@ function PollBlock({ postId, post, uid, disabled }) {
   return (
     <div className={styles.poll}>
       <p className={styles.pollCount}>
-        {total} {total === 1 ? "vote" : "votes"}
-        {votedOption !== undefined ? " — you voted" : ""}
+        {t("pollVotes", { count: total })}
+        {votedOption !== undefined ? t("youVoted") : ""}
       </p>
       {countdownText && (
         <p style={{ fontSize: 12, color: "#9b9bab", margin: "0 0 8px", fontWeight: 600 }}>
@@ -269,7 +359,7 @@ function PollBlock({ postId, post, uid, disabled }) {
       )}
       {isExpired && votedOption === undefined && (
         <p style={{ fontSize: 12, color: "#9b9bab", margin: "0 0 8px", fontWeight: 600 }}>
-          Voting closed
+          {t("votingClosed")}
         </p>
       )}
       {options.map((option, index) => {
@@ -297,6 +387,7 @@ function PollBlock({ postId, post, uid, disabled }) {
 }
 
 function ReportButton({ type, targetId, commentPostId, small }) {
+  const t = useTranslations("feed");
   const [open, setOpen] = useState(false);
 
   return (
@@ -304,9 +395,9 @@ function ReportButton({ type, targetId, commentPostId, small }) {
       <button
         className={small ? styles.reportSmall : styles.report}
         onClick={() => setOpen(true)}
-        title="Report this content"
+        title={t("reportContent")}
       >
-        Report
+        {t("report")}
       </button>
       {open && (
         <ReportModal
@@ -321,6 +412,7 @@ function ReportButton({ type, targetId, commentPostId, small }) {
 }
 
 function CommentList({ postId, uid, canModerate }) {
+  const t = useTranslations("feed");
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -379,7 +471,7 @@ function CommentList({ postId, uid, canModerate }) {
                   <button
                     className={styles.deleteSmall}
                     onClick={() => handleDelete(c.id)}
-                    title="Delete comment"
+                    title={t("deleteComment")}
                   >
                     ×
                   </button>
@@ -389,6 +481,12 @@ function CommentList({ postId, uid, canModerate }) {
                 )}
               </div>
               <p className={styles.commentText}>{renderMentions(c.text)}</p>
+              <EmojiReactionBar
+                postId={postId}
+                commentId={c.id}
+                reactions={c.reactions}
+                uid={uid}
+              />
             </div>
           ))}
         </div>
@@ -397,12 +495,12 @@ function CommentList({ postId, uid, canModerate }) {
         <input
           className={styles.commentInput}
           type="text"
-          placeholder="Reply…"
+          placeholder={t("replyPlaceholder")}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
         <button className={styles.commentSubmit} type="submit" disabled={!text.trim() || busy}>
-          {busy ? "Replying…" : "Reply"}
+          {busy ? t("replying") : t("reply")}
         </button>
       </form>
     </div>
@@ -412,6 +510,7 @@ function CommentList({ postId, uid, canModerate }) {
 const EMPTY_POLL = ["", ""];
 
 export default function Feed({ uid, userName, role, groupId, spaceId, initialKind }) {
+  const t = useTranslations("feed");
   const canModerate = role === "owner" || role === "moderator";
   const [posts, setPosts] = useState([]);
   const [loadError, setLoadError] = useState(false);
@@ -429,6 +528,8 @@ export default function Feed({ uid, userName, role, groupId, spaceId, initialKin
   const [pollDeadline, setPollDeadline] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("newest");
+  const [followingCount, setFollowingCount] = useState(0);
+  const [nearCount, setNearCount] = useState(0);
   const fileInputRef = useRef(null);
 
   const sortFeedPosts = useCallback(
@@ -444,18 +545,32 @@ export default function Feed({ uid, userName, role, groupId, spaceId, initialKin
     []
   );
 
-  const loadCommunityPosts = useCallback(async () => {
+  const loadCommunityPosts = useCallback(async (modeOverride) => {
+    const mode = typeof modeOverride === "string" ? modeOverride : filter;
+    let query = "";
+    if (mode === "following") query = "?following=1";
+    else if (mode === "near") query = "?near=1";
     try {
-      const res = await fetch("/api/posts");
+      const res = await fetch(`/api/posts${query}`);
       if (!res.ok) throw new Error("Feed read failed");
       const data = await res.json();
       setPosts(sortFeedPosts(data.posts || []));
       setLoadError(false);
+      if (mode === "following") setFollowingCount(sortFeedPosts(data.posts || []).filter((p) => p.authorId !== uid).length);
+      if (mode === "near") setNearCount(sortFeedPosts(data.posts || []).filter((p) => p.authorId !== uid).length);
     } catch (err) {
       console.error("Feed read failed", err);
       setLoadError(true);
     }
-  }, [sortFeedPosts]);
+  }, [sortFeedPosts, filter, uid]);
+
+  function selectFilter(next) {
+    const prev = filter;
+    setFilter(next);
+    if (!groupId && !spaceId && next !== prev) {
+      loadCommunityPosts(next);
+    }
+  }
 
   useEffect(() => {
     const isCommunity = !groupId && !spaceId;
@@ -615,6 +730,8 @@ const trimmed = text.trim();
     filtered = filtered.filter((p) => p.authorRole === "owner" || p.authorRole === "moderator");
   } else if (filter === "unanswered") {
     filtered = filtered.filter((p) => p.kind === "question" && (p.commentCount || 0) === 0);
+  } else if (filter === "following" || filter === "near") {
+    filtered = posts;
   }
   if (sort === "oldest") {
     filtered = [...filtered].sort((a, b) => {
@@ -660,22 +777,22 @@ const trimmed = text.trim();
 
   const kindLabel =
     kind === "poll"
-      ? "Ask a poll"
+      ? t("askAPoll")
       : kind === "question"
-        ? "Ask a question"
+        ? t("askAQuestion")
         : kind === "win"
-          ? "Share a win"
-          : "New post";
+          ? t("askAWin")
+          : t("newPost");
 
   return (
     <div className={styles.feed}>
       <form className={styles.composer} onSubmit={handlePost}>
         <div className={styles.kindTabs}>
           {[
-            { key: "post", label: "✍️ Post" },
-            { key: "poll", label: "📊 Poll" },
-            { key: "question", label: "❓ Question" },
-            { key: "win", label: "🏆 Win" },
+            { key: "post", label: `✍️ ${t("tabPost")}` },
+            { key: "poll", label: `📊 ${t("tabPoll")}` },
+            { key: "question", label: `❓ ${t("tabQuestion")}` },
+            { key: "win", label: `🏆 ${t("tabWin")}` },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -692,12 +809,12 @@ const trimmed = text.trim();
           rows={3}
           placeholder={
             kind === "poll"
-              ? "Ask a question, then add options below…"
+              ? t("askPoll")
               : kind === "question"
-                ? "What do you want to ask the community?…"
+                ? t("askQuestion")
                 : kind === "win"
-                  ? "Share a win with the community…"
-                  : "Share something with the community… Type @ to mention someone."
+                  ? t("askWin")
+                  : t("writePost")
           }
           value={text}
           onChange={setText}
@@ -710,7 +827,7 @@ const trimmed = text.trim();
                 <input
                   className={styles.pollOptionInput}
                   type="text"
-                  placeholder={`Option ${index + 1}`}
+                  placeholder={t("optionNumber", { number: index + 1 })}
                   value={option}
                   maxLength={100}
                   onChange={(e) => setPollOption(index, e.target.value)}
@@ -720,7 +837,7 @@ const trimmed = text.trim();
                     type="button"
                     className={styles.pollRemove}
                     onClick={() => removePollOption(index)}
-                    aria-label="Remove option"
+                    aria-label={t("removeOption")}
                   >
                     ×
                   </button>
@@ -729,12 +846,12 @@ const trimmed = text.trim();
             ))}
             {pollOptions.length < 5 && (
               <button type="button" className={styles.pollAdd} onClick={addPollOption}>
-                + Add option
+                {t("addOption")}
               </button>
             )}
             <div style={{ marginTop: 12 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "#6b6b7b", display: "block", marginBottom: 4 }}>
-                Deadline (optional)
+                {t("deadlineOptional")}
               </label>
               <input
                 type="datetime-local"
@@ -755,7 +872,7 @@ const trimmed = text.trim();
               className={styles.removeImage}
               onClick={() => setImageUrl("")}
             >
-              Remove
+              {t("remove")}
             </button>
           </div>
         )}
@@ -767,7 +884,7 @@ const trimmed = text.trim();
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
             >
-              {uploading ? "Uploading…" : "Add photo"}
+              {uploading ? t("uploading") : t("addPhoto")}
             </button>
             <input
               ref={fileInputRef}
@@ -776,7 +893,7 @@ const trimmed = text.trim();
               hidden
               onChange={handleImageUpload}
             />
-            <p className={styles.composerHint}>Be kind. This is a safe space.</p>
+            <p className={styles.composerHint}>{t("beKind")}</p>
           </div>
           <button
             className={styles.postButton}
@@ -789,7 +906,7 @@ const trimmed = text.trim();
                 : !text.trim() && !imageUrl)
             }
           >
-            {busy ? "Posting…" : kindLabel}
+            {busy ? t("posting") : kindLabel}
           </button>
         </div>
       </form>
@@ -798,46 +915,62 @@ const trimmed = text.trim();
         <input
           className={styles.search}
           type="search"
-          placeholder="Search posts…"
+          placeholder={t("searchPosts")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <div className={styles.filterTabs}>
           <button
             className={filter === "all" ? styles.filterTabActive : styles.filterTab}
-            onClick={() => setFilter("all")}
+            onClick={() => selectFilter("all")}
           >
-            All ({postCount})
+            {t("all", { count: postCount })}
           </button>
+          {!groupId && !spaceId && (
+            <button
+              className={filter === "following" ? styles.filterTabActive : styles.filterTab}
+              onClick={() => selectFilter("following")}
+            >
+              {t("following", { count: followingCount })}
+            </button>
+          )}
+          {!groupId && !spaceId && (
+            <button
+              className={filter === "near" ? styles.filterTabActive : styles.filterTab}
+              onClick={() => selectFilter("near")}
+            >
+              {t("nearYou", { count: nearCount })}
+            </button>
+          )}
           <button
             className={filter === "popular" ? styles.filterTabActive : styles.filterTab}
             onClick={() => setFilter("popular")}
           >
-            Popular ({popularCount})
+            {t("popular", { count: popularCount })}
           </button>
           <button
             className={filter === "mine" ? styles.filterTabActive : styles.filterTab}
             onClick={() => setFilter("mine")}
           >
-            Mine ({mineCount})
+            {t("mine", { count: mineCount })}
           </button>
           <button
             className={filter === "bookmarked" ? styles.filterTabActive : styles.filterTab}
             onClick={() => setFilter("bookmarked")}
           >
-            Saved ({bookmarkedCount})
+            {t("saved", { count: bookmarkedCount })}
           </button>
           <button
             className={filter === "hosts" ? styles.filterTabActive : styles.filterTab}
             onClick={() => setFilter("hosts")}
           >
-            Hosts
+            {t("hosts")}
           </button>
           <button
             className={filter === "unanswered" ? styles.filterTabActive : styles.filterTab}
             onClick={() => setFilter("unanswered")}
           >
-            Unanswered ({unansweredCount})
+            {t("unanswered", { count: unansweredCount })}
           </button>
         </div>
         <div className={styles.sortTabs}>
@@ -846,25 +979,29 @@ const trimmed = text.trim();
             value={sort}
             onChange={(e) => setSort(e.target.value)}
           >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="top">Top</option>
-            <option value="activity">Latest Activity</option>
+            <option value="newest">{t("sortNewest")}</option>
+            <option value="oldest">{t("sortOldest")}</option>
+            <option value="top">{t("sortTop")}</option>
+            <option value="activity">{t("sortLatestActivity")}</option>
           </select>
         </div>
       </div>
 
       {loadError ? (
-        <p className={styles.empty}>Couldn&apos;t load the feed. Refreshing&hellip;</p>
+        <p className={styles.empty}>{t("loadError")}</p>
       ) : filtered.length === 0 ? (
         <p className={styles.empty}>
           {queryText
-            ? "No posts match your search."
+            ? t("noPostsSearch")
+            : filter === "following"
+            ? t("noPostsFollowing")
+            : filter === "near"
+            ? t("noPostsNear")
             : spaceId
-            ? "No posts in this space yet — be the first to say hi."
+            ? t("noPostsSpace")
             : groupId
-            ? "No posts in this group yet — be the first to say hi."
-            : "No posts yet — be the first to say hi."}
+            ? t("noPostsGroup")
+            : t("noPosts")}
         </p>
       ) : (
         <div className={styles.postList}>
@@ -877,10 +1014,10 @@ const trimmed = text.trim();
                 <div>
                   <p className={styles.postAuthor}>
                     {post.authorName}
-                    {post.kind === "poll" && <span className={styles.kindBadge}>📊 Poll</span>}
-                    {post.kind === "question" && <span className={styles.kindBadge}>❓ Question</span>}
-                    {post.kind === "win" && <span className={styles.kindBadge}>🏆 Win</span>}
-                    {post.pinned && <span className={styles.pinnedBadge}>📌 Pinned</span>}
+                    {post.kind === "poll" && <span className={styles.kindBadge}>📊 {t("tabPoll")}</span>}
+                    {post.kind === "question" && <span className={styles.kindBadge}>❓ {t("tabQuestion")}</span>}
+                    {post.kind === "win" && <span className={styles.kindBadge}>🏆 {t("tabWin")}</span>}
+                    {post.pinned && <span className={styles.pinnedBadge}>📌 {t("pinned")}</span>}
                   </p>
                   <p className={styles.postTime}>{timeAgo(post.createdAt)}</p>
                 </div>
@@ -888,18 +1025,18 @@ const trimmed = text.trim();
                   <button
                     className={styles.pinBtn}
                     onClick={() => handlePin(post.id)}
-                    title={post.pinned ? "Unpin post" : "Pin post"}
+                    title={post.pinned ? t("unpinPost") : t("pinPost")}
                   >
-                    {post.pinned ? "Unpin" : "Pin"}
+                    {post.pinned ? t("unpin") : t("pin")}
                   </button>
                 )}
                 {(post.authorId === uid || canModerate) && (
                   <button
                     className={styles.deletePost}
                     onClick={() => handleDelete(post.id)}
-                    title="Delete post"
+                    title={t("deletePost")}
                   >
-                    Delete
+                    {t("delete")}
                   </button>
                 )}
                 {post.authorId !== uid && (
@@ -917,6 +1054,7 @@ const trimmed = text.trim();
                 <LikeButton postId={post.id} likes={post.likes} uid={uid} />
                 <BookmarkButton postId={post.id} bookmarks={post.bookmarks} uid={uid} />
               </div>
+              <EmojiReactionBar postId={post.id} reactions={post.reactions} uid={uid} />
               <CommentList postId={post.id} uid={uid} canModerate={canModerate} />
             </article>
           ))}

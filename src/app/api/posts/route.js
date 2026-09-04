@@ -34,7 +34,7 @@ function serializePost(data, id) {
   return post;
 }
 
-export async function GET() {
+export async function GET(req) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -43,10 +43,24 @@ export async function GET() {
   if (!isActiveSub(sub)) {
     return NextResponse.json({ error: "Active membership required" }, { status: 403 });
   }
-  const [spaceSnap, groupSnap, postsSnap] = await Promise.all([
+  const url = new URL(req.url);
+  const followingOnly = url.searchParams.get("following") === "1";
+  const nearOnly = url.searchParams.get("near") === "1";
+
+  const ownDocRef = adminDb().collection("users").doc(user.uid);
+  const ownSnap = await ownDocRef.get().catch(() => null);
+  const myCountry = ownSnap?.exists ? ownSnap.data()?.country || "" : "";
+
+  const [spaceSnap, groupSnap, postsSnap, followSnap, nearSnap] = await Promise.all([
     adminDb().collection("spaceMembers").where("userId", "==", user.uid).get().catch(() => null),
     adminDb().collection("groupMembers").where("userId", "==", user.uid).get().catch(() => null),
     adminDb().collection("posts").orderBy("createdAt", "desc").limit(300).get(),
+    followingOnly
+      ? adminDb().collection("follows").where("followerId", "==", user.uid).get().catch(() => null)
+      : Promise.resolve(null),
+    nearOnly && myCountry
+      ? adminDb().collection("users").where("country", "==", myCountry).get().catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   const spaceIds = new Set();
@@ -60,9 +74,27 @@ export async function GET() {
     if (groupId) groupIds.add(groupId);
   });
 
+  const followingIds = new Set();
+  if (followSnap) {
+    followSnap.docs.forEach((doc) => {
+      const followingId = doc.data().followingId;
+      if (followingId) followingIds.add(followingId);
+    });
+  }
+
+  const nearIds = new Set([user.uid]);
+  if (nearSnap) {
+    nearSnap.docs.forEach((doc) => {
+      const uid = doc.data().uid;
+      if (uid) nearIds.add(uid);
+    });
+  }
+
   const posts = [];
   postsSnap.docs.forEach((doc) => {
     const data = doc.data();
+    if (followingOnly && data.authorId !== user.uid && !followingIds.has(data.authorId)) return;
+    if (nearOnly && !nearIds.has(data.authorId)) return;
     if (data.spaceId && !spaceIds.has(data.spaceId) && data.authorId !== user.uid) return;
     if (data.groupId && !groupIds.has(data.groupId) && data.authorId !== user.uid) return;
     posts.push(serializePost(data, doc.id));

@@ -911,3 +911,83 @@
     padding: 16px;
   }
 }
+
+/* Reactions */
+.reactionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.reactionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border: 1px solid #e0e0ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.reactionChip:hover:not(:disabled) {
+  background: #f6f6fb;
+  transform: translateY(-1px);
+}
+
+.reactionChipActive {
+  border-color: var(--primary);
+  background: #f0eaff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.reactionAdd {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #e0e0ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #777;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.reactionAdd:hover:not(:disabled) {
+  background: #f6f6fb;
+}
+
+.reactionPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 6px;
+  border: 1px solid #e6e6ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(9, 12, 38, 0.08);
+}
+
+.reactionPick {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.reactionPick:hover {
+  background: #f0eaff;
+  transform: scale(1.15);
+}

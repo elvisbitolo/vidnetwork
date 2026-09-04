@@ -353,10 +353,13 @@ export default function RoomClient({
           onDisconnected={handleDisconnect}
         >
           <RoomDataProvider
+            roomId={roomId}
             hostId={hostId}
             currentUserId={userId}
             currentUserName={userName}
             currentUserAvatar={userAvatar}
+            canModerate={isStaff || isHost || isCoHost}
+            isHost={isHost}
           >
             <div className={styles.liveRoom}>
               <header className={styles.roomHeader}>

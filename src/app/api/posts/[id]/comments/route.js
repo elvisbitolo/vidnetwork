@@ -72,7 +72,7 @@ export async function POST(req, { params }) {
       userId: post.authorId,
       type: "comment",
       actorId: user.uid,
-      actorName: authorName,
+      actorName,
       targetId: postId,
       href: `/feed`,
       text: `commented on your post`,
@@ -93,5 +93,34 @@ export async function POST(req, { params }) {
     }
   }
 
+  notifyOtherCommenters(postId, post.authorId, user.uid, authorName).catch(() => {});
+
   return NextResponse.json({ id: commentRef.id });
+}
+
+async function notifyOtherCommenters(postId, postAuthorId, actorId, actorName) {
+  const snap = await adminDb()
+    .collection("posts")
+    .doc(postId)
+    .collection("comments")
+    .orderBy("createdAt", "asc")
+    .get();
+  const notified = new Set();
+  for (const doc of snap.docs) {
+    const authorId = doc.data().authorId;
+    if (!authorId) continue;
+    if (authorId === actorId) continue;
+    if (authorId === postAuthorId) continue;
+    if (notified.has(authorId)) continue;
+    notified.add(authorId);
+    await createNotification({
+      userId: authorId,
+      type: "comment",
+      actorId,
+      actorName,
+      targetId: postId,
+      href: `/feed`,
+      text: `also commented on this post`,
+    }).catch(() => {});
+  }
 }

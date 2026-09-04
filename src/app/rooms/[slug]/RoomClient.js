@@ -184,7 +184,7 @@ export default function RoomClient({
       setServerUrl(data.serverUrl);
       setIsViewer(data.kind === "broadcast" && data.canPublish === false);
       setJoinPrefs(
-        prefs || { micOn: !isViewer, camOn: !isViewer, audioDeviceId: "", videoDeviceId: "" }
+        prefs || { micOn: true, camOn: true, audioDeviceId: "", videoDeviceId: "" }
       );
       setJoined(true);
       reconnectCountRef.current = 0;
@@ -296,8 +296,7 @@ export default function RoomClient({
             }
             busy={busy}
             error={error}
-            isViewer={isBroadcast}
-            onJoin={(n, prefs) => handleJoin(prefs)}
+            onJoin={(prefs) => handleJoin(prefs)}
           />
         </div>
       </main>
@@ -335,14 +334,14 @@ export default function RoomClient({
           token={token}
           serverUrl={serverUrl}
           connect={true}
-          video={!isViewer && (joinPrefs ? joinPrefs.camOn : true)}
-          audio={!isViewer && (joinPrefs ? joinPrefs.micOn : true)}
+          video={joinPrefs ? joinPrefs.camOn : true}
+          audio={joinPrefs ? joinPrefs.micOn : true}
           options={{
             adaptiveStream: true,
             dynacast: true,
             disconnectOnPageLeave: false,
             expWebsocketTimeout: 15000,
-            ...(!isViewer && joinPrefs && {
+            ...(joinPrefs && {
               videoCaptureDefaults: joinPrefs.camOn
                 ? { deviceId: joinPrefs.videoDeviceId || undefined }
                 : undefined,

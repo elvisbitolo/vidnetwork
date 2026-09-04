@@ -15,11 +15,9 @@ export default function RoomPreJoin({
   joinLabel,
   busy,
   error,
-  isViewer,
   onJoin,
 }) {
   const t = useTranslations("rooms");
-  const [name, setName] = useState(userName || "");
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [audioDeviceId, setAudioDeviceId] = useState("");
@@ -30,10 +28,10 @@ export default function RoomPreJoin({
 
   const options = useMemo(
     () => ({
-      audio: !isViewer && micOn ? { deviceId: audioDeviceId || undefined } : !isViewer,
-      video: !isViewer && camOn ? { deviceId: videoDeviceId || undefined } : !isViewer,
+      audio: micOn ? { deviceId: audioDeviceId || undefined } : false,
+      video: camOn ? { deviceId: videoDeviceId || undefined } : false,
     }),
-    [micOn, camOn, audioDeviceId, videoDeviceId, isViewer]
+    [micOn, camOn, audioDeviceId, videoDeviceId]
   );
 
   const tracks = usePreviewTracks(options, (err) => {
@@ -75,7 +73,7 @@ export default function RoomPreJoin({
   }, [tracks, videoDeviceId]);
 
   const hasVideoTrack = !!tracks?.some((tr) => tr.kind === "video");
-  const initial = (name || userName || "?").charAt(0).toUpperCase();
+  const initial = (userName || "?").charAt(0).toUpperCase();
 
   return (
     <div className={styles.prejoinWrap}>
@@ -106,31 +104,16 @@ export default function RoomPreJoin({
           )}
           {deviceError && <p className={styles.previewError}>{deviceError}</p>}
           <div className={styles.previewBadges}>
-            <span className={micOn && !isViewer ? styles.previewBadgeOn : styles.previewBadgeOff}>
-              {micOn && !isViewer ? "Mic" : "Mic off"}
+            <span className={micOn ? styles.previewBadgeOn : styles.previewBadgeOff}>
+              {micOn ? "Mic" : "Mic off"}
             </span>
-            <span className={camOn && !isViewer ? styles.previewBadgeOn : styles.previewBadgeOff}>
-              {camOn && !isViewer ? "Camera" : "Camera off"}
+            <span className={camOn ? styles.previewBadgeOn : styles.previewBadgeOff}>
+              {camOn ? "Camera" : "Camera off"}
             </span>
           </div>
         </div>
 
-        {isViewer && <p className={styles.watchNote}>{t("watchingOnly")}</p>}
-
-        <label className={styles.fieldLabel} htmlFor="prejoin-name">
-          {t("yourName")}
-        </label>
-        <input
-          id="prejoin-name"
-          className={styles.nameInput}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("yourName")}
-          aria-label={t("yourName")}
-        />
-
-        {!isViewer && (
-          <div className={styles.prejoinToggles}>
+        <div className={styles.prejoinToggles}>
             <button
               type="button"
               className={micOn ? styles.prejoinToggleOn : styles.prejoinToggle}
@@ -150,9 +133,8 @@ export default function RoomPreJoin({
               <span>{camOn ? t("turnOnCam") : t("turnOffCam")}</span>
             </button>
           </div>
-        )}
 
-        {!isViewer && devices.audio.length > 1 && (
+        {devices.audio.length > 1 && (
           <label className={styles.selectWrap}>
             <span className={styles.selectLabel}>{t("audioInput")}</span>
             <span className={styles.selectBox}>
@@ -171,7 +153,7 @@ export default function RoomPreJoin({
             </span>
           </label>
         )}
-        {!isViewer && devices.video.length > 1 && (
+        {devices.video.length > 1 && (
           <label className={styles.selectWrap}>
             <span className={styles.selectLabel}>{t("videoInput")}</span>
             <span className={styles.selectBox}>
@@ -195,7 +177,7 @@ export default function RoomPreJoin({
 
         <button
           className={styles.join}
-          onClick={() => onJoin(name.trim() || userName, { micOn, camOn, audioDeviceId, videoDeviceId })}
+          onClick={() => onJoin({ micOn, camOn, audioDeviceId, videoDeviceId })}
           disabled={busy}
         >
           {busy ? t("joining") : joinLabel}

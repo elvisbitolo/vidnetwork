@@ -5,7 +5,7 @@ import { requireOwner, guardJson } from "@/lib/server/authorize";
 export const dynamic = "force-dynamic";
 
 const ALWAYS_ON_SLUG = "community-lounge-247";
-const ALWAYS_ON_NAME = "Community Lounge";
+const ALWAYS_ON_NAME = "New members";
 
 export async function GET() {
   const auth = await requireOwner();
@@ -20,7 +20,10 @@ export async function GET() {
 
   if (!snap.empty) {
     const doc = snap.docs[0];
-    return NextResponse.json({ id: doc.id, ...doc.data() });
+    if (doc.data().name !== ALWAYS_ON_NAME) {
+      await doc.ref.set({ name: ALWAYS_ON_NAME }, { merge: true });
+    }
+    return NextResponse.json({ id: doc.id, ...doc.data(), name: ALWAYS_ON_NAME });
   }
 
   const ref = adminDb().collection("rooms").doc();

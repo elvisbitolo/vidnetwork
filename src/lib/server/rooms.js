@@ -97,12 +97,15 @@ export async function seedAlwaysOnRoom() {
     if (!doc.data().alwaysOn) {
       await doc.ref.set({ alwaysOn: true }, { merge: true });
     }
-    return { id: doc.id, ...doc.data(), alwaysOn: true };
+    if (doc.data().name !== "New members") {
+      await doc.ref.set({ name: "New members" }, { merge: true });
+    }
+    return { id: doc.id, ...doc.data(), name: "New members", alwaysOn: true };
   }
 
   const ref = adminDb().collection("rooms").doc();
   const room = {
-    name: "Community Lounge",
+    name: "New members",
     slug: ALWAYS_ON_SLUG,
     description: "Always open — drop in anytime for company and good vibes.",
     status: "active",

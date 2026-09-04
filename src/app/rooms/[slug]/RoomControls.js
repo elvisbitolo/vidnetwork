@@ -57,16 +57,19 @@ export default function RoomControls({
   const reactionsRef = useRef(null);
 
   function toggleMic() {
-    if (localParticipant.isMicrophoneEnabled) localParticipant.setMicrophoneEnabled(false);
-    else localParticipant.setMicrophoneEnabled(true);
+    if (localParticipant && typeof localParticipant.setMicrophoneEnabled === "function") {
+      localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
+    }
   }
   function toggleCam() {
-    if (localParticipant.isCameraEnabled) localParticipant.setCameraEnabled(false);
-    else localParticipant.setCameraEnabled(true);
+    if (localParticipant && typeof localParticipant.setCameraEnabled === "function") {
+      localParticipant.setCameraEnabled(!isCameraEnabled);
+    }
   }
   function toggleScreen() {
-    if (localParticipant.isScreenShareEnabled) localParticipant.setScreenShareEnabled(false);
-    else localParticipant.setScreenShareEnabled(true);
+    if (localParticipant && typeof localParticipant.setScreenShareEnabled === "function") {
+      localParticipant.setScreenShareEnabled(!isScreenShareEnabled);
+    }
   }
 
   return (

@@ -545,6 +545,15 @@
     "inviteToSpeak": "Einladen",
     "dismiss": "Verwerfen",
     "peopleInRoomTitle": "Personen im Raum",
-    "noParticipants": "Noch niemand hier"
+    "noParticipants": "Noch niemand hier",
+    "cameraPreview": "Kamera-Vorschau",
+    "deviceUnavailable": "Keine Kamera oder kein Mikrofon gefunden. Prüfen Sie Ihre Geräteeinstellungen und Berechtigungen.",
+    "yourName": "Ihr Name",
+    "watchingOnly": "Sie nehmen als Zuschauer teil — Kamera und Mikrofon bleiben aus.",
+    "audioInput": "Mikrofon",
+    "videoInput": "Kamera",
+    "microphone": "Mikrofon",
+    "camera": "Kamera",
+    "joining": "Verbinden…"
   }
 }

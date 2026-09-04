@@ -545,6 +545,15 @@
     "inviteToSpeak": "Inviter",
     "dismiss": "Ignorer",
     "peopleInRoomTitle": "Personnes dans la salle",
-    "noParticipants": "Personne ici pour le moment"
+    "noParticipants": "Personne ici pour le moment",
+    "cameraPreview": "Aperçu de la caméra",
+    "deviceUnavailable": "Aucune caméra ou micro trouvé. Vérifiez vos paramètres et autorisations.",
+    "yourName": "Votre nom",
+    "watchingOnly": "Vous rejoignez en tant que spectateur — caméra et micro restent éteints.",
+    "audioInput": "Microphone",
+    "videoInput": "Caméra",
+    "microphone": "Microphone",
+    "camera": "Caméra",
+    "joining": "Connexion…"
   }
 }

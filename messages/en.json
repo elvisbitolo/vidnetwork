@@ -545,6 +545,15 @@
     "inviteToSpeak": "Invite",
     "dismiss": "Dismiss",
     "peopleInRoomTitle": "People in the room",
-    "noParticipants": "No one here yet"
+    "noParticipants": "No one here yet",
+    "cameraPreview": "Camera preview",
+    "deviceUnavailable": "No camera or microphone was found. Check your device settings and permissions.",
+    "yourName": "Your name",
+    "watchingOnly": "You're joining as a viewer — camera and microphone stay off.",
+    "audioInput": "Microphone",
+    "videoInput": "Camera",
+    "microphone": "Microphone",
+    "camera": "Camera",
+    "joining": "Joining…"
   }
 }

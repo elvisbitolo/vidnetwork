@@ -17,6 +17,7 @@ import RoomStage from "./RoomStage";
 import RoomChat from "./RoomChat";
 import RoomControls from "./RoomControls";
 import ParticipantPanel from "./ParticipantPanel";
+import RoomPreJoin from "./RoomPreJoin";
 import styles from "./room.module.css";
 
 function currentTime() {
@@ -78,6 +79,7 @@ export default function RoomClient({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [joined, setJoined] = useState(false);
+  const [joinPrefs, setJoinPrefs] = useState(null);
   const [isViewer, setIsViewer] = useState(false);
   const [now, setNow] = useState(() => currentTime());
   const [statusMsg, setStatusMsg] = useState("");
@@ -171,7 +173,7 @@ export default function RoomClient({
     };
   }, []);
 
-  async function handleJoin() {
+  async function handleJoin(prefs) {
     setBusy(true);
     setError("");
     try {
@@ -181,6 +183,9 @@ export default function RoomClient({
       tokenRef.current = data.token;
       setServerUrl(data.serverUrl);
       setIsViewer(data.kind === "broadcast" && data.canPublish === false);
+      setJoinPrefs(
+        prefs || { micOn: !isViewer, camOn: !isViewer, audioDeviceId: "", videoDeviceId: "" }
+      );
       setJoined(true);
       reconnectCountRef.current = 0;
       scheduleRefresh(alwaysOn ? 86400 : 14400);
@@ -275,27 +280,25 @@ export default function RoomClient({
       <main className={styles.page}>
         <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} />
         <div className={styles.container}>
-          <div className={styles.prejoinWrap}>
-            <BackButton fallback="/rooms" label="Back to rooms" />
-            <div className={styles.prejoin}>
-              <h1 className={styles.title}>{roomName}</h1>
-              {alwaysOn ? (
-                <p className={styles.subtitle}>
-                  Always open — drop in anytime. A cozy lounge video plays while you&apos;re here.
-                </p>
-              ) : isBroadcast ? (
-                <p className={styles.subtitle}>This is a live broadcast. Join to watch the stream.</p>
-              ) : (
-                <p className={styles.subtitle}>
-                  You&apos;re about to join the live room. Your camera and mic will be used.
-                </p>
-              )}
-              {error && <p className={styles.error}>{error}</p>}
-              <button className={styles.join} onClick={handleJoin} disabled={busy}>
-                {busy ? "Joining…" : alwaysOn ? "Drop in" : isBroadcast ? "Watch broadcast" : "Join room"}
-              </button>
-            </div>
-          </div>
+          <RoomPreJoin
+            roomName={roomName}
+            userName={userName}
+            userAvatar={userAvatar}
+            subtitle={
+              alwaysOn
+                ? "Always open — drop in anytime. A cozy lounge video plays while you're here."
+                : isBroadcast
+                ? "This is a live broadcast. Join to watch the stream."
+                : "Get ready, then join the live room."
+            }
+            joinLabel={
+              busy ? undefined : alwaysOn ? "Drop in" : isBroadcast ? "Join as viewer" : "Join room"
+            }
+            busy={busy}
+            error={error}
+            isViewer={isBroadcast}
+            onJoin={(n, prefs) => handleJoin(prefs)}
+          />
         </div>
       </main>
     );
@@ -332,13 +335,21 @@ export default function RoomClient({
           token={token}
           serverUrl={serverUrl}
           connect={true}
-          video={!isViewer}
-          audio={!isViewer}
+          video={!isViewer && (joinPrefs ? joinPrefs.camOn : true)}
+          audio={!isViewer && (joinPrefs ? joinPrefs.micOn : true)}
           options={{
             adaptiveStream: true,
             dynacast: true,
             disconnectOnPageLeave: false,
             expWebsocketTimeout: 15000,
+            ...(!isViewer && joinPrefs && {
+              videoCaptureDefaults: joinPrefs.camOn
+                ? { deviceId: joinPrefs.videoDeviceId || undefined }
+                : undefined,
+              audioCaptureDefaults: joinPrefs.micOn
+                ? { deviceId: joinPrefs.audioDeviceId || undefined }
+                : undefined,
+            }),
           }}
           onDisconnected={handleDisconnect}
         >

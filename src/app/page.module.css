@@ -266,66 +266,6 @@
   gap: 16px;
 }
 
-.featureCard {
-  background: #fff;
-  border: 1px solid rgba(135, 42, 13, 0.12);
-  border-radius: 18px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 6px 16px -12px rgba(9, 12, 38, 0.25);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.featureCard:hover {
-  transform: translateY(-3px);
-  border-color: rgba(244, 46, 121, 0.45);
-  box-shadow: 0 22px 44px -24px rgba(9, 12, 38, 0.3);
-}
-
-.featureTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.featureIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  background: rgba(244, 46, 121, 0.1);
-  color: #f42e79;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.featureTag {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #87422a;
-  background: rgba(135, 42, 13, 0.08);
-  padding: 5px 11px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.featureName {
-  font-size: 17px;
-  font-weight: 700;
-  color: #090c26;
-}
-
-.featureDesc {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #6f6155;
-}
-
 /* ─── Live room showcase ─── */
 
 .showcaseWindow {

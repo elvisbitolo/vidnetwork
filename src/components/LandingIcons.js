@@ -128,3 +128,27 @@ export function TrendingUpIcon({ size = 24 }) {
     </svg>
   );
 }
+
+export function YarnBallIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" />
+      <path d="M8.5 9.5l7.5-3" />
+      <path d="M9 13.5L17 9" />
+      <path d="M11 16l6.5-1.5" />
+      <path d="M12.5 18.5c-2 .5-4-.5-4.5-2" />
+      <path d="M5.5 11c.5-2 2.5-3.5 4.5-3" />
+      <path d="M4.4 14.6a5 5 0 006 6" />
+    </svg>
+  );
+}
+
+export function CommunityIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 10.5L12 3l9 7.5" />
+      <path d="M5 9.5V20h5v-6h4v6h5V9.5" />
+      <circle cx="12" cy="8" r="1.6" />
+    </svg>
+  );
+}

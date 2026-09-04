@@ -10,7 +10,6 @@ import {
   BookIcon,
   CalendarIcon,
   UsersIcon,
-  ChatIcon,
   CheckIcon,
   PlayIcon,
   MicIcon,
@@ -19,8 +18,9 @@ import {
   TrophyIcon,
   ZapIcon,
   StarIcon,
-  TrendingUpIcon,
 } from "@/components/LandingIcons";
+import { Video, MessagesSquare, GraduationCap, CalendarDays, Award, FileText } from "lucide-react";
+import FeatureIconCard from "@/components/FeatureIconCard";
 import styles from "./page.module.css";
 
 export const metadata = {
@@ -70,52 +70,46 @@ export const metadata = {
 
 const FEATURES = [
   {
-    icon: VideoIcon,
+    icon: Video,
+    accent: "red",
     name: "feature1Title",
     desc: "feature1Desc",
     tag: "feature1Tag",
   },
   {
-    icon: ChatIcon,
+    icon: MessagesSquare,
+    accent: "blue",
     name: "feature2Title",
     desc: "feature2Desc",
     tag: "feature2Tag",
   },
   {
-    icon: BookIcon,
+    icon: GraduationCap,
+    accent: "green",
     name: "feature3Title",
     desc: "feature3Desc",
     tag: "feature3Tag",
   },
   {
-    icon: CalendarIcon,
+    icon: CalendarDays,
+    accent: "orange",
     name: "feature4Title",
     desc: "feature4Desc",
     tag: "feature4Tag",
   },
   {
-    icon: TrophyIcon,
+    icon: Award,
+    accent: "purple",
     name: "feature5Title",
     desc: "feature5Desc",
     tag: "feature5Tag",
   },
   {
-    icon: UsersIcon,
-    name: "feature6Title",
-    desc: "feature6Desc",
-    tag: "feature6Tag",
-  },
-  {
-    icon: BookIcon,
+    icon: FileText,
+    accent: "cyan",
     name: "feature7Title",
     desc: "feature7Desc",
     tag: "feature7Tag",
-  },
-  {
-    icon: TrendingUpIcon,
-    name: "feature8Title",
-    desc: "feature8Desc",
-    tag: "feature8Tag",
   },
 ];
 
@@ -305,18 +299,15 @@ export default function Home() {
             </div>
           </Reveal>
           <div className={styles.featureGrid}>
-            {FEATURES.map((feature, i) => (
+            {FEATURES.map((feature) => (
               <Reveal key={feature.name}>
-                <article className={styles.featureCard}>
-                  <div className={styles.featureTop}>
-                    <span className={styles.featureIcon}>
-                      <feature.icon size={20} />
-                    </span>
-                    <span className={styles.featureTag}>{t(feature.tag)}</span>
-                  </div>
-                  <h3 className={styles.featureName}>{t(feature.name)}</h3>
-                  <p className={styles.featureDesc}>{t(feature.desc)}</p>
-                </article>
+                <FeatureIconCard
+                  icon={feature.icon}
+                  accent={feature.accent}
+                  title={t(feature.name)}
+                  desc={t(feature.desc)}
+                  tag={t(feature.tag)}
+                />
               </Reveal>
             ))}
           </div>

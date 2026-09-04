@@ -6,20 +6,40 @@ import Reveal from "@/components/Reveal";
 import ThemePicker from "@/components/ThemePicker";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import {
-  VideoIcon,
   BookIcon,
-  CalendarIcon,
-  UsersIcon,
   CheckIcon,
   PlayIcon,
-  MicIcon,
-  PhoneIcon,
   ClockIcon,
   TrophyIcon,
   ZapIcon,
   StarIcon,
 } from "@/components/LandingIcons";
-import { Video, MessagesSquare, GraduationCap, CalendarDays, Award, FileText } from "lucide-react";
+import {
+  Video,
+  MessagesSquare,
+  GraduationCap,
+  CalendarDays,
+  Award,
+  FileText,
+  Mic,
+  MicOff,
+  MonitorUp,
+  Hand,
+  SmilePlus,
+  Users,
+  MessageCircle,
+  Settings,
+  MoreHorizontal,
+  LogOut,
+  Captions,
+  SendHorizontal,
+  Paperclip,
+  Smile,
+  Heart,
+  MessageSquareReply,
+  AtSign,
+  ShieldCheck,
+} from "lucide-react";
 import FeatureIconCard from "@/components/FeatureIconCard";
 import styles from "./page.module.css";
 
@@ -121,12 +141,29 @@ const CROCHET_IMAGES = [
 ];
 
 const ROOM_PARTICIPANTS = [
-  { key: "host" },
-  { key: "speaker" },
-  { key: "speaker" },
-  { key: "speaker" },
-  { key: "speaker" },
-  { key: "you" },
+  { nameKey: "pHost", role: "host", mic: "on", speaking: true },
+  { nameKey: "pMaya", role: "speaker", mic: "on", speaking: false, handRaised: true },
+  { nameKey: "pRenee", role: "speaker", mic: "off", speaking: false },
+  { nameKey: "pAmara", role: "speaker", mic: "on", speaking: false },
+  { nameKey: "pDana", role: "speaker", mic: "off", speaking: false },
+  { nameKey: "pMe", role: "you", mic: "on", speaking: false },
+];
+
+const ROOM_CHAT = [
+  { key: "chatMsg1", from: "pHost", me: false, host: true, ts: "ts0", reactions: { heart: 3 } },
+  { key: "chatMsg2", from: "pMe", me: true, ts: "ts0", mention: "pMaya" },
+  { key: "chatMsg3", from: "pAmara", me: false, ts: "ts2", replyFrom: "pMe", reactions: { heart: 2, thumbs: 1 } },
+  { key: "chatMsg4", from: "pRenee", me: false, ts: "ts5", host: false },
+];
+
+const ROOM_MODERATION = [
+  { key: "modMute" },
+  { key: "modRemove" },
+  { key: "modInvite" },
+  { key: "modMakeSpeaker" },
+  { key: "modRemoveSpeaker" },
+  { key: "modEndStream" },
+  { key: "modManageChat" },
 ];
 
 export default function Home() {
@@ -327,55 +364,203 @@ export default function Home() {
           </Reveal>
           <Reveal>
             <div
-              className={styles.showcaseWindow}
+              className={styles.room}
               role="img"
-              aria-label="Live room preview with participants and chat"
+              aria-label={t("roomAria")}
             >
-              <div className={styles.showcaseHead}>
-                <div>
-                  <p className={styles.showcaseTitle}>{t("communityRoom")}</p>
-                  <p className={styles.showcaseSub}>{t("broadcastLive")}</p>
+              {/* Header */}
+              <div className={styles.roomHead}>
+                <div className={styles.roomHeadCopy}>
+                  <h3 className={styles.roomTitle}>{t("communityRoom")}</h3>
+                  <p className={styles.roomDesc}>{t("roomDesc")}</p>
                 </div>
-                <span className={styles.liveBadge}>
-                  <span className={styles.liveDot} aria-hidden="true" />
-                  {t("live")}
-                </span>
+                <div className={styles.roomMeta}>
+                  <span className={styles.recordChip}>
+                    <span className={styles.recordDot} aria-hidden="true" />
+                    {t("recording")}
+                  </span>
+                  <span className={styles.liveBadge}>
+                    <span className={styles.liveDot} aria-hidden="true" />
+                    {t("live")}
+                  </span>
+                  <span className={styles.viewers}>
+                    <Users size={15} aria-hidden="true" />
+                    {t("viewers")}
+                  </span>
+                </div>
               </div>
-              <div className={styles.showcaseBody}>
-                <div className={styles.showcaseGrid}>
+
+              {/* Speaker stage */}
+              <div className={styles.stage}>
+                <div className={styles.stageGrid}>
                   {ROOM_PARTICIPANTS.map((p, i) => (
                     <div
-                      key={p.key + i}
-                      className={p.key === "you" ? `${styles.tile} ${styles.tileYou}` : styles.tile}
+                      key={p.nameKey + i}
+                      className={[
+                        styles.person,
+                        p.role === "you" ? styles.personYou : "",
+                        p.speaking ? styles.personSpeaking : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
-                      <span className={styles.avatar}>
-                        <UsersIcon size={20} />
+                      <span className={styles.personAvatar} aria-hidden="true">
+                        <span className={styles.personInitial}>{t(p.nameKey).charAt(0)}</span>
                       </span>
-                      <span className={styles.tileLabel}>{t(p.key)}</span>
+                      {p.role === "host" && (
+                        <span className={styles.roleHost}>
+                          <ShieldCheck size={13} aria-hidden="true" />
+                          {t("host")}
+                        </span>
+                      )}
+                      {p.role === "you" && <span className={styles.roleYou}>{t("you")}</span>}
+                      <span className={styles.personName}>{t(p.nameKey)}</span>
+                      {p.speaking && (
+                        <span className={styles.speakingBar} aria-hidden="true">
+                          <span className={styles.speakingEqBar} />
+                          <span className={styles.speakingEqBar} />
+                          <span className={styles.speakingEqBar} />
+                        </span>
+                      )}
+                      <span className={p.mic === "off" ? `${styles.personStatus} ${styles.personStatusMuted}` : styles.personStatus}>
+                        {p.handRaised ? (
+                          <span className={styles.handChip}>
+                            <Hand size={13} aria-hidden="true" /> {t("raisedHand")}
+                          </span>
+                        ) : p.mic === "off" ? (
+                          <MicOff size={14} aria-hidden="true" />
+                        ) : (
+                          <Mic size={14} aria-hidden="true" />
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
-                <div className={styles.chat}>
-                  <p className={styles.chatHeader}>{t("liveChat")}</p>
-                  <div className={styles.chatMsgs}>
-                    <div className={styles.msgOther}>{t("welcomeToRoom")}</div>
-                    <div className={styles.msgMe}>{t("hiEveryone")}</div>
-                    <div className={styles.msgOther}>{t("greatToSeeYou")}</div>
-                    <div className={styles.msgMe}>{t("readyWhenYouAre")}</div>
+              </div>
+
+              {/* Live chat (full width) */}
+              <div className={styles.chat}>
+                <div className={styles.chatHead}>
+                  <div className={styles.chatHeadLeft}>
+                    <MessageCircle size={17} aria-hidden="true" />
+                    <span className={styles.chatTitle}>{t("liveChat")}</span>
+                    <span className={styles.chatCount}>{t("chatJoiners")}</span>
                   </div>
-                  <div className={styles.chatInput}>{t("typeMessage")}</div>
+                  <span className={styles.captionsChip}>
+                    <Captions size={15} aria-hidden="true" />
+                    {t("captionsOn")}
+                  </span>
+                </div>
+                <div className={styles.chatMsgs}>
+                  {ROOM_CHAT.map((m) => (
+                    <div
+                      key={m.key}
+                      className={m.me ? `${styles.row} ${styles.rowMe}` : styles.row}
+                    >
+                      <span className={styles.rowAvatar} aria-hidden="true">
+                        {t(m.from).charAt(0)}
+                      </span>
+                      <div className={styles.bubbleWrap}>
+                        <div className={styles.rowMeta}>
+                          <span className={styles.rowName}>{t(m.from)}</span>
+                          {m.host && <span className={styles.badgeHost}>{t("host")}</span>}
+                          {m.me && <span className={styles.badgeYou}>{t("you")}</span>}
+                          <span className={styles.rowTime}>{t(m.ts)}</span>
+                        </div>
+                        <div className={m.me ? `${styles.bubble} ${styles.bubbleMe}` : styles.bubble}>
+                          {m.replyFrom && (
+                            <div className={styles.reply}>
+                              <MessageSquareReply size={12} aria-hidden="true" />
+                              {t("replyingTo", { name: t(m.replyFrom) })}
+                            </div>
+                          )}
+                          <p className={styles.bubbleText}>
+                            {m.mention && (
+                              <span className={styles.mention}>
+                                <AtSign size={12} aria-hidden="true" />@{t(m.mention)}
+                              </span>
+                            )}
+                            {t(m.key)}
+                          </p>
+                          {m.reactions && (
+                            <div className={styles.reactions}>
+                              {m.reactions.heart ? (
+                                <span className={styles.reactionChip}>
+                                  <Heart size={12} aria-hidden="true" /> {m.reactions.heart}
+                                </span>
+                              ) : null}
+                              {m.reactions.thumbs ? (
+                                <span className={styles.reactionChip}>👍 {m.reactions.thumbs}</span>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.composer}>
+                  <div className={styles.composerSide}>
+                    <span className={styles.composerBtn} title={t("ttEmoji")}>
+                      <Smile size={17} aria-hidden="true" />
+                    </span>
+                    <span className={styles.composerBtn} title={t("ttAttach")}>
+                      <Paperclip size={17} aria-hidden="true" />
+                    </span>
+                  </div>
+                  <div className={styles.composerInput}>{t("typeMessage")}</div>
+                  <div className={styles.composerSide}>
+                    <span className={styles.sendBtn} title={t("ttSend")}>
+                      <SendHorizontal size={17} aria-hidden="true" />
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Control bar */}
               <div className={styles.controls}>
-                <span className={styles.controlBtn}>
-                  <MicIcon size={16} />
-                </span>
-                <span className={styles.controlBtn}>
-                  <VideoIcon size={16} />
-                </span>
-                <span className={`${styles.controlBtn} ${styles.controlEnd}`}>
-                  <PhoneIcon size={16} />
-                </span>
+                <div className={styles.controlsLeft}>
+                  <span className={styles.controlBtn} title={t("ttMic")}>
+                    <Mic size={18} aria-hidden="true" />
+                  </span>
+                  <span className={styles.controlBtn} title={t("ttCam")}>
+                    <Video size={18} aria-hidden="true" />
+                  </span>
+                  <span className={styles.controlBtn} title={t("ttScreen")}>
+                    <MonitorUp size={18} aria-hidden="true" />
+                  </span>
+                  <span className={styles.controlBtn} title={t("ttHand")}>
+                    <Hand size={18} aria-hidden="true" />
+                  </span>
+                  <span className={styles.controlBtn} title={t("ttReactions")}>
+                    <SmilePlus size={18} aria-hidden="true" />
+                  </span>
+                </div>
+                <div className={styles.controlsRight}>
+                  <span className={styles.controlBtnEmph} title={t("ttParticipants")}>
+                    <Users size={18} aria-hidden="true" />
+                  </span>
+                  <span className={styles.controlBtnEmph} title={t("ttChat")}>
+                    <MessageCircle size={18} aria-hidden="true" />
+                  </span>
+                  <span className={`${styles.controlBtnEmph} ${styles.controlActive}`} title={t("ttSettings")}>
+                    <Settings size={18} aria-hidden="true" />
+                  </span>
+                  <span className={`${styles.controlBtnEmph} ${styles.moreWrap}`}>
+                    <MoreHorizontal size={18} aria-hidden="true" />
+                    <div className={styles.moreMenu}>
+                      <p className={styles.moreMenuTitle}>{t("hostControls")}</p>
+                      {ROOM_MODERATION.map((m) => (
+                        <span key={m.key} className={styles.moreItem}>
+                          {t(m.key)}
+                        </span>
+                      ))}
+                    </div>
+                  </span>
+                  <span className={`${styles.controlBtn} ${styles.controlLeave}`} title={t("ttLeave")}>
+                    <LogOut size={18} aria-hidden="true" />
+                  </span>
+                </div>
               </div>
             </div>
           </Reveal>

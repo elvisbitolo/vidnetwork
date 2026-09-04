@@ -232,7 +232,6 @@ export default function Home() {
                 {t("exploreCommunity")}
               </Link>
             </div>
-            <p className={styles.heroFine}>{t("freeTrial")}</p>
           </div>
         </HeroSlideshow>
       </section>

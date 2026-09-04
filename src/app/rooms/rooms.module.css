@@ -132,3 +132,79 @@
     grid-template-columns: 1fr;
   }
 }
+
+.liveBanner {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(21, 128, 61, 0.08), rgba(22, 163, 74, 0.04));
+  border: 1px solid rgba(21, 128, 61, 0.25);
+}
+
+.liveBannerHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.liveBannerPulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #16a34a;
+  animation: livePulse 1.3s ease-in-out infinite;
+}
+
+.liveBannerTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.liveBannerCount {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6b7b;
+  background: #ffffff;
+  border: 1px solid rgba(21, 128, 61, 0.2);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.liveBannerList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.liveBannerCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e6e6ef;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.liveBannerCard:hover {
+  border-color: #16a34a;
+  box-shadow: 0 6px 18px rgba(21, 128, 61, 0.12);
+}
+
+.liveBannerCardDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #16a34a;
+  flex-shrink: 0;
+}
+
+.liveBannerCardName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #17171c;
+}

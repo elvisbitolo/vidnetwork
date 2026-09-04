@@ -20,13 +20,14 @@ function PanelAvatar({ name }) {
   return <span className={styles.panelAvatar}>{(name || "?").charAt(0).toUpperCase()}</span>;
 }
 
-export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost, isCoHost, onClose }) {
+export default function ParticipantPanel({ hostId, roomId, currentUserId, currentUserName = "Host", isHost, isCoHost, onClose }) {
   const t = useTranslations("rooms");
   const participants = useParticipants();
-  const { raisedHands, dismissHand } = useRoomData();
+  const { raisedHands, dismissHand, sendSpeakerInvite } = useRoomData();
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState(null);
   const [menuFor, setMenuFor] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   const q = query.trim().toLowerCase();
   const filtered = participants.filter(
@@ -41,6 +42,12 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost
     (p) => p.identity !== hostId && (p.permissions ? p.permissions.canPublish === false : false)
   );
 
+  const maxSpeakers = 9;
+  const speakerCount = filtered.filter(
+    (p) => (p.permissions ? p.permissions.canPublish !== false : true)
+  ).length;
+  const roomFull = speakerCount >= maxSpeakers;
+
   const raisedQueue = Object.entries(raisedHands)
     .filter(([, v]) => v)
     .map(([id]) => id);
@@ -49,13 +56,20 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost
     setBusyId(identity);
     setMenuFor(null);
     try {
-      await fetch(`/api/rooms/${roomId}/participants/${encodeURIComponent(identity)}`, {
+      const res = await fetch(`/api/rooms/${roomId}/participants/${encodeURIComponent(identity)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Could not update participant");
+      }
+      if (res.ok && action === "speaker") {
+        sendSpeakerInvite(identity, currentUserName);
+      }
     } catch {
-      /* best effort */
+      setActionError("Could not update participant");
     } finally {
       setBusyId(null);
     }
@@ -64,15 +78,18 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost
   function ActionsMenu({ p, identity }) {
     const isHostUser = identity === hostId;
     if (!(isHost || isCoHost) || isHostUser) return null;
+    const previewsSpeaker = p.permissions?.canPublish === false;
+    const promoteBlocked = previewsSpeaker && roomFull;
     return (
       <div className={styles.panelActions}>
         <button
           type="button"
           className={styles.panelRowBtn}
           onClick={() => performAction(identity, "speaker")}
-          disabled={busyId === identity}
+          disabled={busyId === identity || promoteBlocked}
+          title={promoteBlocked ? t("stageFull") : ""}
         >
-          <UserPlus size={13} /> {t("makeSpeaker")}
+          <UserPlus size={13} /> {previewsSpeaker ? t("inviteToSpeak") : t("makeSpeaker")}
         </button>
         <button
           type="button"
@@ -146,10 +163,24 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost
             {t("peopleInRoomTitle")}
             <span className={styles.panelCount}>{participants.length}</span>
           </h3>
+          {(isHost || isCoHost) && (
+            <span className={styles.stageCount}>
+              {t("stageCount", { count: speakerCount, max: maxSpeakers })}
+            </span>
+          )}
           <button type="button" className={styles.panelClose} onClick={onClose} aria-label={t("close")}>
             <X size={18} />
           </button>
         </div>
+
+        {actionError && (
+          <p className={styles.panelError} role="alert">
+            {actionError}
+          </p>
+        )}
+        {roomFull && (isHost || isCoHost) && (
+          <p className={styles.panelWarning}>{t("stageFull")}</p>
+        )}
 
         <div className={styles.panelSearch}>
           <Search size={15} />
@@ -176,6 +207,8 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, isHost
                     type="button"
                     className={styles.raisedBtn}
                     onClick={() => performAction(id, "speaker")}
+                    disabled={roomFull}
+                    title={roomFull ? t("stageFull") : ""}
                   >
                     {t("inviteToSpeak")}
                   </button>

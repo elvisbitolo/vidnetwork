@@ -107,7 +107,7 @@ export async function seedAlwaysOnRoom() {
   const room = {
     name: "New members",
     slug: ALWAYS_ON_SLUG,
-    description: "Always open — drop in anytime for company and good vibes.",
+    description: "Always open — pop in anytime for company and good vibes.",
     status: "active",
     maxParticipants: 200,
     groupId: "",

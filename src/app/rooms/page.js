@@ -19,6 +19,7 @@ export default async function RoomsPage() {
   const activeRooms = rooms.filter((room) => room.status === "active");
   const alwaysOnRoom = activeRooms.find((room) => room.alwaysOn);
   const regularRooms = activeRooms.filter((room) => !room.alwaysOn);
+  const liveBroadcasts = regularRooms.filter((room) => (room.kind || "standard") === "broadcast");
 
   const groupIds = [...new Set(activeRooms.map((room) => room.groupId).filter(Boolean))];
   const groupsById = {};
@@ -42,6 +43,31 @@ export default async function RoomsPage() {
           )}
         </div>
         <p className={styles.subtitle}>Live video rooms for the community. Pick one and join.</p>
+
+        {liveBroadcasts.length > 0 && (
+          <div className={styles.liveBanner}>
+            <div className={styles.liveBannerHeader}>
+              <span className={styles.liveBannerPulse} aria-hidden="true" />
+              <span className={styles.liveBannerTitle}>Live now</span>
+              <span className={styles.liveBannerCount}>
+                {liveBroadcasts.length === 1 ? "1 broadcast" : `${liveBroadcasts.length} broadcasts`}
+              </span>
+            </div>
+            <div className={styles.liveBannerList}>
+              {liveBroadcasts.map((room) => (
+                <Link key={room.id} href={`/rooms/${room.slug}`} className={styles.liveBannerCard}>
+                  <span className={styles.liveBannerCardDot} aria-hidden="true" />
+                  <span className={styles.liveBannerCardName}>{room.name}</span>
+                  {room.groupId && groupsById[room.groupId] && (
+                    <span className={styles.groupTag} style={{ marginLeft: 0 }}>
+                      · {groupsById[room.groupId].name}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {activeRooms.length === 0 ? (
           <p className={styles.empty}>No open rooms right now — check back soon.</p>
@@ -82,7 +108,7 @@ export default async function RoomsPage() {
                 </h2>
                 <p className={styles.cardDesc}>{alwaysOnRoom.description}</p>
                 <p className={styles.cardMeta}>
-                  Drop in anytime · background music plays when you&apos;re alone
+                  Pop in anytime · background music plays when you&apos;re alone
                 </p>
               </Link>
             )}

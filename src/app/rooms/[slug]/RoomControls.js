@@ -47,6 +47,8 @@ export default function RoomControls({
   onLeave,
   chatOpen,
   participantsOpen,
+  hideOffCamera = false,
+  onToggleHideOffCamera = () => {},
 }) {
   const t = useTranslations("rooms");
   const { localParticipant, isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } = useLocalParticipant();
@@ -128,6 +130,13 @@ export default function RoomControls({
               </button>
               <button type="button" className={styles.moreItem} onClick={toggleScreen}>
                 <MonitorUp size={15} /> {t("shareScreen")}
+              </button>
+              <button
+                type="button"
+                className={[styles.moreItem, hideOffCamera ? styles.moreItemActive : ""].filter(Boolean).join(" ")}
+                onClick={onToggleHideOffCamera}
+              >
+                <VideoOff size={15} /> {t("hideOffCamera")}
               </button>
               <button type="button" className={styles.moreItem} onClick={() => setShowSettings(true)}>
                 <Volume2 size={15} /> {t("audioSettings")}

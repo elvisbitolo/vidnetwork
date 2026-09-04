@@ -4,7 +4,9 @@ import { listRooms, createRoom } from "@/lib/server/rooms";
 import { requireUser, requireOwner, guardJson } from "@/lib/server/authorize";
 import { getScopedHostRights } from "@/lib/server/hosts";
 import { logAudit } from "@/lib/server/audit";
-import { getSpace } from "@/lib/server/spaces";
+import { getSpace, getSpaceMembers } from "@/lib/server/spaces";
+import { createNotification } from "@/lib/server/notifications";
+import { getUserDoc } from "@/lib/server/auth";
 import { serialize } from "@/lib/server/serialize";
 
 export async function GET() {
@@ -90,5 +92,56 @@ export async function POST(req) {
     metadata: { name, slug: room.slug, groupId, spaceId, kind, opened: !!parsedOpensAt },
   });
 
+  if (room.kind === "broadcast" && !parsedOpensAt) {
+    await notifyRoomGoLive({
+      room,
+      actorId: auth.user.uid,
+      actorName: auth.userDoc?.name || auth.user.email || "A host",
+    });
+  }
+
   return NextResponse.json({ room });
+}
+
+async function notifyRoomGoLive({ room, actorId, actorName }) {
+  const ref = adminDb().collection("rooms").doc(room.id);
+  const doc = await ref.get();
+  if (!doc.exists || doc.data()?.goLiveNotified) return;
+
+  let members = [];
+  if (room.spaceId) {
+    const spaceMembers = await getSpaceMembers(room.spaceId);
+    members = spaceMembers
+      .map((m) => m.userId)
+      .filter((uid) => uid && uid !== actorId);
+  } else if (room.groupId) {
+    const snap = await adminDb()
+      .collection("groupMembers")
+      .where("groupId", "==", room.groupId)
+      .get();
+    members = snap.docs
+      .map((d) => d.data()?.userId)
+      .filter((uid) => uid && uid !== actorId);
+  } else {
+    const snap = await adminDb().collection("users").select("uid").limit(1000).get();
+    members = snap.docs
+      .map((d) => d.data()?.uid)
+      .filter((uid) => uid && uid !== actorId);
+  }
+
+  for (const uid of members) {
+    const target = await getUserDoc(uid);
+    const name = target?.name || "Member";
+    await createNotification({
+      userId: uid,
+      type: "space_activity",
+      actorId,
+      actorName,
+      targetId: room.id,
+      href: `/rooms/${room.slug}`,
+      text: `${actorName} just went live in "${room.name}". Join now.`,
+    });
+  }
+
+  await ref.set({ goLiveNotified: true }, { merge: true });
 }

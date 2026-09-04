@@ -590,6 +590,14 @@
     "delete": "Delete",
     "loadingChat": "Loading chat…",
     "loadEarlier": "Load earlier",
-    "newMessages": "{count} new message"
+    "newMessages": "{count} new message",
+    "stageCount": "Stage {count}/{max}",
+    "stageFull": "Stage is full — max 9 speakers",
+    "speakerInviteTitle": "Invitation to speak",
+    "speakerInviteCopy": "{host} invited you to be a speaker",
+    "acceptSpeaker": "Accept as speaker",
+    "decline": "Decline",
+    "cameraOff": "Camera off",
+    "hideOffCamera": "Hide camera-off speakers"
   }
 }

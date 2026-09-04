@@ -16,6 +16,31 @@ export const CRAFT_OPTIONS = [
   "macrame",
 ];
 
+export const HOBBIES = [
+  "cooking",
+  "baking",
+  "gardening",
+  "shopping",
+  "thrifting",
+  "decoupage",
+  "yoga",
+  "pottery",
+  "painting",
+  "card games",
+  "photography",
+  "board games",
+  "antiquing",
+  "reading",
+  "scrapbooking",
+  "upholstery",
+  "woodworking",
+  "sewing",
+  "dyeing",
+  "spinning",
+  "knitting",
+  "crochet",
+];
+
 export const CROCHET_TECHNIQUES = [
   "amigurumi",
   "blankets & afghans",
@@ -116,6 +141,16 @@ export function normalizeProfile(body) {
           .filter((c) => CRAFT_OPTIONS.includes(c))
       ),
     ].slice(0, CRAFT_OPTIONS.length);
+  }
+  if ("hobbies" in body) {
+    const raw = Array.isArray(body.hobbies) ? body.hobbies : [];
+    patch.hobbies = [
+      ...new Set(
+        raw
+          .map((h) => (typeof h === "string" ? h.trim().slice(0, 60).toLowerCase() : ""))
+          .filter(Boolean)
+      ),
+    ].slice(0, 30);
   }
   if ("yearsExperience" in body) patch.yearsExperience = clean(body.yearsExperience, 40);
   if ("favoriteYarnBrand" in body) patch.favoriteYarnBrand = clean(body.favoriteYarnBrand, 80);

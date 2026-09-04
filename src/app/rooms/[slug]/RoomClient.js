@@ -55,6 +55,38 @@ function LiveViewerCount() {
   );
 }
 
+function SpeakerInviteDialog({ onAccept, onDecline }) {
+  const t = useTranslations("rooms");
+  const { speakerInvite, clearSpeakerInvite } = useRoomData();
+  if (!speakerInvite) return null;
+  return (
+    <div className={styles.inviteBackdrop} onClick={() => { clearSpeakerInvite(); onDecline(); }}>
+      <div className={styles.inviteDialog} onClick={(e) => e.stopPropagation()}>
+        <h4 className={styles.inviteTitle}>{t("speakerInviteTitle")}</h4>
+        <p className={styles.inviteCopy}>
+          {t("speakerInviteCopy", { host: speakerInvite.hostName })}
+        </p>
+        <div className={styles.inviteActions}>
+          <button
+            type="button"
+            className={styles.inviteAccept}
+            onClick={() => { clearSpeakerInvite(); onAccept(); }}
+          >
+            {t("acceptSpeaker")}
+          </button>
+          <button
+            type="button"
+            className={styles.inviteDecline}
+            onClick={() => { clearSpeakerInvite(); onDecline(); }}
+          >
+            {t("decline")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RoomClient({
   roomName,
   slug,
@@ -85,6 +117,7 @@ export default function RoomClient({
   const [statusMsg, setStatusMsg] = useState("");
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [hideOffCamera, setHideOffCamera] = useState(false);
 
   const tokenRef = useRef("");
   const reconnectTimer = useRef(null);
@@ -243,6 +276,20 @@ export default function RoomClient({
     };
   }, []);
 
+  async function acceptSpeakerInvite() {
+    try {
+      const data = await fetchToken();
+      if (data) {
+        setToken(data.token);
+        tokenRef.current = data.token;
+        setServerUrl(data.serverUrl);
+        setIsViewer(data.kind === "broadcast" && data.canPublish === false);
+      }
+    } catch {
+      /* token refresh failed — keep current session */
+    }
+  }
+
   if (waiting) {
     return (
       <main className={styles.page}>
@@ -286,13 +333,13 @@ export default function RoomClient({
             userAvatar={userAvatar}
             subtitle={
               alwaysOn
-                ? "Always open — drop in anytime. A cozy lounge video plays while you're here."
+                ? "Always open — pop in anytime. A cozy lounge video plays while you're here."
                 : isBroadcast
                 ? "This is a live broadcast. Join to watch the stream."
                 : "Get ready, then join the live room."
             }
             joinLabel={
-              busy ? undefined : alwaysOn ? "Drop in" : isBroadcast ? "Join as viewer" : "Join room"
+              busy ? undefined : alwaysOn ? "Pop in" : isBroadcast ? "Join as viewer" : "Join room"
             }
             busy={busy}
             error={error}
@@ -372,7 +419,7 @@ export default function RoomClient({
                 <div className={styles.roomHeaderMeta}>
                   <ConnectionStatus />
                   <LiveViewerCount />
-                  {isHost && (
+                  {(isHost || (isBroadcast ? !isViewer : true)) && (
                     <span className={styles.recordChip}>
                       <span className={styles.recordDot} aria-hidden="true" /> REC
                     </span>
@@ -385,6 +432,7 @@ export default function RoomClient({
                   hostId={hostId}
                   currentUserId={userId}
                   isCoHost={isCoHost}
+                  hideOffCamera={hideOffCamera}
                   onShowPeople={() => setShowParticipants(true)}
                 />
                 <div className={styles.chatSection}>
@@ -403,6 +451,8 @@ export default function RoomClient({
                 canPublish={!isViewer}
                 isBroadcast={isBroadcast}
                 isViewer={isViewer}
+                hideOffCamera={hideOffCamera}
+                onToggleHideOffCamera={() => setHideOffCamera((v) => !v)}
                 chatOpen={showChat}
                 participantsOpen={showParticipants}
                 onOpenParticipants={() => setShowParticipants((v) => !v)}
@@ -416,11 +466,14 @@ export default function RoomClient({
                 hostId={hostId}
                 roomId={roomId}
                 currentUserId={userId}
+                currentUserName={userName}
                 isHost={isHost}
                 isCoHost={isCoHost}
                 onClose={() => setShowParticipants(false)}
               />
             )}
+
+            <SpeakerInviteDialog onAccept={acceptSpeakerInvite} onDecline={() => {}} />
           </RoomDataProvider>
           <RoomAudioRenderer />
         </LiveKitRoom>

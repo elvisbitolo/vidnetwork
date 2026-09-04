@@ -590,6 +590,14 @@
     "delete": "Supprimer",
     "loadingChat": "Chargement du chat…",
     "loadEarlier": "Charger plus tôt",
-    "newMessages": "{count} nouveau message"
+    "newMessages": "{count} nouveau message",
+    "stageCount": "Scène {count}/{max}",
+    "stageFull": "La scène est pleine — 9 orateurs max",
+    "speakerInviteTitle": "Invitation à parler",
+    "speakerInviteCopy": "{host} vous invite à rejoindre la scène",
+    "acceptSpeaker": "Accepter comme orateur",
+    "decline": "Refuser",
+    "cameraOff": "Caméra coupée",
+    "hideOffCamera": "Masquer ceux caméra coupée"
   }
 }

@@ -30,7 +30,7 @@ export async function GET() {
   const room = {
     name: ALWAYS_ON_NAME,
     slug: ALWAYS_ON_SLUG,
-    description: "Always open — drop in anytime for company and good vibes.",
+    description: "Always open — pop in anytime for company and good vibes.",
     status: "active",
     maxParticipants: 50,
     groupId: "",

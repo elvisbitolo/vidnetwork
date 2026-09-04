@@ -3,7 +3,7 @@
 import { useParticipants, useSpeakingParticipants, VideoTrack, useTrackByName } from "@livekit/components-react";
 import { useTranslations } from "next-intl";
 import { Track } from "livekit-client";
-import { Mic, MicOff, Hand, Music4 } from "lucide-react";
+import { Mic, MicOff, Hand, Music4, VideoOff } from "lucide-react";
 import { useRoomData } from "./RoomDataProvider";
 import styles from "./room.module.css";
 
@@ -36,7 +36,7 @@ function VideoTile({ participant, speaking }) {
   );
 }
 
-export default function RoomStage({ hostId, currentUserId, isCoHost, onShowPeople }) {
+export default function RoomStage({ hostId, currentUserId, isCoHost, hideOffCamera = false, onShowPeople }) {
   const t = useTranslations("rooms");
   const participants = useParticipants();
   const speakers = useSpeakingParticipants();
@@ -46,18 +46,21 @@ export default function RoomStage({ hostId, currentUserId, isCoHost, onShowPeopl
   const withPublish = participants.filter((p) =>
     p.permissions ? p.permissions.canPublish !== false : true
   );
+  const visibleSpeakers = hideOffCamera
+    ? withPublish.filter((p) => p.identity === hostId || p.isCameraEnabled !== false)
+    : withPublish;
 
   return (
     <>
       <div className={styles.stage} aria-label={t("stage")}>
         <div className={styles.stageGrid}>
-          {withPublish.length === 0 && (
+          {visibleSpeakers.length === 0 && (
             <div className={styles.stageEmpty}>
               <Music4 size={28} />
               <p>{t("waitingForSpeakers")}</p>
             </div>
           )}
-          {withPublish.map((p) => {
+          {visibleSpeakers.map((p) => {
             const isMe = p.identity === currentUserId;
             const isActive = speakerIds.has(p.identity);
             const isHostUser = p.identity === hostId;
@@ -88,6 +91,11 @@ export default function RoomStage({ hostId, currentUserId, isCoHost, onShowPeopl
                 {handRaised && (
                   <span className={styles.tileHand}>
                     <Hand size={14} /> {t("raisedHand")}
+                  </span>
+                )}
+                {p.isCameraEnabled === false && (
+                  <span className={styles.tileCamOff}>
+                    <VideoOff size={14} /> {t("cameraOff")}
                   </span>
                 )}
                 {isActive && (

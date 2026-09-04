@@ -1941,3 +1941,123 @@
     animation: none !important;
   }
 }
+
+.stageCount {
+  font-size: 11px;
+  font-weight: 700;
+  color: #716a70;
+  background: #f4e4e8;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.panelError {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #fdeaea;
+  border: 1px solid #f3c2c2;
+  color: #a1253a;
+}
+
+.panelWarning {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: #fff6e6;
+  border: 1px solid #f0d9a8;
+  color: #8a5a10;
+}
+
+.inviteDialog {
+  background: #ffffff;
+  border: 1px solid #e5d9dc;
+  border-radius: 16px;
+  box-shadow: 0 -32px 64px -32px rgba(37, 35, 41, 0.45);
+  padding: 20px;
+  width: 320px;
+  max-width: 90%;
+}
+
+.inviteBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(37, 35, 41, 0.45);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.inviteTitle {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #252329;
+}
+
+.inviteCopy {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #716a70;
+}
+
+.inviteActions {
+  display: flex;
+  gap: 10px;
+}
+
+.inviteAccept,
+.inviteDecline {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid #e5d9dc;
+  background: #ffffff;
+  color: #252329;
+}
+
+.inviteAccept {
+  background: #8b3a62;
+  border-color: #8b3a62;
+  color: #ffffff;
+}
+
+.inviteAccept:hover {
+  background: #762f53;
+}
+
+.inviteDecline:hover {
+  border-color: #d98a9e;
+  color: #8b3a62;
+}
+
+.tileCamOff {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(37, 35, 41, 0.78);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px -8px rgba(37, 35, 41, 0.5);
+}
+
+.moreItemActive {
+  background: #f4e4e8;
+  color: #8b3a62;
+}

@@ -4,8 +4,11 @@ import { requireScopeHost, guardJson } from "@/lib/server/authorize";
 import {
   removeLiveParticipant,
   setLiveParticipantPublish,
+  listLiveParticipants,
 } from "@/lib/server/livekit";
 import { logAudit } from "@/lib/server/audit";
+
+export const MAX_SPEAKERS = 9;
 
 export async function POST(req, { params }) {
   const { id, identity } = await params;
@@ -21,6 +24,18 @@ export async function POST(req, { params }) {
   const { action } = await req.json();
   if (!["remove", "viewer", "speaker"].includes(action)) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+  }
+
+  if (action === "speaker") {
+    const live = await listLiveParticipants(room.slug);
+    const speakerCount = live.filter((p) => p.canPublish !== false).length;
+    const isTargetingNewSpeaker = live.some((p) => p.identity === identity && p.canPublish === false);
+    if (isTargetingNewSpeaker && speakerCount >= MAX_SPEAKERS) {
+      return NextResponse.json(
+        { error: `Room is full — max ${MAX_SPEAKERS} speakers on stage.` },
+        { status: 409 }
+      );
+    }
   }
 
   let result;

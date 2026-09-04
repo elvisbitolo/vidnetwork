@@ -90,6 +90,7 @@ export default function RoomDataProvider({
   const [floatingReactions, setFloatingReactions] = useState([]);
   const [raisedHands, setRaisedHands] = useState({});
   const [myHandRaised, setMyHandRaised] = useState(false);
+  const [speakerInvite, setSpeakerInvite] = useState(null);
 
   const cursorRef = useRef(null);
   const lastLoadedAtRef = useRef(null);
@@ -185,6 +186,26 @@ export default function RoomDataProvider({
     const from = msg.from?.identity || "";
     setRaisedHands((prev) => ({ ...prev, [from]: !!data.value }));
   });
+
+  const { send: sendSpeakerInviteRaw } = useDataChannel("speakerInvite", (msg) => {
+    const data = decode(msg.payload);
+    if (!data || data.type !== "speakerInvite") return;
+    if (data.target !== userIdRef.current) return;
+    const from = msg.from?.identity || "";
+    setSpeakerInvite({ host: from, hostName: data.hostName || from });
+  });
+
+  const clearSpeakerInvite = useCallback(() => setSpeakerInvite(null), []);
+
+  const sendSpeakerInvite = useCallback(
+    (target, hostName) => {
+      sendSpeakerInviteRaw(encode({ type: "speakerInvite", target, hostName }), {
+        reliable: true,
+        topic: "speakerInvite",
+      });
+    },
+    [sendSpeakerInviteRaw]
+  );
 
   const sendChatMessage = useCallback(
     async (text, replyTo = null, mentions = []) => {
@@ -313,6 +334,7 @@ export default function RoomDataProvider({
       floatingReactions,
       raisedHands,
       myHandRaised,
+      speakerInvite,
       canModerate,
       isHost,
       sendChatMessage,
@@ -322,6 +344,8 @@ export default function RoomDataProvider({
       sendReaction,
       toggleHand,
       dismissHand,
+      clearSpeakerInvite,
+      sendSpeakerInvite,
     }),
     [
       messages,
@@ -332,6 +356,7 @@ export default function RoomDataProvider({
       floatingReactions,
       raisedHands,
       myHandRaised,
+      speakerInvite,
       canModerate,
       isHost,
       sendChatMessage,
@@ -341,6 +366,8 @@ export default function RoomDataProvider({
       sendReaction,
       toggleHand,
       dismissHand,
+      clearSpeakerInvite,
+      sendSpeakerInvite,
     ]
   );
 

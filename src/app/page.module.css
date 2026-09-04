@@ -67,6 +67,18 @@
   color: #fff;
 }
 
+.heroCopy .secondary {
+  background: rgba(244, 46, 121, 0.6);
+  border-color: rgba(244, 46, 121, 0.9);
+  color: #fff;
+}
+
+.heroCopy .secondary:hover {
+  background: #f42e79;
+  border-color: #f42e79;
+  color: #fff;
+}
+
 @media (min-width: 1025px) {
   .heroCopy .primary {
     background: #f42e79;
@@ -76,17 +88,17 @@
   }
 
   .heroCopy .secondary {
-    background: rgba(9, 12, 38, 0.25);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(244, 46, 121, 0.55);
+    border-color: rgba(244, 46, 121, 0.9);
     color: #fff;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }
 
   .heroCopy .secondary:hover {
-    background: #fff;
-    border-color: #fff;
-    color: #090c26;
+    background: #f42e79;
+    border-color: #f42e79;
+    color: #fff;
   }
 }
 

@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
-import {
-  LiveKitRoom,
-  VideoConference,
-  RoomAudioRenderer,
-  useParticipants,
-  useConnectionState,
-} from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useParticipants } from "@livekit/components-react";
 import "@livekit/components-styles";
 import BackButton from "@/components/BackButton";
 import AmbientAudio from "@/components/AmbientAudio";
 import RoomBackground from "@/components/RoomBackground";
 import RoomMusicPicker from "@/components/RoomMusicPicker";
+import RoomDataProvider from "./RoomDataProvider";
+import RoomStage from "./RoomStage";
+import RoomChat from "./RoomChat";
+import RoomControls from "./RoomControls";
+import ParticipantPanel from "./ParticipantPanel";
 import styles from "./room.module.css";
 
 function currentTime() {
@@ -24,14 +24,15 @@ function currentTime() {
 }
 
 function ConnectionStatus() {
+  const t = useTranslations("rooms");
   const state = useConnectionState();
   const label =
     state === "connected"
       ? ""
       : state === "connecting" || state === "reconnecting"
-      ? "Reconnecting…"
+      ? t("reconnecting")
       : state === "disconnected"
-      ? "Disconnected"
+      ? t("disconnected")
       : "";
   if (!label) return null;
   return (
@@ -42,136 +43,35 @@ function ConnectionStatus() {
   );
 }
 
-function HostControls({ roomId, isHost }) {
+function LiveViewerCount() {
+  const t = useTranslations("rooms");
   const participants = useParticipants();
-  const router = useRouter();
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const remote = participants.filter((p) => !p.isLocal);
-
-  async function act(identity, action) {
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch(
-        `/api/rooms/${roomId}/participants/${encodeURIComponent(identity)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Action failed");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function endRoom() {
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/rooms/${roomId}/end`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not end the room");
-      router.push("/rooms");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
-    <>
-      <div className={styles.hostControls}>
-        <button
-          type="button"
-          className={styles.hostButton}
-          onClick={() => setPanelOpen((v) => !v)}
-          aria-expanded={panelOpen}
-        >
-          Participants ({remote.length})
-        </button>
-        {isHost && (
-          <button
-            type="button"
-            className={styles.hostButtonDanger}
-            onClick={endRoom}
-            disabled={busy}
-          >
-            {busy ? "…" : "End room"}
-          </button>
-        )}
-        {error && <p className={styles.hostError}>{error}</p>}
-      </div>
-      {panelOpen && (
-        <div className={styles.participantPanel}>
-          <p className={styles.participantPanelTitle}>Participants</p>
-          {remote.length === 0 ? (
-            <p className={styles.participantName}>No other participants yet.</p>
-          ) : (
-            remote.map((p) => {
-              const canPublish = p.permissions ? p.permissions.canPublish !== false : true;
-              return (
-                <div key={p.identity} className={styles.participantRow}>
-                  <div style={{ minWidth: 0 }}>
-                    <p className={styles.participantName}>
-                      {p.name || p.identity}
-                    </p>
-                    <p className={styles.participantTag}>
-                      {canPublish ? "speaker" : "viewer"}
-                    </p>
-                  </div>
-                  {isHost && (
-                    <div className={styles.participantActions}>
-                      {!canPublish ? (
-                        <button
-                          type="button"
-                          className={styles.participantBtn}
-                          onClick={() => act(p.identity, "speaker")}
-                          disabled={busy}
-                        >
-                          Speaker
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className={styles.participantBtn}
-                          onClick={() => act(p.identity, "viewer")}
-                          disabled={busy}
-                        >
-                          Viewer
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={`${styles.participantBtn} ${styles.participantBtnDanger}`}
-                        onClick={() => act(p.identity, "remove")}
-                        disabled={busy}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-    </>
+    <span className={styles.liveViewers}>
+      <span className={styles.liveDot} aria-hidden="true" />
+      {t("live")} · {t("watchingCount", { count: participants.length })}
+    </span>
   );
 }
 
-export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt, isHost, isCoHost, alwaysOn, musicUrl, musicPlaying, musicFileId }) {
+export default function RoomClient({
+  roomName,
+  slug,
+  roomId,
+  kind,
+  role,
+  opensAt,
+  isHost,
+  isCoHost,
+  alwaysOn,
+  musicUrl,
+  musicPlaying,
+  musicFileId,
+  hostId = "",
+  userId = "",
+  userName = "Member",
+  userAvatar = "",
+}) {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
@@ -181,6 +81,8 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const [isViewer, setIsViewer] = useState(false);
   const [now, setNow] = useState(() => currentTime());
   const [statusMsg, setStatusMsg] = useState("");
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showChat, setShowChat] = useState(true);
 
   const tokenRef = useRef("");
   const reconnectTimer = useRef(null);
@@ -214,6 +116,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
   const isBroadcast = kind === "broadcast";
   const isOwner = role === "owner";
   const isStaff = role === "owner" || role === "moderator";
+  const isModerator = role === "moderator";
   const waiting = Boolean(opensAt) && !isHost && now < opensAt;
   const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
 
@@ -298,7 +201,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
     }
   }
 
-  const handleDisconnect = useCallback(() => {
+  function handleDisconnect() {
     if (!alwaysOn) {
       router.push("/rooms");
       return;
@@ -327,7 +230,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
         handleDisconnect();
       }
     }, delay);
-  }, [alwaysOn, router, slug]);
+  }
 
   useEffect(() => {
     return () => {
@@ -359,9 +262,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
                     })
                   : ""}
               </p>
-              <p className={styles.waitHint}>
-                We&apos;ll let you in automatically when it starts.
-              </p>
+              <p className={styles.waitHint}>We&apos;ll let you in automatically when it starts.</p>
             </div>
           </div>
         </div>
@@ -383,9 +284,7 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
                   Always open — drop in anytime. A cozy lounge video plays while you&apos;re here.
                 </p>
               ) : isBroadcast ? (
-                <p className={styles.subtitle}>
-                  This is a live broadcast. Join to watch the stream.
-                </p>
+                <p className={styles.subtitle}>This is a live broadcast. Join to watch the stream.</p>
               ) : (
                 <p className={styles.subtitle}>
                   You&apos;re about to join the live room. Your camera and mic will be used.
@@ -406,7 +305,14 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
     <main className={styles.page}>
       <RoomBackground show={alwaysOn} musicActive={!!musicPlaying} autoplaySound={joined} />
       <div className={styles.roomWrap} style={{ position: "relative" }}>
-        <AmbientAudio active={alwaysOn} roomId={roomId} musicUrl={musicUrl} musicPlaying={musicPlaying} musicFileId={musicFileId} hasVideoBackdrop={alwaysOn} />
+        <AmbientAudio
+          active={alwaysOn}
+          roomId={roomId}
+          musicUrl={musicUrl}
+          musicPlaying={musicPlaying}
+          musicFileId={musicFileId}
+          hasVideoBackdrop={alwaysOn}
+        />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         {statusMsg && (
           <div className={styles.reconnectBanner}>
@@ -436,14 +342,73 @@ export default function RoomClient({ roomName, slug, roomId, kind, role, opensAt
           }}
           onDisconnected={handleDisconnect}
         >
-          {isViewer && (
-            <p className={styles.viewerBanner}>
-              Watching as a viewer — only the host can broadcast.
-            </p>
-          )}
-          <ConnectionStatus />
-          {(isHost || isCoHost) && <HostControls roomId={roomId} isHost={isHost} />}
-          <VideoConference />
+          <RoomDataProvider
+            hostId={hostId}
+            currentUserId={userId}
+            currentUserName={userName}
+            currentUserAvatar={userAvatar}
+          >
+            <div className={styles.liveRoom}>
+              <header className={styles.roomHeader}>
+                <div className={styles.roomHeaderCopy}>
+                  <h1 className={styles.roomHeaderTitle}>{roomName}</h1>
+                  <p className={styles.roomHeaderDesc}>
+                    {isBroadcast ? "Live broadcast to the community" : "A live gathering with the community"}
+                  </p>
+                </div>
+                <div className={styles.roomHeaderMeta}>
+                  <ConnectionStatus />
+                  <LiveViewerCount />
+                  {isHost && (
+                    <span className={styles.recordChip}>
+                      <span className={styles.recordDot} aria-hidden="true" /> REC
+                    </span>
+                  )}
+                </div>
+              </header>
+
+              <div className={styles.liveScroll}>
+                <RoomStage
+                  hostId={hostId}
+                  currentUserId={userId}
+                  isCoHost={isCoHost}
+                  onShowPeople={() => setShowParticipants(true)}
+                />
+                <div className={styles.chatSection}>
+                  <RoomChat
+                    hostId={hostId}
+                    currentUserId={userId}
+                    currentUserName={userName}
+                    currentUserAvatar={userAvatar}
+                  />
+                </div>
+              </div>
+
+              <RoomControls
+                isHost={isHost}
+                isCoHost={isCoHost}
+                canPublish={!isViewer}
+                isBroadcast={isBroadcast}
+                isViewer={isViewer}
+                chatOpen={showChat}
+                participantsOpen={showParticipants}
+                onOpenParticipants={() => setShowParticipants((v) => !v)}
+                onOpenChat={() => setShowChat((v) => !v)}
+                onLeave={() => router.push("/rooms")}
+              />
+            </div>
+
+            {showParticipants && (
+              <ParticipantPanel
+                hostId={hostId}
+                roomId={roomId}
+                currentUserId={userId}
+                isHost={isHost}
+                isCoHost={isCoHost}
+                onClose={() => setShowParticipants(false)}
+              />
+            )}
+          </RoomDataProvider>
           <RoomAudioRenderer />
         </LiveKitRoom>
       </div>

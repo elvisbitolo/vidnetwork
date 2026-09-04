@@ -48,6 +48,10 @@ export default async function RoomPage({ params }) {
         musicUrl={room.musicUrl || ""}
         musicPlaying={!!room.musicPlaying}
         musicFileId={room.musicFileId || ""}
+        hostId={room.createdBy || ""}
+        userId={user.uid}
+        userName={userDoc?.name || user.displayName || "Member"}
+        userAvatar={userDoc?.avatar || user.photoURL || ""}
       />
 </Nav>
     </>

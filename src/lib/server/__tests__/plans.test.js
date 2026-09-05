@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { TIERS, tierRank, tierLabel, meetsTier, priceIdFor } from "../plans.js";
+import { TIERS, tierRank, tierLabel, meetsTier } from "../plans.js";
 
 test("TIERS order is lounge, plus, host", () => {
   assert.deepEqual(TIERS, ["lounge", "plus", "host"]);
@@ -44,20 +44,4 @@ test("meetsTier: legacy premium requirement maps to host", () => {
   assert.equal(meetsTier("standard", "premium"), false);
   assert.equal(meetsTier("premium", "premium"), true);
   assert.equal(meetsTier("host", "premium"), true);
-});
-
-test("priceIdFor returns null when not configured", () => {
-  assert.equal(priceIdFor("lounge", "MONTHLY"), null);
-});
-
-test("priceIdFor reads the tiered env var", () => {
-  process.env.STRIPE_PRICE_HOST_YEARLY = "price_host_yearly";
-  assert.equal(priceIdFor("host", "YEARLY"), "price_host_yearly");
-  delete process.env.STRIPE_PRICE_HOST_YEARLY;
-});
-
-test("priceIdFor falls back to the legacy plan var", () => {
-  process.env.STRIPE_PRICE_MONTHLY = "price_monthly";
-  assert.equal(priceIdFor("lounge", "MONTHLY"), "price_monthly");
-  delete process.env.STRIPE_PRICE_MONTHLY;
 });

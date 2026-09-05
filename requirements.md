@@ -13,7 +13,7 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
 | Vercel | https://vercel.com | Hosting & deployment | Yes |
 | GitHub | https://github.com | Source code repository | Yes |
 | Firebase | https://console.firebase.google.com | Database, auth, storage | Yes (Spark) |
-| Stripe | https://dashboard.stripe.com | Payments & subscriptions | Yes (no monthly fee) |
+| Shopify | https://www.shopify.com | Payments, subscriptions & the marketing site (speakeasy landing page) | Yes (paid plan) |
 | LiveKit | https://livekit.io | Video rooms | Yes (limited) |
 | Resend | https://resend.com | Transactional emails | Yes (100/day) |
 | Google Search Console | https://search.google.com/search-console | SEO | Yes |
@@ -40,33 +40,11 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
 | `FIREBASE_CLIENT_EMAIL` | Same page → `client_email` from the JSON |
 | `FIREBASE_PRIVATE_KEY` | Same page → `private_key` from the JSON |
 
-### Stripe
-| Variable | Where to get it |
-|----------|----------------|
-| `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API keys → Secret key (starts with `sk_test_`) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks → Add endpoint → Copy signing secret (starts with `whsec_`) |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API keys → Publishable key (starts with `pk_test_`) |
-| `STRIPE_PRICE_MONTHLY` | Stripe Dashboard → Product catalog → Create product → Add price → Copy price ID (starts with `price_`) |
-| `STRIPE_PRICE_YEARLY` | Same as above, create yearly price |
-| `STRIPE_PRICE_STANDARD_MONTHLY` | Same as above (standard tier monthly) |
-| `STRIPE_PRICE_STANDARD_YEARLY` | Same as above (standard tier yearly) |
-| `STRIPE_PRICE_PREMIUM_MONTHLY` | Same as above (premium tier monthly) |
-| `STRIPE_PRICE_PREMIUM_YEARLY` | Same as above (premium tier yearly) |
+### Payments (Shopify)
+Payments are handled through **Shopify** (products, subscriptions, and the marketing/landing site at `secretyarnery.com`). The app does **not** use a payment gateway directly.
 
-**Stripe Setup Steps:**
-1. Create Stripe account at https://dashboard.stripe.com
-2. Complete business verification
-3. Go to Developers → API keys → Copy publishable and secret keys
-4. Go to Product catalog → Create products:
-   - "Community Standard Monthly" → price: $9/mo
-   - "Community Standard Yearly" → price: $90/yr
-   - "Community Premium Monthly" → price: $19/mo
-   - "Community Premium Yearly" → price: $190/yr
-5. Copy each price ID
-6. Go to Developers → Webhooks → Add endpoint:
-   - URL: `https://yarnerylounge.vercel.app/api/webhooks/stripe`
-   - Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `invoice.upcoming`
-7. Copy the webhook signing secret
+- Membership tiers are sold as Shopify products (currently: **Flirting**, **Hooking Up**, **Moving In** — monthly/annual).
+- Shopify order data is used by the app to determine membership status (paid / overdue / ended) — automated syncing is planned; until then membership state is managed via the `subscriptions/{uid}` collection.
 
 ### LiveKit
 | Variable | Where to get it |
@@ -102,7 +80,7 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
 - [ ] Transfer GitHub repository to client
 - [ ] Invite client to Vercel project
 - [ ] Invite client to Firebase project
-- [ ] Give client Stripe dashboard access
+- [ ] Give client Shopify account access
 - [ ] Give client LiveKit dashboard access
 - [ ] Update Vercel env vars with client's keys
 - [ ] Deploy final version
@@ -112,57 +90,45 @@ The client needs to create all of these accounts with her own email (`Mamameer@g
 ### Client Actions
 - [ ] Create all accounts (Section 1)
 - [ ] Generate Firebase service account JSON
-- [ ] Set up Stripe products and prices
-- [ ] Set up Stripe webhook
+- [ ] Set up Shopify products (tier products + prices, monthly/annual)
+- [ ] Confirm payment status (paid / overdue / ended) ties into the app's membership status
 - [ ] Create LiveKit project
 - [ ] Create Resend API key
 - [ ] Send all API keys to developer
 - [ ] Accept Vercel transfer
 - [ ] Accept GitHub transfer
 - [ ] Accept Firebase ownership
-- [ ] Verify Stripe is working (test a subscription)
+- [ ] Confirm test purchase (Shopify) updates membership status
 - [ ] Verify emails are sending
 - [ ] Verify video rooms work
 
 ---
 
-## 4. Stripe Product Setup (Detailed)
+## 4. Shopify Product Setup (Membership Tiers)
 
-Create these products in Stripe Dashboard → Product catalog:
+Create the membership products in Shopify (Products → Add product). Each tier keeps its description close to the **speakeasy landing page** copy. Suggested products:
 
-### Product 1: Community Standard
-- Name: "Community Standard"
-- Description: "Access to live rooms, courses, events, and community features"
-- Prices:
-  - Monthly: $9.00 USD
-  - Yearly: $90.00 USD
+### Product 1: Flirting
+- Virtual tier product, $0 (join/free)
+- Description: the free way in — intro rooms, community chat, and the basics.
 
-### Product 2: Community Premium
-- Name: "Community Premium"
-- Description: "Everything in Standard plus premium courses, exclusive events, and priority support"
-- Prices:
-  - Monthly: $19.00 USD
-  - Yearly: $190.00 USD
+### Product 2: Hooking Up
+- Monthly $7.95 / Annual $79.50
+- Description: the full calendar — deeper rooms, groups, and all events.
 
-After creating each price, copy the price ID (starts with `price_`) and use it in the environment variables.
+### Product 3: Moving In
+- Monthly $17.95 / Annual $179.50
+- Description: everything + VIP perks, priority matches, and host privileges.
+
+Set the app's membership `tier` and status (paid / overdue / ended) from Shopify order data. No payment env variables exist in the app — payments happen on Shopify.
 
 ---
 
-## 5. Stripe Webhook Setup
+## 5. Shopify Payment Status Check
 
-1. Go to Stripe Dashboard → Developers → Webhooks
-2. Click "Add endpoint"
-3. URL: `https://yarnerylounge.vercel.app/api/webhooks/stripe`
-4. Select these events:
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_failed`
-   - `invoice.upcoming`
-5. Click "Add endpoint"
-6. Copy the signing secret (starts with `whsec_`)
-7. Use this as `STRIPE_WEBHOOK_SECRET` in Vercel
+1. Purchases happen on Shopify (the client's `secretyarnery.com` store).
+2. The app reads membership status from the `subscriptions/{uid}` collection: `tier`, `status` (`active` / `past_due` / `canceled` / `inactive`), and `currentPeriodEnd`.
+3. Until Shopify order data is synced automatically, membership should be maintained manually (or via a future Shopify app/webhook).
 
 ---
 
@@ -189,8 +155,7 @@ Test these features after transfer:
 - [ ] Live rooms work (create room, join room)
 - [ ] Courses page loads
 - [ ] Events page loads
-- [ ] Subscription checkout works (Stripe test mode)
-- [ ] Webhook receives events
+- [ ] Membership status reflects the paid tier (Shopify order)
 - [ ] Admin panel works
 - [ ] Music player works in rooms
 - [ ] PWA install prompt appears
@@ -221,16 +186,8 @@ LIVEKIT_URL=
 LIVEKIT_API_KEY=
 LIVEKIT_API_SECRET=
 
-# Stripe
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_PRICE_MONTHLY=
-STRIPE_PRICE_YEARLY=
-STRIPE_PRICE_STANDARD_MONTHLY=
-STRIPE_PRICE_STANDARD_YEARLY=
-STRIPE_PRICE_PREMIUM_MONTHLY=
-STRIPE_PRICE_PREMIUM_YEARLY=
+# Payments (Shopify — handled in the Shopify admin, not the app)
+# No payment API keys are needed in the app.
 
 # Push Notifications
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=

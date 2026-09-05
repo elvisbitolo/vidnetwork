@@ -25,8 +25,8 @@ Generated during PHASE 3 (HARDEN) of `VIDNETWORK_PRODUCTION_HARDENING_PRD.md`. A
 
 ### P1
 - **Rate limits** added: `comment`, `like`, `vote`, `bookmark`, `message`, `report`, `space-join`, `progress`, `rsvp`, `dm`, `livekit-token` (+ IP). In-memory implementation — resets on deploy, not shared across instances (documented limitation).
-- **Stripe** — `lib/server/origin.js` `appOrigin(req)` (prefers `NEXT_PUBLIC_APP_URL`) used by checkout and portal for redirect URLs.
-- **Webhook idempotency** — atomic `stripeEvents/{id}.create()` claim; duplicate deliveries return early.
+- **Payments (Stripe removed)** — `appOrigin()` (`lib/server/origin.js`) was introduced for checkout/portal redirects; Stripe was later removed (payments moved to Shopify). Keep the `appOrigin` pattern for any new server-side redirect URLs.
+- **Webhook idempotency** — pattern to follow for the future Shopify sync: atomic `{id}.create()` claim; duplicate deliveries return early.
 - **Billing consistency** — rules `isActiveSub()` now includes `past_due` + suspension + period-end, matching `billing.js`.
 - **RSVP capacity race** — join/leave in a single transaction with per-occurrence `capacityCounts` (`lib/server/events-core.js` `applyRsvpCounts`).
 - **Cascade deletes** — `lib/server/delete.js` (chunked batch, subcollection delete); `cascadeDeleteSpace` removes rooms (LiveKit ended), events, courses+modules+lessons, posts+comments, members; group delete removes rooms, posts, members.

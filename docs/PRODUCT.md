@@ -65,8 +65,8 @@ browser with no app-store friction.
 - Scheduled rooms locked until `opensAt`
 
 ### Monetization
-- Two subscription tiers (Standard / Premium), monthly and yearly
-- 14-day card-free trial, PayPal via Stripe
+- Three membership tiers, sold on Shopify (Flirting / Hooking Up / Moving In), monthly and yearly
+- Membership status (`subscriptions/{uid}`) drives gating: active / overdue / ended
 - One-time purchases (courses, events, spaces) per tier
 - Promo codes (coupons) for subscriptions and purchases with usage tracking
 - Automations triggered by `purchase`, `new_member`, `new_post`,
@@ -92,7 +92,7 @@ browser with no app-store friction.
 - Server-side authorization is the security boundary; Firestore/Storage rules
   backstop direct client access (see [ROLES.md](./ROLES.md) and
   [SECURITY-MATRIX.md](./SECURITY-MATRIX.md)).
-- Webhooks (Stripe, LiveKit) are idempotent, with failure + refund handling.
+- Webhooks (LiveKit) are signature-verified and idempotent; Shopify order sync (when added) must be too.
 - Composite indexes and rules deployed to Firebase as part of setup.
 - CI runs lint, 129 unit tests and a production build on every push.
 

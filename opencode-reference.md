@@ -21,7 +21,7 @@ rooms, courses, events, groups, feed, chat, notifications, recordings.
 | Auth | Firebase Auth + server session cookie | no NextAuth beta risk |
 | DB | Firestore `(default)`, `nam5`, Standard | managed, realtime, no migrations |
 | Video | LiveKit Cloud | WebRTC SFU, React SDK |
-| Payments | Stripe subscriptions (+ PayPal payment method) | webhook-driven state |
+| Payments | Shopify (external) — tiers sold on the client's store; app reads `subscriptions/{uid}` | no payment gateway in the app |
 | Deploy | Vercel | env + previews |
 
 ## Conventions to follow
@@ -42,11 +42,10 @@ rooms, courses, events, groups, feed, chat, notifications, recordings.
 - `src/lib/server/auth.js` — session verification (`getCurrentUser`), `getUserDoc`, roles.
 - `src/lib/server/authorize.js` — centralized authorization guards (Epic 1; new).
 - `src/lib/server/subscription.js` — sub read + `isActiveSub` (delegates to `billing.js`).
-- `src/lib/server/billing.js` — PURE billing logic (status mapping, tier/interval parsing).
-- `src/lib/server/plans.js` — pure tier helpers + price env lookup.
+- `src/lib/server/billing.js` — PURE membership-status logic (status mapping, period math).
+- `src/lib/server/plans.js` — pure tier helpers (ranks, labels, video rights).
 - `src/lib/server/events.js` — event queries + recurrence expansion (pure parts in `events-core.js`).
 - `src/lib/server/rooms.js`, `courses.js`, `chat.js`, `groups.js`, `notifications.js`, `email.js`.
-- `src/app/api/webhooks/stripe/route.js` — Stripe webhook (idempotency added; see Roadmap).
 - `src/app/api/webhooks/livekit/route.js` — Egress recording finalizer.
 - `src/app/api/livekit/token/route.js` — the real video security boundary.
 - `firestore.rules` — client-write firewall (UX backstop, not the security boundary).
@@ -57,14 +56,13 @@ rooms, courses, events, groups, feed, chat, notifications, recordings.
 `rsvps/{eventId_uid}` · `posts/{postId}` (+ `/comments`) · `courses` · `modules` ·
 `lessons` · `progress/{cid_uid}` · `groups` · `groupMembers/{gid_uid}` ·
 `notifications/{id}` · `conversations/{id}` (+ `/messages`) · `reports/{id}` ·
-`recordings/{id}` · `pushSubscriptions/{uid}` · `roomEvents/{id}` ·
-`stripeEvents/{eventId}` (webhook idempotency ledger — added in hardening pass).
+`recordings/{id}` · `pushSubscriptions/{uid}` · `roomEvents/{id}`.
 
 ## Environment (see `.env.example`)
 
-Firebase web + admin, LiveKit (`LIVEKIT_URL/API_KEY/API_SECRET`), Stripe
-(`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, price IDs per tier/interval), Egress S3,
+Firebase web + admin, LiveKit (`LIVEKIT_URL/API_KEY/API_SECRET`), Egress S3,
 VAPID web-push keys, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`, optional `RESEND_API_KEY`.
+Payments run on Shopify — no payment keys live in the app.
 `.env*` is gitignored; never commit `.env.local`.
 
 ## Roadmap (from docs/audit.md — what this session is executing)
@@ -75,10 +73,10 @@ Order matters: SECURITY → RELIABILITY → BILLING → OBSERVABILITY → ONBOAR
    `requireUser / requireActiveMember / requireTier / requireOwner / requireModerator /
    requireGroupMember`, applied to every protected route. No premium API may rely on
    frontend checks.
-2. **Epic 2 — Billing reliability**: webhook idempotency via `stripeEvents/{eventId}`,
-   payment-failure / pause / resume / cancel-at-period-end handling, richer subscription
-   doc (provider IDs, priceId, trialStart, cancelAtPeriodEnd), trial/payment-failure
-   notifications.
+2. **Epic 2 — Membership reliability**: Shopify order → `subscriptions/{uid}` sync
+   (paid / overdue / ended), payment-failure / pause / resume / cancel-at-period-end
+   handling, richer subscription doc (provider ID, priceId, trial, period end),
+   membership-failure notifications.
 3. **Epic 3 — Security**: rate limiting (esp. LiveKit token issuance), audit logs,
    upload/request validation.
 4. **Epic 4 — Video reliability**: reconnect UX, participant moderation, token refresh.
@@ -87,39 +85,33 @@ Order matters: SECURITY → RELIABILITY → BILLING → OBSERVABILITY → ONBOAR
 7. **Epic 9 — Tests**: unit (billing, tiers, recurrence, permissions) → integration
    (webhooks, token API, RSVP, course access) → E2E security matrix.
 
-## Session log
-
-- **2026-08-13 — Hardening pass 1 (billing + auth + tests):**
+### **2026-08-13 — Hardening pass 1 (membership + auth + tests):**
   - Added `docs/audit.md` (imported client audit).
-  - Extracted pure billing logic to `src/lib/server/billing.js`; `subscription.js` now
+  - Extracted pure membership-status logic to `src/lib/server/billing.js`; `subscription.js` now
     delegates to it. Added `cancelAtPeriodEnd` / `past_due` awareness.
-  - Hardened Stripe webhook: idempotency ledger (`stripeEvents/{eventId}`), handling for
-    `invoice.payment_failed`, `invoice.paid`, `customer.subscription.paused/resumed`,
-    `customer.subscription.created`, richer subscription doc, member notifications on
-    payment failure / trial start, per-event error recording.
   - Extracted pure recurrence math to `src/lib/server/events-core.js`.
   - Added `src/lib/server/__tests__/` unit tests (billing, plans, events-core) run via
     `npm test` (`node --test`).
   - Added centralized `src/lib/server/authorize.js` and refactored key routes
     (LiveKit token, course progress, admin member/report actions) to use it.
   - **Pass 2 (Epic 3):** in-memory `rate-limit.js` (per-user + per-IP) applied to
-    LiveKit token issuance (20/min/user) and Stripe checkout (10/min/user);
+    LiveKit token issuance (20/min/user);
     `audit.js` → `auditLogs/{id}` wired into member role/suspend, moderation
     decisions, room/event/course/group creation + room deletion;
-    Firestore rules now block client writes to `stripeEvents` and `auditLogs`.
+    Firestore rules now block client writes to `auditLogs`.
     Refactored remaining owner/moderator routes (rooms, events, courses, groups,
     admin members) onto the central `requireUser/requireOwner/requireModerator`
     guards.
   - **Pass 3 (P0 fixes + observability):** fixed tier-switch double-billing —
-    existing active subs are now switched in place via `subscriptions.update`
-    (prorated) instead of creating a second subscription; `planChange()` helper
+    existing active subs are now switched in place (prorated) instead of creating a
+    second subscription; `isActiveSub()`/`subscriptionStatus()` helpers
     tested; pricing page + account page reflect tier/switch state. Rate limits
     added to auth/session (per-IP), push/send, livekit/recording; those routes
     moved to `requireOwner`. Added `log.js` structured JSON logging (webhook +
     session errors). Recording lifecycle: `visibility`/`retentionDays` metadata
     on start/finalize, owner DELETE endpoint `/api/admin/recordings/[id]` that
     removes the S3 object (`@aws-sdk/client-s3`) + Firestore doc, delete button
-    on `/recordings`, audit entries. Firestore rules (`stripeEvents`/`auditLogs`
+    on `/recordings`, audit entries. Firestore rules (`auditLogs`
     locks) deployed to prod via `firebase deploy --only firestore:rules`.
   - **Pass 4 (AI: transcription):** provider-agnostic STT service
     (`src/lib/server/transcription.js`) — Deepgram (URL or S3 buffer, handles

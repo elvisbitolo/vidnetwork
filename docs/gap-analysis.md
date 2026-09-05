@@ -9,7 +9,7 @@ notifications, member rewards/badges, search, and admin/moderation tooling.
 
 | Area | Detail |
 |---|---|
-| Paid membership | Stripe subscriptions with **2 tiers (Standard / Premium)**, monthly & yearly, one-time 14-day card-free trial, billing portal, **PayPal enabled** |
+| Paid membership | Membership tiers sold on **Shopify** (Flirting / Hooking Up / Moving In), monthly & yearly; app reads `subscriptions/{uid}` for status (active / overdue / ended) — Stripe removed |
 | Auth | Google + email/password, httpOnly session cookie (14d), forgot-password |
 | Live video rooms | LiveKit rooms with prejoin, video conference + in-room chat, gated at token API |
 | **Livestream / broadcast** | **Broadcast rooms** (one-to-many: host publishes, members watch as viewers) with **recordings** via LiveKit Egress → S3, recordings list page |

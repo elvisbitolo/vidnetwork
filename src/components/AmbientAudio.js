@@ -60,27 +60,24 @@ function generateAmbientWav() {
   return "data:audio/wav;base64," + btoa(binary);
 }
 
-export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, musicFileId, hasVideoBackdrop }) {
-  const [src, setSrc] = useState("");
+export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, musicFileId, hasVideoBackdrop, pauseWhenBusy = false }) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef(null);
   const prevSrcRef = useRef("");
   const fadeTimerRef = useRef(null);
+  const autoPausedRef = useRef(false);
 
   const ambientWav = useMemo(() => (active ? generateAmbientWav() : ""), [active]);
 
-  useEffect(() => {
-    if (!active) return;
-    if (musicPlaying && musicFileId) {
-      setSrc(`/api/rooms/music/stream?id=${musicFileId}`);
-    } else if (musicPlaying && musicUrl) {
-      setSrc(musicUrl);
-    } else if (hasVideoBackdrop) {
-      setSrc("");
-    } else {
-      setSrc(ambientWav);
-    }
-  }, [active, musicUrl, musicPlaying, musicFileId, ambientWav, hasVideoBackdrop]);
+  const baseSrc = useMemo(() => {
+    if (!active) return "";
+    if (musicPlaying && musicFileId) return `/api/rooms/music/stream?id=${musicFileId}`;
+    if (musicPlaying && musicUrl) return musicUrl;
+    if (hasVideoBackdrop) return "";
+    return ambientWav;
+  }, [active, musicPlaying, musicFileId, musicUrl, hasVideoBackdrop, ambientWav]);
+
+  const [fireSrc, setFireSrc] = useState(null);
 
   useEffect(() => {
     if (!roomId || !active) return;
@@ -89,17 +86,17 @@ export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, m
       const data = snap.data();
       if (!data) return;
       if (data.musicPlaying && data.musicFileId) {
-        setSrc(`/api/rooms/music/stream?id=${data.musicFileId}`);
+        setFireSrc(`/api/rooms/music/stream?id=${data.musicFileId}`);
       } else if (data.musicPlaying && data.musicUrl) {
-        setSrc(data.musicUrl);
-      } else if (hasVideoBackdrop) {
-        setSrc("");
+        setFireSrc(data.musicUrl);
       } else {
-        setSrc(ambientWav);
+        setFireSrc(null);
       }
     }, () => {});
     return () => unsub();
-  }, [roomId, active, ambientWav, hasVideoBackdrop]);
+  }, [roomId, active]);
+
+  const src = fireSrc ?? baseSrc;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -141,22 +138,35 @@ export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, m
   }, [src]);
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (pauseWhenBusy) {
+      if (!audio.paused) autoPausedRef.current = true;
+      audio.pause();
+    } else if (autoPausedRef.current) {
+      autoPausedRef.current = false;
+      if (src) audio.play().catch(() => {});
+    }
+  }, [pauseWhenBusy, src]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
     return () => {
       if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
+      if (audio) {
+        audio.pause();
+        audio.src = "";
       }
     };
   }, []);
 
   function toggle() {
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
+    const audio = audioRef.current;
+    if (!audio || pauseWhenBusy) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
     } else {
-      audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+      audio.pause();
     }
   }
 
@@ -164,7 +174,16 @@ export default function AmbientAudio({ active, roomId, musicUrl, musicPlaying, m
 
   return (
     <>
-      {src && <audio ref={audioRef} src={src} loop preload="auto" />}
+      {src && (
+        <audio
+          ref={audioRef}
+          src={src}
+          loop
+          preload="auto"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+        />
+      )}
       {src && (
         <button
           onClick={toggle}

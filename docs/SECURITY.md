@@ -22,7 +22,7 @@ Include:
 
 This policy covers the web application, its API routes, and the Firebase
 security rules/storage rules in this repository. It does **not** cover
-third-party services (Firebase, Stripe, LiveKit, AWS S3, Resend, Vercel) — those
+third-party services (Firebase, Shopify, LiveKit, AWS S3, Resend, Vercel) — those
 have their own security processes.
 
 ## Response
@@ -46,9 +46,9 @@ Storage rules backstop direct client access. Key controls:
 - Server-side guards for every action (`requireUser`, `requireActiveMember`,
   `requireOwner`, …) — see [ROLES.md](./ROLES.md) and
   [AUTHORIZATION-MATRIX.md](./AUTHORIZATION-MATRIX.md).
-- Webhooks (Stripe/LiveKit) are signature-verified and idempotent.
-- Payments: amount verification on purchase completion, auto-refund on
-  mismatch, access revocation on refunds.
+- Webhooks (LiveKit) are signature-verified and idempotent.
+- Payments: handled on Shopify; the Shopify sync (when added) must verify order
+  data server-side, revoke access on canceled/ended membership, and be idempotent.
 - Rate limiting on sensitive endpoints.
 - Secrets live in environment variables only; `.env*` is gitignored
   (except `.env.example`).

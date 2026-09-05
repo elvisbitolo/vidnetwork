@@ -40,12 +40,8 @@ Copy these from your local `.env.local` (or generate fresh where noted). **Never
 | `CRON_SECRET` | `/api/cron/*` + automations bearer token | yes |
 | `RESEND_API_KEY` | transactional/DM emails | yes |
 | `EMAIL_FROM` | email sender | yes |
-| `STRIPE_SECRET_KEY` | payments (coming later) | when paying |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhooks | when paying |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe checkout | when paying |
-| `STRIPE_PRICE_*` (monthly/yearly per tier) | plan pricing | when paying |
 
-> **STILL PENDING in production:** The subscription gate currently lets everyone in (free tier, by your decision). When you enable payments, add the Stripe keys above and wire webhooks to set real subscription status.
+> **Payments:** handled on **Shopify** (the client's `secretyarnery.com` store), not in the app. No payment keys are required in the app. Membership status (paid / overdue / ended) is read from `subscriptions/{uid}` — sync Shopify order data into that collection when payments go live.
 
 ## 3. External services to verify from the client's accounts
 
@@ -53,7 +49,7 @@ Copy these from your local `.env.local` (or generate fresh where noted). **Never
 - [ ] **LiveKit** — a cloud project URL/keys; webhook URL configured to `https://<your-domain>/api/webhooks/livekit`.
 - [ ] **Resend** — **domain verified** (`resend.com/domains`). Currently on trial it only sends to `elvisbitolo11@gmail.com`; DM notifications fail with 403 until a real sending domain is verified.
 - [ ] **Vercel Blob** — enabled (produces `BLOB_READ_WRITE_TOKEN`).
-- [ ] **Stripe** (later) — products/prices created, webhook to `/api/webhooks/stripe`.
+- [ ] **Shopify** — tier products (Flirting / Hooking Up / Moving In, monthly & annual) created; order data synced to `subscriptions/{uid}`.
 
 ## 4. Firestore indexes & rules (deploy these)
 

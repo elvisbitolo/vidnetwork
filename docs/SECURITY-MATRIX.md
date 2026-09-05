@@ -24,7 +24,7 @@ How each security control is enforced. Server routes use the Admin SDK (bypasses
 | `notifications` | read = self; no client writes | Server-created |
 | `conversations`/`messages` | read = participant only; no client writes | Server `addMessage` requires membership + rate limit; DM recipient existence checked; names fetched per-conversation (bounded) |
 | `reports` | read = moderator; no client writes | Server create, rate-limited |
-| `stripeEvents` / `auditLogs` | no access | Server only; webhook uses atomic `create()` claim for idempotency |
+| `auditLogs` | no access | Server only |
 | Suspension | `isNotSuspended` gate in `isActiveSub` (blocks reads/actions) | `authorize()` blocks suspended users via `isActiveSub`; owner cannot be suspended |
 | Owner protection | role checks in rules | `requireOwner`/`requireModerator`; role changes owner-only; owner role immutable; owner cannot be suspended |
 | Rate limiting | — | In-memory `rateLimit` (per-instance); per-route limits documented in `REMEDIATION-REPORT.md` |

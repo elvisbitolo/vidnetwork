@@ -12,8 +12,8 @@ Yarnery Lounge is a **paid membership community platform** with social features,
 courses, events, and monetization — modeled on how Mighty Networks works.
 
 ### What your members experience
-- They **sign up** (Google or email/password) and get a **14-day free trial** of a paid plan
-  (no credit card required to start).
+- They **sign up** (Google or email/password) and start on the free **Flirting** tier; paid
+  tiers (**Hooking Up**, **Moving In**) unlock the full experience.
 - After login they land on a **dashboard** showing KPIs, a member-growth chart, recent
   activity, upcoming live rooms, messages, notifications, content performance, and onboarding
   progress.
@@ -28,10 +28,10 @@ courses, events, and monetization — modeled on how Mighty Networks works.
 | **Content** | Posts feed (text, images, hashtags), comments, likes/recognitions, articles in Spaces, search, discovery page. |
 | **Spaces & Groups** | Public/private/invite-only spaces, groups with join/member lists, collections that organize spaces in the sidebar. |
 | **Live video chat** | **LiveKit** rooms: real-time video/audio chat, screen share, broadcasting (only hosts can publish), co-hosts, scheduled opening times, capacity. Rooms are gated: space membership required; **premium-tier spaces require a Premium subscription**; broadcast publishing is host-only. |
-| **Events** | Event calendar, RSVPs with reminders, recurring events, **paid tickets** (Stripe checkout), attendance tracking, ICS download. |
+| **Events** | Event calendar, RSVPs with reminders, recurring events, **paid tickets** (sold via Shopify when used), attendance tracking, ICS download. |
 | **Courses** | Course/lesson system, progress tracking, completion badges, **paid courses** (one-time purchase or subscription access). |
 | **Recordings** | Live room recordings with download/transcription permissions. |
-| **Monetization** | **Stripe subscriptions** (Standard $20/mo or $200/yr · Premium $40/mo or $400/yr), 14-day trial, card/PayPal, promo codes, plan switching with proration, **one-time purchases** for courses/events/spaces, purchase receipts. |
+| **Monetization** | Membership tiers sold on **Shopify** (the marketing site); the app reads `subscriptions/{uid}` for status — paid / overdue / ended. |
 | **Gamification** | Points, daily streaks, badges, leaderboard (ranked by points), member-to-member recognitions. |
 | **Notifications** | In-app notification bell with unread badge, email notifications, **web push** (VAPID). |
 | **Chat** | Direct/group chat (conversation inbox). |
@@ -49,8 +49,8 @@ courses, events, and monetization — modeled on how Mighty Networks works.
    - Without an active subscription → redirected to `/pricing`.
    - Video rooms, premium spaces, and paid content are **gated on the server** (the LiveKit
      token endpoint checks membership + tier before granting access).
-3. **Payments** run through **Stripe**: checkout → webhook → Firestore (`subscriptions`,
-   `purchases`). A 14-day trial starts automatically on first subscription.
+3. **Payments** run on **Shopify** (the client's store). Shopify order data maps to
+   membership status in Firestore (`subscriptions`, `purchases`).
 4. **Live video** runs on **LiveKit**; the platform hands out short-lived tokens per room.
 5. **Crons** handle scheduled events, question reminders, and automations (protected by a secret
    key).
@@ -87,14 +87,14 @@ run it on yours.)
 | Service | What it's used for | Currently configured to |
 |---|---|---|
 | **Firebase** (Firestore + Auth) | Database, auth, web push messaging | My project `christa-patel` |
-| **Stripe** | Subscriptions, payments, invoices | My Stripe account + price IDs |
+| **Shopify** | Membership tiers (Flirting / Hooking Up / Moving In) & the marketing site | My Shopify store (`secretyarnery.com`) |
 | **Vercel** | Hosting/deployment | My project `community`, live at `yarnerylounge.vercel.app` |
 | **LiveKit** | Live video rooms | My LiveKit keys |
 | **Web Push (VAPID)** | Browser notifications | My key pair |
 
 Everything is configured through environment variables: `FIREBASE_*`, `NEXT_PUBLIC_FIREBASE_*`,
-`STRIPE_*` (secret key, webhook secret, 4 price IDs), `LIVEKIT_*`, `VAPID_*`, `CRON_SECRET`,
-`NEXT_PUBLIC_APP_URL`.
+`LIVEKIT_*`, `VAPID_*`, `CRON_SECRET`, `NEXT_PUBLIC_APP_URL`. No payment keys are needed —
+payments run on Shopify.
 
 **One honest caveat:** right now avatar uploads are stored as data URLs in the profile because
 the Firebase project has **no billing account / Cloud Storage enabled**. Once we move to your
@@ -110,8 +110,7 @@ call it truly production-grade on your name, I want to close these gaps:
 - [ ] **Enable Firebase Storage** (needs a billing account) and move avatar/file uploads off
       data URLs (otherwise there's a ~5–10 MB upload ceiling).
 - [ ] **Harden Firestore/Storage security rules** for client-side reads.
-- [ ] **Lapsed-user emails** (expiring-trial and expired-subscription reminders — currently only
-      in-app + Stripe webhook emails).
+- [ ] **Lapsed-user emails** (expiring-membership and overdue-payment reminders).
 - [ ] **Rate limiting that survives serverless cold starts** (current limiter is in-memory).
 - [ ] Admin member list **pagination** (currently caps at 500 members).
 - [ ] Optional **E2E test suite** for payments and live rooms.
@@ -121,7 +120,7 @@ call it truly production-grade on your name, I want to close these gaps:
 
 ## 6. Moving it to you — my recommended handover plan
 
-The point is to have the platform running on **your own** Firebase, Stripe, Vercel, and LiveKit
+The point is to have the platform running on **your own** Firebase, Shopify, Vercel, and LiveKit
 accounts, fully separated from mine.
 
 ### Step 0 — Agreement
@@ -131,19 +130,18 @@ fresh** on your accounts rather than copying my data, so there's no cross-tenant
 ### Step 1 — You create the accounts (no code needed)
 1. **Firebase** project (free tier is fine to start; add billing to enable Storage). Enable
    Authentication (Google + email/password) and Firestore.
-2. **Stripe** account — create the 4 prices (Standard/Premium × monthly/yearly) and a
-   **webhook endpoint** → `/api/webhooks/stripe` (events: `checkout.session.completed`,
-   `customer.subscription.*`, `invoice.*`, `charge.refunded`).
+2. **Shopify** store — create the tier products (Flirting / Hooking Up / Moving In, monthly &
+   annual) and link them to the speakeasy landing page.
 3. **LiveKit** cloud project → get API key/secret/URL.
 4. **Vercel** project → connect the Git repo, add your domain.
 
 ### Step 2 — Configure
 I copy the env vars from §4 into your Vercel project (or `.env.local`), pointed at **your**
-Firebase/Stripe/LiveKit values. Price IDs go in `STRIPE_PRICE_*`.
+Firebase/LiveKit values. Payments stay on your Shopify store.
 
 ### Step 3 — Deploy & verify
-- Deploy to Vercel. We smoke-test together: signup → 14-day trial → subscribe → open a live
-  room → purchase a paid event/course → admin panel → notifications.
+- Deploy to Vercel. We smoke-test together: signup → pick a tier → open a live room →
+  purchase a paid event/course → admin panel → notifications.
 - Import `firestore.indexes.json` if you rebuild the database, and upload security rules.
 
 ### Step 4 — Make you admin & onboard you
@@ -160,5 +158,5 @@ Firebase/Stripe/LiveKit values. Price IDs go in `STRIPE_PRICE_*`.
 - **No data copying** — you launch clean with real members created on your instance.
 - Think of this as **license + setup + handover**: I include the migration, your admin
   training, and a 30–90 day support window after launch.
-- Your recurring costs (Stripe, LiveKit, Firebase, Vercel) are **your** operating expenses,
+- Your recurring costs (Shopify, LiveKit, Firebase, Vercel) are **your** operating expenses,
   billed to you directly — not bundled into my fee.

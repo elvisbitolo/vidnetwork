@@ -55,6 +55,14 @@ function LiveViewerCount() {
   );
 }
 
+function RoomPopulation({ onChange }) {
+  const participants = useParticipants();
+  useEffect(() => {
+    onChange(participants.length);
+  }, [participants.length, onChange]);
+  return null;
+}
+
 function SpeakerInviteDialog({ onAccept, onDecline }) {
   const t = useTranslations("rooms");
   const { speakerInvite, clearSpeakerInvite } = useRoomData();
@@ -118,6 +126,7 @@ export default function RoomClient({
   const [statusMsg, setStatusMsg] = useState("");
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [participantCount, setParticipantCount] = useState(0);
 
   const tokenRef = useRef("");
   const reconnectTimer = useRef(null);
@@ -363,6 +372,7 @@ export default function RoomClient({
           musicPlaying={musicPlaying}
           musicFileId={musicFileId}
           hasVideoBackdrop={alwaysOn}
+          pauseWhenBusy={participantCount > 1}
         />
         {alwaysOn && isStaff && <RoomMusicPicker isStaff={isStaff} />}
         {statusMsg && (
@@ -410,6 +420,7 @@ export default function RoomClient({
             canModerate={isStaff || isHost || isCoHost}
             isHost={isHost}
           >
+            <RoomPopulation onChange={setParticipantCount} />
             <div className={styles.liveRoom}>
               <header className={styles.roomHeader}>
                 <div className={styles.roomHeaderCopy}>
@@ -442,17 +453,6 @@ export default function RoomClient({
                     </span>
                   )}
                 </div>
-
-                {showChat && (
-                  <div className={styles.chatCol}>
-                    <RoomChat
-                      hostId={hostId}
-                      currentUserId={userId}
-                      currentUserName={userName}
-                      currentUserAvatar={userAvatar}
-                    />
-                  </div>
-                )}
               </div>
 
               <RoomControls
@@ -465,6 +465,17 @@ export default function RoomClient({
                 onOpenChat={() => setShowChat((v) => !v)}
                 onLeave={() => router.push("/rooms")}
               />
+
+              {showChat && (
+                <section className={styles.chatBottom}>
+                  <RoomChat
+                    hostId={hostId}
+                    currentUserId={userId}
+                    currentUserName={userName}
+                    currentUserAvatar={userAvatar}
+                  />
+                </section>
+              )}
             </div>
 
             {showParticipants && (

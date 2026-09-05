@@ -48,7 +48,7 @@ Guards (see `src/lib/server/authorize.js`): `requireUser` (any signed-in, not su
 | LiveKit token (scheduled room) | `requireActiveMember` + 423 until `opensAt` unless host (owner/moderator) |
 | Recognitions `/api/recognitions` | `requireUser` + active sub + rate limit; no self-recognition; 15 pts to recipient |
 | Reports | `requireUser` (create) / `requireModerator` (resolve) |
-| Purchases | `requireActiveMember` + rate limit; fulfillment via verified Stripe webhook only |
+| Purchases | `requireActiveMember` + rate limit; fulfillment server-side (Shopify order sync when integrated) |
 | Chat messages | `requireUser` + participant check + rate limit |
 
 ## Billing state machine (shared server + rules)

@@ -5,11 +5,7 @@ import {
   isActiveSub,
   periodEndMillis,
   subscriptionStatus,
-  planFromInterval,
-  tierFromMetadata,
-  buildSubscriptionDoc,
-  fromEpoch,
-  planChange,
+  toMillis,
 } from "../billing.js";
 
 const now = Date.now();
@@ -75,73 +71,15 @@ test("subscriptionStatus maps canonical states", () => {
   assert.equal(subscriptionStatus(null), "none");
 });
 
-test("planFromInterval maps Stripe intervals", () => {
-  assert.equal(planFromInterval("year"), "yearly");
-  assert.equal(planFromInterval("month"), "monthly");
-  assert.equal(planFromInterval("week"), null);
-});
-
-test("tierFromMetadata defaults to lounge", () => {
-  assert.equal(tierFromMetadata({ metadata: { tier: "premium" } }), "premium");
-  assert.equal(tierFromMetadata({}), "lounge");
-});
-
-test("fromEpoch converts seconds to Date", () => {
-  assert.equal(fromEpoch(0), null);
-  assert.equal(fromEpoch(1_700_000_000).getTime(), 1_700_000_000_000);
-});
-
-test("buildSubscriptionDoc produces the richer doc shape", () => {
-  const subscription = {
-    id: "sub_123",
-    status: "trialing",
-    current_period_start: 1_700_000_000,
-    current_period_end: 1_710_000_000,
-    trial_start: 1_700_000_000,
-    trial_end: 1_705_000_000,
-    cancel_at_period_end: false,
-    canceled_at: null,
-    metadata: { tier: "premium" },
-    items: { data: [{ price: { id: "price_x", recurring: { interval: "month" } } }] },
-  };
-  const doc = buildSubscriptionDoc({ subscription, customer: { id: "cus_1" }, tier: "premium" });
-  assert.equal(doc.provider, "stripe");
-  assert.equal(doc.providerCustomerId, "cus_1");
-  assert.equal(doc.providerSubscriptionId, "sub_123");
-  assert.equal(doc.status, "trialing");
-  assert.equal(doc.plan, "monthly");
-  assert.equal(doc.tier, "premium");
-  assert.equal(doc.priceId, "price_x");
-  assert.equal(doc.currentPeriodEnd.getTime(), 1_710_000_000_000);
-  assert.equal(doc.cancelAtPeriodEnd, false);
-  assert.equal(doc.canceledAt, null);
-  assert.ok(doc.updatedAt instanceof Date);
+test("toMillis accepts Timestamp, Date, and numeric values", () => {
+  const ts = 1_700_000_000_000;
+  assert.equal(toMillis(ts), ts);
+  assert.equal(toMillis(new Date(ts)), ts);
+  assert.equal(toMillis({ toMillis: () => ts }), ts);
+  assert.equal(toMillis(null), 0);
+  assert.equal(toMillis("nope"), 0);
 });
 
 test("ACTIVE_STATUSES is the documented set", () => {
   assert.deepEqual(ACTIVE_STATUSES, ["active", "trialing", "past_due"]);
-});
-
-test("planChange: inactive status starts a new subscription", () => {
-  assert.equal(planChange({ currentStatus: "canceled", currentPriceId: "a", requestedPriceId: "b" }), "create");
-  assert.equal(planChange({ currentStatus: null, currentPriceId: "a", requestedPriceId: "b" }), "create");
-  assert.equal(planChange({ currentStatus: "incomplete", currentPriceId: "a", requestedPriceId: "b" }), "create");
-});
-
-test("planChange: same price is a no-op", () => {
-  assert.equal(
-    planChange({ currentStatus: "active", currentPriceId: "price_x", requestedPriceId: "price_x" }),
-    "none"
-  );
-});
-
-test("planChange: different price on an active sub switches in place (no double billing)", () => {
-  assert.equal(
-    planChange({ currentStatus: "active", currentPriceId: "price_std", requestedPriceId: "price_prem" }),
-    "switch"
-  );
-  assert.equal(
-    planChange({ currentStatus: "trialing", currentPriceId: "price_std", requestedPriceId: "price_prem" }),
-    "switch"
-  );
 });

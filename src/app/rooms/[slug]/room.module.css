@@ -345,32 +345,29 @@
   gap: 10px;
 }
 
-.chatCol {
-  width: 350px;
-  max-width: 40%;
+.chatBottom {
   flex-shrink: 0;
   min-height: 0;
   display: flex;
+  height: 300px;
+  max-height: 36%;
+  min-height: 180px;
+  padding: 10px 18px 14px;
+  background: #f4e4e8;
+  border-top: 1px solid #e5d9dc;
 }
 
-.chatCol > * {
+.chatBottom > * {
   flex: 1;
   min-height: 0;
 }
 
-@media (max-width: 720px) {
-  .mainRow {
-    padding: 10px 10px 8px;
-  }
-  .chatCol {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(92vw, 360px);
-    max-width: 92vw;
-    z-index: 30;
-    box-shadow: -18px 0 40px -24px rgba(37, 35, 41, 0.45);
+@media (max-width: 640px) {
+  .chatBottom {
+    height: 280px;
+    max-height: 44%;
+    min-height: 150px;
+    padding: 8px 10px 10px;
   }
 }
 

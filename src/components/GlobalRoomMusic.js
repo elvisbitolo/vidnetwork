@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Music4, Volume2, VolumeX } from "lucide-react";
 
@@ -13,37 +13,40 @@ export default function GlobalRoomMusic() {
   const pathname = usePathname();
   const inRoom = pathname?.startsWith("/rooms/");
 
-  const fetchMusic = useCallback(async () => {
-    try {
-      const res = await fetch("/api/rooms/music");
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.musicPlaying && (data.music || data.musicFileId)) {
-        const audioSrc = data.musicFileId
-          ? `/api/rooms/music/stream?id=${data.musicFileId}`
-          : data.music;
-        setSrc(audioSrc);
-        setSongName(data.musicName || "");
-      } else {
-        setSrc("");
-        setPlaying(false);
-      }
-    } catch {}
-  }, []);
-
   useEffect(() => {
-    fetchMusic();
-    pollingRef.current = setInterval(fetchMusic, 5000);
+    let mounted = true;
+    async function loadMusic() {
+      try {
+        const res = await fetch("/api/rooms/music");
+        if (!res.ok || !mounted) return;
+        const data = await res.json();
+        if (!mounted) return;
+        if (data.musicPlaying && (data.music || data.musicFileId)) {
+          const audioSrc = data.musicFileId
+            ? `/api/rooms/music/stream?id=${data.musicFileId}`
+            : data.music;
+          setSrc(audioSrc);
+          setSongName(data.musicName || "");
+        } else {
+          setSrc("");
+          setPlaying(false);
+        }
+      } catch {}
+    }
+
+    loadMusic();
+    pollingRef.current = setInterval(loadMusic, 5000);
 
     function onMusicChange() {
-      fetchMusic();
+      loadMusic();
     }
     window.addEventListener("room-music-changed", onMusicChange);
     return () => {
+      mounted = false;
       clearInterval(pollingRef.current);
       window.removeEventListener("room-music-changed", onMusicChange);
     };
-  }, [fetchMusic]);
+  }, []);
 
   useEffect(() => {
     if (!audioRef.current || !src) return;
@@ -61,21 +64,22 @@ export default function GlobalRoomMusic() {
   }, [inRoom, src]);
 
   useEffect(() => {
+    const audio = audioRef.current;
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
+      if (audio) {
+        audio.pause();
+        audio.src = "";
       }
     };
   }, []);
 
   function toggle() {
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => {});
     } else {
-      audioRef.current.play().then(() => setPlaying(true)).catch(() => {});
+      audio.pause();
     }
   }
 
@@ -83,7 +87,14 @@ export default function GlobalRoomMusic() {
 
   return (
     <>
-      <audio ref={audioRef} src={src} loop preload="auto" />
+      <audio
+        ref={audioRef}
+        src={src}
+        loop
+        preload="auto"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+      />
       <button
         onClick={toggle}
         aria-label={playing ? "Mute music" : "Play music"}

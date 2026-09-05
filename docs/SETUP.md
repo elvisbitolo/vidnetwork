@@ -12,7 +12,7 @@ A running journal of *what* was built and *why*, so the reasoning is recorded al
 | Auth | Firebase Auth | Native Google + email/password; no NextAuth beta risk |
 | Database | Firestore (nam5, standard, `(default)`) | Managed, realtime-capable, free tier; no SQL migrations |
 | Video | LiveKit Cloud | Open-source WebRTC SFU; React SDK; scales 2→100+ per room |
-| Payments | Stripe Subscriptions | Industry standard; webhook-driven state |
+| Payments | Shopify (external) | Membership tiers sold on Shopify; app reads status from `subscriptions/{uid}` |
 | Deploy | Vercel | Simple env + preview deployments |
 
 ## Decisions & Why
@@ -29,7 +29,7 @@ A running journal of *what* was built and *why*, so the reasoning is recorded al
    - **Post-login redirect is a hard `window.location.assign("/account")`, never `router.replace`.** An `onAuthStateChanged` redirect fires before `createSessionCookie` completes (~1s), so the browser hits `/account` with no cookie yet → proxy 307s to `/login` → Next dedupes the follow-up `router.replace` to the same URL. A full reload guarantees the fresh cookie is sent with the request.
 
 3. **Firestore rules locked server-side (deployed)**
-   - `subscriptions/{uid}` is **read-own, write: false** — money state can ONLY be written by the server (Stripe webhook) via the Admin SDK, which bypasses rules.
+   - `subscriptions/{uid}` is **read-own, write: false** — membership state can ONLY be written by the server (currently the Admin SDK; Shopify sync will do the same) which bypasses rules.
    - Users self-create only their own `users/{uid}` doc with `role == "member"` (never `owner`); self-update only `name`/`bio`/`headline`/`location`.
    - `rooms` reads for signed-in members; writes owner-only.
    - `events` read for signed-in members; create/update/delete owner-only (via `/api/events`).
@@ -45,10 +45,9 @@ A running journal of *what* was built and *why*, so the reasoning is recorded al
    - Redirects unauthenticated users to `/login` for UX only.
    - **Not a security boundary** — real checks (session + active subscription) happen in server components and the LiveKit token API.
 
-5. **Trial is one-time, card-free**
-   - First subscription only: `trial_period_days: 14` + `trial_settings.end_behavior.missing_payment_method: "cancel"` + `payment_method_collection: "if_required"`.
-   - `trial_settings.end_behavior` is **required** by the Stripe API whenever a trial is combined with `payment_method_collection: "if_required"`.
-   - Returning/canceled customers get no second trial; checkout collects a card (`"always"`) so the sub activates instead of lingering as `incomplete`.
+5. **Membership is provider-agnostic**
+   - Payments happen **on Shopify** (tiers: Flirting, Hooking Up, Moving In). The app never stores a payment method.
+   - Membership state lives in `subscriptions/{uid}` — `tier`, `status` (active/past_due/canceled/inactive), `currentPeriodEnd` — and the server-only helper `isActiveSub()` decides who has access.
 
 6. **LiveKit gating at the token API (the real security boundary)**
    - `POST /api/livekit/token` verifies the session cookie **and** `isActiveSub` before minting a token. No token → no room, regardless of what the UI shows.
@@ -60,7 +59,7 @@ A running journal of *what* was built and *why*, so the reasoning is recorded al
 
 ```
 users/{uid}          → name, email, role: member|owner, createdAt, bio?, headline?, location?, notifications? (email opt-out)
-subscriptions/{uid}  → status, plan, tier: standard|premium, currentPeriodEnd, stripeSubscriptionId   (server-written)
+subscriptions/{uid}  → status, plan, tier: lounge|plus|host, currentPeriodEnd, provider   (server-written)
 rooms/{roomId}       → name, slug, description, status, maxParticipants, groupId?, kind: standard|broadcast, createdBy, createdAt
 events/{eventId}     → title, description, startTime, endTime?, roomSlug?, capacity?, recurrence?, createdBy, createdAt   (owner-written via API)
 rsvps/{eventId_uid}  → eventId, occurrenceId?, userId, name, email, createdAt                      (server-written via API)
@@ -88,7 +87,7 @@ Access rule: `subscriptions/{uid}.status === "active" && currentPeriodEnd > now`
 - Firebase Web: `NEXT_PUBLIC_FIREBASE_*` (from console Project settings → Your apps)
 - Firebase Admin: `FIREBASE_SERVICE_ACCOUNT` (full JSON) or `FIREBASE_PROJECT_ID` + `FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY`
 - LiveKit: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`
-- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, tier price IDs (`STRIPE_PRICE_STANDARD_MONTHLY/YEARLY`, `STRIPE_PRICE_PREMIUM_MONTHLY/YEARLY`)
+- Payments (Shopify): membership tier products live in the Shopify admin (`secretyarnery.com`); no payment keys are needed in the app — the Shopify sync writes `subscriptions/{uid}`.
 - Recordings (LiveKit Egress): `LIVEKIT_EGRESS_S3_REGION/BUCKET/ACCESS_KEY/SECRET` (+ optional `LIVEKIT_EGRESS_S3_PUBLIC_URL`)
 - Web push: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (generate with `npx web-push generate-vapid-keys`)
 - Cron: `CRON_SECRET` (must match `cron.auth.secret` in vercel.json), `NEXT_PUBLIC_APP_URL`
@@ -101,7 +100,7 @@ Access rule: `subscriptions/{uid}.status === "active" && currentPeriodEnd > now`
 4. After Vercel deploy: add Vercel domain to Authentication → Authorized domains
 5. **Storage** → upload rules from `storage.rules` (posts images <10MB, lessons media, everything else denied); `firebase deploy --only storage`
 6. **LiveKit Egress** → create an S3 bucket + access keys, set the `LIVEKIT_EGRESS_S3_*` env vars, and point the LiveKit webhook at `/api/webhooks/livekit`
-7. **Stripe** → create prices for each tier (Standard/Premium × monthly/yearly), enable **PayPal** in payment methods, add `/api/webhooks/stripe` to the webhook endpoint
+7. **Shopify** → set up the tier products (Flirting / Hooking Up / Moving In, monthly + annual); wire Shopify order data into `subscriptions/{uid}` when ready (manual or webhook)
 8. **Vercel cron** → set `CRON_SECRET` and add `/api/cron/event-reminders` to Vercel crons (vercel.json ships with `"0 * * * *"` hourly)
 9. **Web push** → generate VAPID keys and set the three env vars; the service worker auto-registers on sign-in
 
@@ -109,7 +108,7 @@ Access rule: `subscriptions/{uid}.status === "active" && currentPeriodEnd > now`
 
 - [x] Phase 1: Firebase init, env scaffolding, locked rules (deployed), auth session flow
 - [x] Phase 1b: Auth UI — `/login`, `/signup` (Google + email/password), `/account`, `src/proxy.js` route guard (verified: 307 redirect without cookie)
-- [x] Phase 2: Stripe subscriptions (checkout, webhook, portal, gating via `isActiveSub`; content gating enforced at LiveKit token API in Phase 4)
+- [x] Phase 2: Membership gating (`isActiveSub` + `getAccessSub`; Stripe removed later — payments moved to Shopify)
 - [x] Phase 3: Rooms CRUD (admin page + owner-only API) + listing page
 - [x] Phase 4: LiveKit video rooms (token API + `/rooms/[slug]` page + built-in chat)
 - [x] Phase 5: Landing page (replaced create-next-app boilerplate) + pricing page, responsive everywhere, Geist font applied app-wide, forced light theme (no OS-dark mismatch on a light-only UI)
@@ -122,7 +121,7 @@ Access rule: `subscriptions/{uid}.status === "active" && currentPeriodEnd > now`
 - [x] Phase 8c: **Video lessons + drip** — `kind: video`, `videoUrl`, `releaseAt`; lesson/course pages lock future lessons
 - [x] Phase 8d: **Events polish** — recurring events (daily/weekly/monthly), per-occurrence RSVP, ICS export, hourly reminder cron (`/api/cron/event-reminders` + vercel.json)
 - [x] Phase 8e: **Broadcast + recordings** — broadcast rooms (viewer mode), LiveKit Egress → S3 recordings, `/recordings` page, LiveKit webhook finalizer
-- [x] Phase 8f: **Membership tiers + PayPal** — Standard/Premium tiers, per-tier price IDs, PayPal in checkout, `requiredTier` on courses
+- [x] Phase 8f: **Membership tiers** — tier ranks, `requiredTier` on courses, `videoChatRights` (Stripe/ PayPal integration removed later; payments moved to Shopify)
 - [x] Phase 8g: **Web push** — service worker + VAPID, `/api/push/subscribe`, owner announcement endpoint `/api/push/send`
 - [x] Phase 9: Deployed to Vercel (`https://yarnerylounge.vercel.app`)
 - [ ] After deploy: run `firebase deploy --only firestore:rules` to ship the new rules (events/rsvps/posts/comments/profile fields + courses/groups/notifications/recordings/pushSubscriptions)

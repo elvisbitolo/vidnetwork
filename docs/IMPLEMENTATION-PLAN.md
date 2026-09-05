@@ -47,13 +47,11 @@ and the Mighty Networks research (see session notes). Non-destructive policy app
 - `src/lib/server/analytics.js` (aggregates) + `analytics-core.js` (pure, unit-tested),
   `/api/admin/analytics` (`requireOwner`), `/admin/analytics` page, owner Nav link.
 
-### Phase 7 — Complete WIP purchases
-- Reuse cached Stripe price IDs; idempotent session handling; verify paid amount in webhook;
-  paid-content read gate. DONE.
-- `src/lib/server/purchases-core.js` (pure, unit-tested) + refactored `purchases.js`
-  (adds `getOrCreateStripePrice` with caching), `/api/stripe/purchase` uses
-  `idempotency_key: purchase:{targetType}:{targetId}:{uid}`, webhook verifies
-  `session.amount_subtotal` vs `purchasePriceCents` and marks the event failed on mismatch.
+### Phase 7 — One-time purchases (courses/events/spaces)
+- Pure purchase math + server-side fulfillment; paid-content read gate. DONE.
+- `src/lib/server/purchases-core.js` (pure, unit-tested) + `purchases.js`. Payment gateway
+  (formerly Stripe) removed — purchases are now recorded server-side; a Shopify sync can
+  feed `purchases` when integrated.
 
 ### Phase 8 — Mighty extras
 1. Scheduled/recurring questions (cron + posts API). DONE.

@@ -50,8 +50,3 @@ export function meetsTier(userTier, requiredTier) {
 export function videoChatRights(tier) {
   return TIER_INFO[normalize(tier)]?.videoChat || TIER_INFO.lounge.videoChat;
 }
-
-export function priceIdFor(tier, plan) {
-  const key = `STRIPE_PRICE_${String(tier || "lounge").toUpperCase()}_${String(plan).toUpperCase()}`;
-  return process.env[key] || process.env[`STRIPE_PRICE_${String(plan).toUpperCase()}`] || null;
-}

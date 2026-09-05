@@ -14,8 +14,7 @@ Yarnery Lounge is substantially more advanced than its public landing page sugge
 - Firebase Authentication
 - Server-side Firebase session cookies
 - Firestore
-- Stripe subscriptions
-- PayPal support
+- Membership subscriptions (provider-agnostic; Stripe removed — payments moved to Shopify)
 - LiveKit video rooms
 - Broadcast/live-stream rooms
 - LiveKit Egress recordings
@@ -60,7 +59,7 @@ This audit was based on:
 7. Server authentication/session implementation.
 8. Subscription state implementation.
 9. LiveKit token generation.
-10. Stripe webhook handling.
+10. Subscription state implementation.
 11. LiveKit webhook handling.
 12. Admin member management.
 13. Course API implementation.
@@ -83,7 +82,7 @@ Where implementation could not be conclusively verified from the inspected files
 | Server sessions | Firebase Admin session cookies |
 | Database | Firestore |
 | Video | LiveKit |
-| Payments | Stripe + PayPal support |
+| Payments | Shopify (membership tiers; Stripe removed) |
 | Deployment | Vercel |
 | Notifications | Web Push + email provider |
 | Recordings | LiveKit Egress + S3 |
@@ -435,41 +434,35 @@ Add explicit:
 
 ---
 
-# 11. Stripe Billing — GOOD FOUNDATION, NEEDS EDGE-CASE HARDENING
+# 11. Membership/Subscriptions — GOOD FOUNDATION, NEEDS EDGE-CASE HARDENING
 
-The webhook correctly validates Stripe signatures before processing.
-
-Subscription state is server-written into Firestore.
+Payments run on **Shopify** (the client's store). The app never touches a payment gateway:
+membership state is server-written into Firestore (`subscriptions/{uid}`) by the Admin SDK,
+and the server decides access via `isActiveSub()`.
 
 This is correct.
 
-However, production billing requires handling more than the three major subscription events.
+Production membership requires handling more than just "active".
 
 ### Add handling/testing for
 
-- `invoice.payment_failed`
-- `invoice.paid`
-- `customer.subscription.paused`
-- subscription resumed
-- incomplete checkout
-- trial ending
-- disputed payment
-- refund
-- chargeback
-- customer deletion
-- price migration
-- plan change
-- failed webhook retry
-- duplicate webhook delivery
+- overdue payment (`past_due`)
+- membership ended / not renewed
+- canceled-at-period-end
+- paused membership
+- plan/tier change
+- Shopify order sync (mapping order data → `subscriptions/{uid}`; must be idempotent)
+- failed sync retry
+- duplicate order delivery
 
 ## Idempotency
 
-Webhook handlers must be idempotent.
+Membership sync handlers must be idempotent.
 
-The system should record processed Stripe event IDs:
+The future Shopify sync should record processed order IDs:
 
 ```text
-stripeEvents/{eventId}
+subscriptionEvents/{eventId}
 ```
 
 Before applying an event:
@@ -480,7 +473,7 @@ Does eventId already exist?
     NO  → process and store eventId
 ```
 
-This prevents duplicate event delivery from corrupting membership state.
+This prevents duplicate order delivery from corrupting membership state.
 
 ---
 
@@ -492,13 +485,13 @@ The current subscription document is compact:
 status
 plan
 tier
-stripeSubscriptionId
+provider
 currentPeriodEnd
 trialEnd
 updatedAt
 ```
 
-That is enough for an MVP but insufficient for a mature billing system.
+That is enough for an MVP but insufficient for a mature membership system.
 
 ### Recommended model
 
@@ -625,7 +618,7 @@ Add:
 - error tracking
 - webhook failure monitoring
 - LiveKit failure monitoring
-- Stripe webhook monitoring
+- Shopify order-sync monitoring
 - Firestore error monitoring
 - uptime monitoring
 - alerting
@@ -660,7 +653,7 @@ The documentation reports build/lint smoke tests, but a platform this complex ne
 
 #### Integration
 
-- Stripe webhook
+- Shopify order sync
 - LiveKit token API
 - RSVP
 - course access
@@ -773,8 +766,7 @@ Local setup
 Environment variables
 Firebase setup
 LiveKit setup
-Stripe setup
-PayPal setup
+Shopify setup (membership products)
 S3 recording setup
 Webhook setup
 Cron setup
@@ -983,7 +975,7 @@ Implement:
 - Failed payment produces a deterministic membership state.
 - Cancellation at period end is represented correctly.
 - Trial expiration removes access correctly.
-- Stripe dashboard state and Firestore state can be reconciled.
+- Shopify order state and Firestore state can be reconciled.
 
 ---
 
@@ -1206,7 +1198,7 @@ Recommended collections:
 
 ```text
 auditLogs/{id}
-stripeEvents/{eventId}
+subscriptionEvents/{eventId}
 reports/{id}
 moderationActions/{id}
 ```
@@ -1272,7 +1264,7 @@ Never trust:
 
 - API error rate
 - Video connection failure rate
-- Stripe webhook failure rate
+- Shopify order-sync failure rate
 - Notification delivery rate
 - Mean time to recovery
 
@@ -1284,7 +1276,7 @@ Yarnery Lounge should not be considered production-ready for serious commercial 
 
 - [ ] Authorization is centralized.
 - [ ] Premium access is tested server-side.
-- [ ] Stripe webhooks are idempotent.
+- [ ] Shopify order sync is idempotent.
 - [ ] Payment failure is handled.
 - [ ] Rate limiting exists.
 - [ ] Admin actions are audited.

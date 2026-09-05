@@ -8,12 +8,6 @@ export function toMillis(value) {
   return Number.isFinite(n) ? n : 0;
 }
 
-export function fromEpoch(seconds) {
-  if (!seconds) return null;
-  const n = Number(seconds);
-  return Number.isFinite(n) && n > 0 ? new Date(n * 1000) : null;
-}
-
 export function periodEndMillis(sub) {
   const current = toMillis(sub?.currentPeriodEnd);
   const trial = toMillis(sub?.trialEnd);
@@ -41,38 +35,4 @@ export function subscriptionStatus(sub, now = Date.now()) {
     return sub.cancelAtPeriodEnd ? "cancel_at_period_end" : "active";
   }
   return "inactive";
-}
-
-export function planFromInterval(interval) {
-  return interval === "year" ? "yearly" : interval === "month" ? "monthly" : null;
-}
-
-export function tierFromMetadata(sub) {
-  return sub?.metadata?.tier || "lounge";
-}
-
-export function planChange({ currentStatus, currentPriceId, requestedPriceId }) {
-  if (!ACTIVE_STATUSES.includes(currentStatus)) return "create";
-  if (currentPriceId === requestedPriceId) return "none";
-  return "switch";
-}
-
-export function buildSubscriptionDoc({ subscription, customer, tier }) {
-  const item = subscription?.items?.data?.[0];
-  return {
-    provider: "stripe",
-    providerCustomerId: customer?.id || "",
-    providerSubscriptionId: subscription?.id || "",
-    status: subscription?.status || "unknown",
-    plan: planFromInterval(item?.price?.recurring?.interval),
-    tier: tier || tierFromMetadata(subscription) || "lounge",
-    priceId: item?.price?.id || "",
-    currentPeriodStart: fromEpoch(subscription?.current_period_start),
-    currentPeriodEnd: fromEpoch(subscription?.current_period_end),
-    trialStart: fromEpoch(subscription?.trial_start),
-    trialEnd: fromEpoch(subscription?.trial_end),
-    cancelAtPeriodEnd: Boolean(subscription?.cancel_at_period_end),
-    canceledAt: subscription?.canceled_at ? fromEpoch(subscription.canceled_at) : null,
-    updatedAt: new Date(),
-  };
 }

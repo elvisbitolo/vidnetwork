@@ -30,8 +30,8 @@ Status: PHASE 1 (discovery) and PHASE 2 (plan) complete; PHASE 3 hardening in pr
 | Finding | Location | Status |
 |---------|----------|--------|
 | Rate limiting only on a handful of routes; in-memory (non-shared, resets on deploy) | `lib/server/rate-limit.js` | Fixed for comments, likes, votes, bookmarks, messages, reports, space join, course progress, rsvp, livekit token. In-memory limitation documented. |
-| Stripe checkout/portal used unvalidated `Origin` for redirect URLs | `api/stripe/checkout`, `api/stripe/portal` | Fixed (`appOrigin` prefers `NEXT_PUBLIC_APP_URL`) |
-| Stripe webhook check-then-act idempotency race | `api/webhooks/stripe` | Fixed (atomic `create()` claim; duplicates rejected) |
+| Stripe checkout/portal redirect-URL validation (former) | `api/stripe/checkout`, `api/stripe/portal` | N/A — Stripe removed; payments moved to Shopify |
+| Stripe webhook check-then-act idempotency race (former) | `api/webhooks/stripe` | N/A — Stripe removed; apply atomic `create()` claim to the future Shopify sync |
 | `past_due` inconsistency between rules and `billing.js` | rules + `lib/server/billing.js` | Fixed (rules `isActiveSub` now includes `past_due` + suspension + period-end) |
 | RSVP capacity check-then-create race | `api/rsvps` | Fixed (transaction + per-occurrence `capacityCounts`) |
 | Space/group delete orphans children (rooms, events, courses, posts, members) | `lib/server/spaces.js` + `api/groups/[id]` | Fixed (cascade delete helpers; chunked batches) |

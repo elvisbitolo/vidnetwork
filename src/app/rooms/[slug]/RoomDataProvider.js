@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useDataChannel } from "@livekit/components-react";
 import {
   collection,
   query,
@@ -27,17 +26,11 @@ export function useRoomData() {
   return ctx;
 }
 
-function encode(obj) {
-  const str = JSON.stringify(obj);
-  return new TextEncoder().encode(str);
-}
-
-function decode(bytes) {
-  try {
-    return JSON.parse(new TextDecoder().decode(bytes));
-  } catch {
-    return null;
-  }
+function snapshotTs(value) {
+  if (value instanceof Date) return value.getTime();
+  if (value?.toMillis) return value.toMillis();
+  if (typeof value === "number") return value;
+  return new Date(value || 0).getTime();
 }
 
 function mapSnapshot(doc) {
@@ -46,20 +39,13 @@ function mapSnapshot(doc) {
   for (const [emoji, byUids] of Object.entries(data.reactions || {})) {
     reactions[emoji] = Object.keys(byUids || {});
   }
-  const ts =
-    data.createdAt instanceof Date
-      ? data.createdAt.getTime()
-      : data.createdAt?.toMillis
-      ? data.createdAt.toMillis()
-      : typeof data.createdAt === "number"
-      ? data.createdAt
-      : new Date(data.createdAt || 0).getTime();
   return {
     id: doc.id,
     userId: data.userId || data.senderId || "",
     userName: data.userName || "Member",
     userAvatar: data.userAvatar || "",
     role: data.role || "viewer",
+    imageData: data.deleted ? "" : data.imageData || "",
     text: data.deleted ? "" : data.text || "",
     mentions: data.mentions || [],
     replyTo: data.replyTo
@@ -67,15 +53,28 @@ function mapSnapshot(doc) {
       : null,
     reactions,
     pinned: !!data.pinned,
-    pinnedAt: data.pinnedAt?.toMillis?.() || 0,
+    pinnedAt: snapshotTs(data.pinnedAt),
     deleted: !!data.deleted,
-    createdAt: ts || Date.now(),
+    createdAt: snapshotTs(data.createdAt) || Date.now(),
+  };
+}
+
+function mapSignal(doc) {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    type: data.type || "",
+    fromIdentity: data.fromIdentity || "",
+    target: data.target || "",
+    value: data.value,
+    emoji: data.emoji || "",
+    hostName: data.hostName || "",
+    createdAt: snapshotTs(data.createdAt) || Date.now(),
   };
 }
 
 export default function RoomDataProvider({
   roomId,
-  hostId,
   currentUserId,
   currentUserName,
   currentUserAvatar,
@@ -91,15 +90,23 @@ export default function RoomDataProvider({
   const [raisedHands, setRaisedHands] = useState({});
   const [myHandRaised, setMyHandRaised] = useState(false);
   const [speakerInvite, setSpeakerInvite] = useState(null);
+  const [messagesPoll, setMessagesPoll] = useState(false);
+  const [signalsPoll, setSignalsPoll] = useState(false);
 
   const cursorRef = useRef(null);
   const lastLoadedAtRef = useRef(null);
   const loadingMoreRef = useRef(false);
   const userIdRef = useRef(currentUserId);
+  const signalsCursorRef = useRef(null);
 
   useEffect(() => {
     userIdRef.current = currentUserId;
   }, [currentUserId]);
+
+  useEffect(() => {
+    if (signalsCursorRef.current !== null) return;
+    signalsCursorRef.current = Date.now() - 60 * 1000;
+  }, [roomId]);
 
   const mergeMessages = useCallback((incoming, { prepend = false } = {}) => {
     setMessages((prev) => {
@@ -149,74 +156,149 @@ export default function RoomDataProvider({
 
   useEffect(() => {
     if (!roomId) return;
-    const col = collection(db, "rooms", roomId, "messages");
-    const q = query(col, orderBy("createdAt", "desc"), limit(300));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list = snap.docs.map(mapSnapshot);
+    let unsub;
+    try {
+      const col = collection(db, "rooms", roomId, "messages");
+      const q = query(col, orderBy("createdAt", "desc"), limit(300));
+      unsub = onSnapshot(
+        q,
+        (snap) => {
+          const list = snap.docs.map(mapSnapshot);
+          if (list.length) {
+            mergeMessages(list);
+          }
+        },
+        () => {
+          setMessagesPoll(true);
+        }
+      );
+    } catch {
+      setTimeout(() => setMessagesPoll(true), 0);
+    }
+    return () => unsub?.();
+  }, [roomId, mergeMessages]);
+
+  useEffect(() => {
+    if (!roomId || !messagesPoll) return;
+    const timer = setInterval(async () => {
+      const after = (lastLoadedAtRef.current || Date.now()) - 1;
+      try {
+        const res = await fetch(`/api/rooms/${roomId}/messages?limit=60&after=${after}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = data.messages || [];
         if (list.length) {
           mergeMessages(list);
         }
-      },
-      () => {
-        // Live updates unavailable (e.g. rules) — history still works via API.
+      } catch {
+        /* keep polling */
       }
-    );
-    return unsub;
-  }, [roomId, mergeMessages]);
-
-  const { send: sendReactionRaw } = useDataChannel("reaction", (msg) => {
-    const data = decode(msg.payload);
-    if (!data || data.type !== "reaction") return;
-    const from = msg.from?.identity || "";
-    const id = `${Date.now()}-${from}-${Math.random().toString(36).slice(2, 6)}`;
-    setFloatingReactions((prev) => [
-      ...prev,
-      { id, from, emoji: data.emoji || "❤️", sent: data.sent || false },
-    ]);
-    setTimeout(() => {
-      setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
     }, 4000);
-  });
+    return () => clearInterval(timer);
+  }, [roomId, messagesPoll, mergeMessages]);
 
-  const { send: sendHand } = useDataChannel("hand", (msg) => {
-    const data = decode(msg.payload);
-    if (!data || data.type !== "hand") return;
-    const from = msg.from?.identity || "";
-    setRaisedHands((prev) => ({ ...prev, [from]: !!data.value }));
-  });
+  const applySignals = useCallback((list) => {
+    const sorted = [...list].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    for (const s of sorted) {
+      if (s.type === "hand") {
+        const who = s.target || s.fromIdentity || "";
+        if (!who) continue;
+        setRaisedHands((prev) => ({ ...prev, [who]: !!s.value }));
+        if (who === userIdRef.current) setMyHandRaised(!!s.value);
+      } else if (s.type === "reaction") {
+        const from = s.fromIdentity || "";
+        if (from === userIdRef.current) continue;
+        const id = `${Date.now()}-${from}-${Math.random().toString(36).slice(2, 6)}`;
+        setFloatingReactions((prev) => [...prev, { id, from, emoji: s.emoji || "❤️", sent: false }]);
+        setTimeout(() => {
+          setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
+        }, 4000);
+      } else if (s.type === "speakerInvite") {
+        if (s.target && s.target !== userIdRef.current) continue;
+        const from = s.fromIdentity || "";
+        setSpeakerInvite({ host: from, hostName: s.hostName || from });
+      }
+    }
+  }, []);
 
-  const { send: sendSpeakerInviteRaw } = useDataChannel("speakerInvite", (msg) => {
-    const data = decode(msg.payload);
-    if (!data || data.type !== "speakerInvite") return;
-    if (data.target !== userIdRef.current) return;
-    const from = msg.from?.identity || "";
-    setSpeakerInvite({ host: from, hostName: data.hostName || from });
-  });
+  useEffect(() => {
+    if (!roomId) return;
+    let unsub;
+    try {
+      const col = collection(db, "rooms", roomId, "signals");
+      const q = query(col, orderBy("createdAt", "desc"), limit(100));
+      unsub = onSnapshot(
+        q,
+        (snap) => {
+          const list = snap.docs.map(mapSignal);
+          if (list.length) {
+            const max = list.reduce((acc, s) => Math.max(acc, s.createdAt || 0), signalsCursorRef.current || 0);
+            signalsCursorRef.current = max;
+          }
+          applySignals(list);
+        },
+        () => {
+          setSignalsPoll(true);
+        }
+      );
+    } catch {
+      setTimeout(() => setSignalsPoll(true), 0);
+    }
+    return () => unsub?.();
+  }, [roomId, applySignals]);
+
+  useEffect(() => {
+    if (!roomId || !signalsPoll) return;
+    const timer = setInterval(async () => {
+      const after = signalsCursorRef.current || Date.now() - 60 * 1000;
+      try {
+        const res = await fetch(`/api/rooms/${roomId}/signals?after=${after}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = data.signals || [];
+        if (list.length) {
+          signalsCursorRef.current = list[list.length - 1].createdAt;
+          applySignals(list);
+        }
+      } catch {
+        /* keep polling */
+      }
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [roomId, signalsPoll, applySignals]);
 
   const clearSpeakerInvite = useCallback(() => setSpeakerInvite(null), []);
 
   const sendSpeakerInvite = useCallback(
-    (target, hostName) => {
-      sendSpeakerInviteRaw(encode({ type: "speakerInvite", target, hostName }), {
-        reliable: true,
-        topic: "speakerInvite",
-      });
+    async (target, hostName) => {
+      if (!roomId || !target) return;
+      try {
+        await fetch(`/api/rooms/${roomId}/signals`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "speakerInvite", target, hostName: hostName || "" }),
+        });
+      } catch {
+        /* server enforces and persists via signals collection */
+      }
     },
-    [sendSpeakerInviteRaw]
+    [roomId]
   );
 
   const sendChatMessage = useCallback(
-    async (text, replyTo = null, mentions = []) => {
-      if (!roomId || !text.trim()) return false;
+    async (text, replyTo = null, mentions = [], imageData = "") => {
+      if (!roomId) return false;
+      const cleanText = String(text || "").trim();
+      const cleanImage = String(imageData || "").trim();
+      if (!cleanText && !cleanImage) return false;
       const optimistic = {
         id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         userId: currentUserId,
         userName: currentUserName || "You",
         userAvatar: currentUserAvatar || "",
         role: canModerate ? (isHost ? "host" : "moderator") : "speaker",
-        text: text.trim(),
+        imageData: cleanImage,
+        text: cleanText,
         mentions: mentions || [],
         replyTo: replyTo
           ? { id: replyTo.id || "", text: replyTo.text || "", from: replyTo.from || "" }
@@ -231,7 +313,8 @@ export default function RoomDataProvider({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: text.trim(),
+            text: cleanText,
+            imageData: cleanImage,
             mentions: mentions || [],
             replyTo: replyTo ? { id: replyTo.id, text: replyTo.text, from: replyTo.from } : null,
           }),
@@ -240,6 +323,19 @@ export default function RoomDataProvider({
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || "Failed to send");
         }
+        const data = await res.json().catch(() => ({}));
+        const realId = data?.id;
+        setMessages((prev) => {
+          const withoutLocal = prev.filter((m) => m.id !== optimistic.id);
+          if (realId && withoutLocal.some((m) => m.id === realId)) {
+            return withoutLocal;
+          }
+          return realId
+            ? withoutLocal
+                .concat({ ...optimistic, id: realId, isLocal: false })
+                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+            : withoutLocal;
+        });
         return true;
       } catch (e) {
         setMessages((prev) =>
@@ -255,14 +351,11 @@ export default function RoomDataProvider({
     async (messageId, emoji) => {
       if (!roomId || !messageId) return;
       try {
-        await fetch(
-          `/api/rooms/${roomId}/messages/${messageId}/reactions`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ emoji }),
-          }
-        );
+        await fetch(`/api/rooms/${roomId}/messages/${messageId}/reactions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ emoji }),
+        });
       } catch {
         /* best effort — snapshot reconciles */
       }
@@ -300,29 +393,45 @@ export default function RoomDataProvider({
 
   const sendReaction = useCallback(
     (emoji) => {
+      if (!roomId) return;
       const id = `self-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       setFloatingReactions((prev) => [...prev, { id, from: currentUserId, emoji, sent: true }]);
       setTimeout(() => {
         setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
       }, 4000);
-      sendReactionRaw(encode({ type: "reaction", emoji, sent: true }), {
-        reliable: false,
-        topic: "reaction",
-      });
+      fetch(`/api/rooms/${roomId}/signals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "reaction", emoji }),
+      }).catch(() => {});
     },
-    [sendReactionRaw, currentUserId]
+    [roomId, currentUserId]
   );
 
   const toggleHand = useCallback(() => {
+    if (!roomId || !currentUserId) return;
     const next = !myHandRaised;
     setMyHandRaised(next);
-    if (currentUserId) setRaisedHands((prev) => ({ ...prev, [currentUserId]: next }));
-    sendHand(encode({ type: "hand", value: next }), { reliable: true, topic: "hand" });
-  }, [myHandRaised, currentUserId, sendHand]);
+    setRaisedHands((prev) => ({ ...prev, [currentUserId]: next }));
+    fetch(`/api/rooms/${roomId}/signals`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "hand", value: next }),
+    }).catch(() => {});
+  }, [roomId, currentUserId, myHandRaised]);
 
-  const dismissHand = useCallback((identity) => {
-    setRaisedHands((prev) => ({ ...prev, [identity]: false }));
-  }, []);
+  const dismissHand = useCallback(
+    (identity) => {
+      if (!roomId || !identity) return;
+      setRaisedHands((prev) => ({ ...prev, [identity]: false }));
+      fetch(`/api/rooms/${roomId}/signals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "hand", value: false, target: identity }),
+      }).catch(() => {});
+    },
+    [roomId]
+  );
 
   const value = useMemo(
     () => ({

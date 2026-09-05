@@ -447,8 +447,7 @@
     "typeMessage": "Nachricht eingeben…",
     "host": "Moderator",
     "speaker": "Referent",
-    "you": "Sie",
-    "mostPopular": "Am beliebtesten"
+    "you": "Sie"
   },
   "membership": {
     "title": "Meine Mitgliedschaft",
@@ -620,6 +619,12 @@
     "acceptSpeaker": "Als Sprecher annehmen",
     "decline": "Ablehnen",
     "cameraOff": "Kamera aus",
-    "hideOffCamera": "Kameras ausblenden"
+    "hideOffCamera": "Kameras ausblenden",
+    "watchingBanner": "Du schaust als Zuschauer:in zu — hebe die Hand, um zu sprechen.",
+    "switchCamera": "Kamera wechseln",
+    "captionsOn": "Untertitel eingeschaltet",
+    "captionsNotSupported": "In diesem Browser nicht unterstützt",
+    "noMicrophone": "Kein Mikrofon gefunden",
+    "noCamera": "Keine Kamera gefunden"
   }
 }

@@ -16,10 +16,11 @@ export default function RoomPreJoin({
   busy,
   error,
   onJoin,
+  viewerOnly = false,
 }) {
   const t = useTranslations("rooms");
-  const [micOn, setMicOn] = useState(true);
-  const [camOn, setCamOn] = useState(true);
+  const [micOn, setMicOn] = useState(!viewerOnly);
+  const [camOn, setCamOn] = useState(!viewerOnly);
   const [audioDeviceId, setAudioDeviceId] = useState("");
   const [videoDeviceId, setVideoDeviceId] = useState("");
   const [devices, setDevices] = useState({ audio: [], video: [] });
@@ -75,6 +76,19 @@ export default function RoomPreJoin({
   const hasVideoTrack = !!tracks?.some((tr) => tr.kind === "video");
   const initial = (userName || "?").charAt(0).toUpperCase();
 
+  function handleJoin() {
+    if (tracks?.length) {
+      for (const tr of tracks) {
+        try {
+          tr.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    onJoin({ micOn, camOn, audioDeviceId, videoDeviceId });
+  }
+
   return (
     <div className={styles.prejoinWrap}>
       <BackButton fallback="/rooms" label="Back to rooms" />
@@ -113,71 +127,77 @@ export default function RoomPreJoin({
           </div>
         </div>
 
-        <div className={styles.prejoinToggles}>
-            <button
-              type="button"
-              className={micOn ? styles.prejoinToggleOn : styles.prejoinToggle}
-              onClick={() => setMicOn((v) => !v)}
-              aria-pressed={micOn}
-            >
-              {micOn ? <Mic size={18} /> : <MicOff size={18} />}
-              <span>{micOn ? t("unmuteMic") : t("muteMic")}</span>
-            </button>
-            <button
-              type="button"
-              className={camOn ? styles.prejoinToggleOn : styles.prejoinToggle}
-              onClick={() => setCamOn((v) => !v)}
-              aria-pressed={camOn}
-            >
-              {camOn ? <Video size={18} /> : <VideoOff size={18} />}
-              <span>{camOn ? t("turnOnCam") : t("turnOffCam")}</span>
-            </button>
-          </div>
+        {viewerOnly && <p className={styles.watchNote}>{t("watchingOnly")}</p>}
 
-        {devices.audio.length > 1 && (
-          <label className={styles.selectWrap}>
-            <span className={styles.selectLabel}>{t("audioInput")}</span>
-            <span className={styles.selectBox}>
-              <select
-                value={audioDeviceId}
-                onChange={(e) => setAudioDeviceId(e.target.value)}
-                aria-label={t("audioInput")}
+        {!viewerOnly && (
+          <>
+            <div className={styles.prejoinToggles}>
+              <button
+                type="button"
+                className={micOn ? styles.prejoinToggleOn : styles.prejoinToggle}
+                onClick={() => setMicOn((v) => !v)}
+                aria-pressed={micOn}
               >
-                {devices.audio.map((d) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label || t("microphone")}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={15} className={styles.selectChevron} />
-            </span>
-          </label>
-        )}
-        {devices.video.length > 1 && (
-          <label className={styles.selectWrap}>
-            <span className={styles.selectLabel}>{t("videoInput")}</span>
-            <span className={styles.selectBox}>
-              <select
-                value={videoDeviceId}
-                onChange={(e) => setVideoDeviceId(e.target.value)}
-                aria-label={t("videoInput")}
+                {micOn ? <Mic size={18} /> : <MicOff size={18} />}
+                <span>{micOn ? t("unmuteMic") : t("muteMic")}</span>
+              </button>
+              <button
+                type="button"
+                className={camOn ? styles.prejoinToggleOn : styles.prejoinToggle}
+                onClick={() => setCamOn((v) => !v)}
+                aria-pressed={camOn}
               >
-                {devices.video.map((d) => (
-                  <option key={d.deviceId} value={d.deviceId}>
-                    {d.label || t("camera")}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={15} className={styles.selectChevron} />
-            </span>
-          </label>
+                {camOn ? <Video size={18} /> : <VideoOff size={18} />}
+                <span>{camOn ? t("turnOnCam") : t("turnOffCam")}</span>
+              </button>
+            </div>
+
+            {devices.audio.length > 1 && (
+              <label className={styles.selectWrap}>
+                <span className={styles.selectLabel}>{t("audioInput")}</span>
+                <span className={styles.selectBox}>
+                  <select
+                    value={audioDeviceId}
+                    onChange={(e) => setAudioDeviceId(e.target.value)}
+                    aria-label={t("audioInput")}
+                  >
+                    {devices.audio.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || t("microphone")}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={15} className={styles.selectChevron} />
+                </span>
+              </label>
+            )}
+            {devices.video.length > 1 && (
+              <label className={styles.selectWrap}>
+                <span className={styles.selectLabel}>{t("videoInput")}</span>
+                <span className={styles.selectBox}>
+                  <select
+                    value={videoDeviceId}
+                    onChange={(e) => setVideoDeviceId(e.target.value)}
+                    aria-label={t("videoInput")}
+                  >
+                    {devices.video.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || t("camera")}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={15} className={styles.selectChevron} />
+                </span>
+              </label>
+            )}
+          </>
         )}
 
         {error && <p className={styles.error}>{error}</p>}
 
         <button
           className={styles.join}
-          onClick={() => onJoin({ micOn, camOn, audioDeviceId, videoDeviceId })}
+          onClick={handleJoin}
           disabled={busy}
         >
           {busy ? t("joining") : joinLabel}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Music4, Upload, Check } from "lucide-react";
 
 export default function RoomMusicPicker({ isStaff }) {
   const [open, setOpen] = useState(false);
@@ -153,11 +154,7 @@ export default function RoomMusicPicker({ isStaff }) {
           backdropFilter: "blur(8px)",
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M9 18V5l12-2v13" />
-          <circle cx="6" cy="18" r="3" />
-          <circle cx="18" cy="16" r="3" />
-        </svg>
+        <Music4 size={20} />
       </button>
 
       {open && (
@@ -253,9 +250,7 @@ export default function RoomMusicPicker({ isStaff }) {
               opacity: uploading ? 0.5 : 1,
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-            </svg>
+            <Upload size={16} />
             {uploading ? "Uploading…" : "Upload audio file"}
           </button>
           <input ref={fileRef} type="file" accept="audio/*" onChange={handleFile} style={{ display: "none" }} />
@@ -265,9 +260,7 @@ export default function RoomMusicPicker({ isStaff }) {
 
           {fileId && (
             <div style={{ padding: "8px 12px", borderRadius: 10, background: "rgba(74,222,128,0.08)", border: "1px solid rgba(74,222,128,0.2)", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
+              <Check size={14} color="#4ade80" />
               <span style={{ fontSize: 12, color: "#4ade80" }}>File uploaded</span>
             </div>
           )}

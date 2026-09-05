@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { Music4, Volume2, VolumeX } from "lucide-react";
 
 export default function GlobalRoomMusic() {
   const [src, setSrc] = useState("");
@@ -117,22 +118,8 @@ export default function GlobalRoomMusic() {
           whiteSpace: "nowrap",
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <path d="M9 18V5l12-2v13" />
-          <circle cx="6" cy="18" r="3" />
-          <circle cx="18" cy="16" r="3" />
-        </svg>
-        {playing ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.5 4.5 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.5 8.5 0 0014 3.23z" />
-          </svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M11 5L6 9H2v6h4l5 4V5z" />
-            <line x1="23" y1="9" x2="17" y2="15" />
-            <line x1="17" y1="9" x2="23" y2="15" />
-          </svg>
-        )}
+        <Music4 size={14} />
+        {playing ? <Volume2 size={12} /> : <VolumeX size={12} />}
         {songName && (
           <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis" }}>
             {songName}

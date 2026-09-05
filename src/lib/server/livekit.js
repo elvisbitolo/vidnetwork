@@ -109,7 +109,7 @@ export async function startMusicIngress(slug, audioUrl, songName) {
   const info = await client.createIngress(IngressInput.URL_INPUT, {
     roomName: slug,
     name: songName || "Room Music",
-    participantName: songName || "🎵 Music",
+    participantName: songName || "Music",
     participantIdentity: identity,
     url: audioUrl,
     enableTranscoding: true,

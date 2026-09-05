@@ -47,6 +47,7 @@ function decodeMessage(raw) {
     userName: data.userName || "Member",
     userAvatar: data.userAvatar || "",
     role: data.role || "viewer",
+    imageData: data.deleted ? "" : data.imageData || "",
     text: data.deleted ? "" : data.text || "",
     mentions: data.mentions || [],
     replyTo: replyTo
@@ -66,8 +67,19 @@ function decodeMessage(raw) {
   return msg;
 }
 
-export async function listRoomMessages(roomId, { before, limit = 50 } = {}) {
+export async function listRoomMessages(roomId, { before, after, limit = 50 } = {}) {
   const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
+  if (after) {
+    const afterTs = Number.isFinite(after) ? after : toMillis(after);
+    if (!afterTs) return { messages: [], hasMore: false };
+    const q = messagesRef(roomId)
+      .orderBy("createdAt", "asc")
+      .startAfter(new Date(afterTs))
+      .limit(safeLimit);
+    const snap = await q.get();
+    const list = snap.docs.map(decodeMessage).sort((a, b) => a.createdAt - b.createdAt);
+    return { messages: list, hasMore: snap.docs.length >= safeLimit };
+  }
   let q = messagesRef(roomId).orderBy("createdAt", "desc");
   if (before) {
     const beforeTs = Number.isFinite(before) ? before : toMillis(before);
@@ -84,11 +96,12 @@ export async function listRoomMessages(roomId, { before, limit = 50 } = {}) {
   return { messages: list, hasMore };
 }
 
-export async function addRoomMessage(roomId, sender, { text, mentions = [], replyTo = null }) {
+export async function addRoomMessage(roomId, sender, { text, mentions = [], replyTo = null, imageData = "" }) {
   const room = await getRoomForChat(roomId);
   if (!room) return null;
   const clean = String(text || "").trim();
-  if (!clean || clean.length > ROOM_MESSAGE_MAX) return null;
+  const cleanImage = String(imageData || "").trim();
+  if ((!clean && !cleanImage) || clean.length > ROOM_MESSAGE_MAX) return null;
   const ref = await messagesRef(roomId).add({
     roomId,
     userId: sender.uid,
@@ -96,6 +109,7 @@ export async function addRoomMessage(roomId, sender, { text, mentions = [], repl
     userAvatar: sender.avatar || "",
     role: sender.role || "viewer",
     text: clean,
+    imageData: cleanImage || "",
     mentions: Array.isArray(mentions)
       ? [...new Set(mentions.filter((m) => typeof m === "string" && m))]
       : [],

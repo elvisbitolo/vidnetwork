@@ -447,8 +447,7 @@
     "typeMessage": "Type a message…",
     "host": "Host",
     "speaker": "Speaker",
-    "you": "You",
-    "mostPopular": "Most popular"
+    "you": "You"
   },
   "membership": {
     "title": "My membership",
@@ -620,6 +619,12 @@
     "acceptSpeaker": "Accept as speaker",
     "decline": "Decline",
     "cameraOff": "Camera off",
-    "hideOffCamera": "Hide camera-off speakers"
+    "hideOffCamera": "Hide camera-off speakers",
+    "watchingBanner": "You're watching as a viewer — raise your hand to speak.",
+    "switchCamera": "Switch camera",
+    "captionsOn": "Captions on",
+    "captionsNotSupported": "Not supported in this browser",
+    "noMicrophone": "No microphone found",
+    "noCamera": "No camera found"
   }
 }

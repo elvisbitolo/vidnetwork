@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/authorize";
 import { rateLimitGuard } from "@/lib/server/rate-limit";
 import { getScopedHostRights } from "@/lib/server/hosts";
+import { getUserDoc } from "@/lib/server/auth";
 
 export async function POST(req) {
   const auth = await requireActiveMember();
@@ -80,12 +81,19 @@ export async function POST(req) {
   }
 
   const identity = auth.user.uid;
+  const userDoc = await getUserDoc(identity);
   const displayName =
-    auth.user.displayName || auth.user.email?.split("@")[0] || "Member";
+    userDoc?.name || auth.user.displayName || auth.user.email?.split("@")[0] || "Member";
+  const avatar = userDoc?.photoURL || auth.user.photoURL || "";
 
   const at = new AccessToken(apiKey, apiSecret, {
     identity,
     name: displayName,
+    metadata: JSON.stringify({
+      id: identity,
+      name: displayName,
+      avatar,
+    }),
     ttl: room.alwaysOn ? "24h" : "4h",
   });
   at.addGrant({

@@ -447,8 +447,7 @@
     "typeMessage": "Tapez un message…",
     "host": "Animateur",
     "speaker": "Intervenant",
-    "you": "Vous",
-    "mostPopular": "Le plus populaire"
+    "you": "Vous"
   },
   "membership": {
     "title": "Mon abonnement",
@@ -620,6 +619,12 @@
     "acceptSpeaker": "Accepter comme orateur",
     "decline": "Refuser",
     "cameraOff": "Caméra coupée",
-    "hideOffCamera": "Masquer ceux caméra coupée"
+    "hideOffCamera": "Masquer ceux caméra coupée",
+    "watchingBanner": "Vous regardez en tant que spectateur·rice — levez la main pour parler.",
+    "switchCamera": "Changer de caméra",
+    "captionsOn": "Sous-titres activés",
+    "captionsNotSupported": "Non pris en charge par ce navigateur",
+    "noMicrophone": "Aucun microphone trouvé",
+    "noCamera": "Aucune caméra trouvée"
   }
 }

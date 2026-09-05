@@ -21,6 +21,34 @@ import styles from "./room.module.css";
 
 const EMOJI = ["❤️", "👍", "👏", "🎉", "😂", "🙌"];
 
+function fileToImageData(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read"));
+    reader.onload = () => {
+      const raw = typeof reader.result === "string" ? reader.result : "";
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode"));
+      img.onload = () => {
+        if (raw.length <= 600 * 1024) {
+          resolve(raw);
+          return;
+        }
+        const maxDim = 720;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function ChatAvatar({ name, avatar }) {
   if (avatar) {
     // eslint-disable-next-line @next/next/no-img-element
@@ -84,6 +112,10 @@ function MessageRow({ msg, hostId, currentUserId, canModerate, onToggleReaction,
               </span>
             )}
             <div className={msg.isLocal ? `${styles.chatBubble} ${styles.chatBubbleMe}` : styles.chatBubble}>
+              {msg.imageData && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className={styles.chatImage} src={msg.imageData} alt="" />
+              )}
               <p className={styles.chatText}>
                 {msg.mentions && msg.mentions.length > 0 && (
                   <span className={styles.chatMention}>
@@ -167,14 +199,15 @@ export default function RoomChat({ hostId, currentUserId }) {
     canModerate,
     sendChatMessage,
     toggleReaction,
-    sendReaction,
   } = useRoomData();
   const [draft, setDraft] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [showEmoji, setShowEmoji] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [attachBusy, setAttachBusy] = useState(false);
   const listRef = useRef(null);
   const composerRef = useRef(null);
+  const fileInputRef = useRef(null);
   const nearBottomRef = useRef(true);
   const prevLenRef = useRef(0);
 
@@ -228,6 +261,31 @@ export default function RoomChat({ hostId, currentUserId }) {
     const val = draft + "@";
     setDraft(val);
     composerRef.current && composerRef.current.focus();
+  }
+
+  async function handleAttach(e) {
+    const file = e.target.files && e.target.files[0];
+    if (e.target.value) e.target.value = "";
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|gif|webp)/.test(file.type)) return;
+    setAttachBusy(true);
+    try {
+      const imageData = await fileToImageData(file);
+      if (!imageData) return;
+      sendChatMessage(
+        draft,
+        replyingTo ? { id: replyingTo.id, text: replyingTo.text, from: replyingTo.userName } : null,
+        [],
+        imageData
+      );
+      setDraft("");
+      setReplyingTo(null);
+      scrollToBottom();
+    } catch {
+      /* ignored */
+    } finally {
+      setAttachBusy(false);
+    }
   }
 
   return (
@@ -313,7 +371,8 @@ export default function RoomChat({ hostId, currentUserId }) {
                 type="button"
                 className={styles.emojiBtn}
                 onClick={() => {
-                  sendReaction(e);
+                  setDraft((d) => d + e);
+                  composerRef.current && composerRef.current.focus();
                   setShowEmoji(false);
                 }}
               >
@@ -330,9 +389,24 @@ export default function RoomChat({ hostId, currentUserId }) {
         >
           <Smile size={18} />
         </button>
-        <button type="button" className={styles.composerIconBtn} title={t("attach")} onClick={() => {}}>
-          <Paperclip size={18} />
+        <button
+          type="button"
+          className={styles.composerIconBtn}
+          title={t("attach")}
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          disabled={attachBusy}
+        >
+          {attachBusy ? <Loader2 size={18} className={styles.loadingSpin} /> : <Paperclip size={18} />}
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          className={styles.hiddenInput}
+          onChange={handleAttach}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
         <button
           type="button"
           className={styles.composerIconBtn}

@@ -27,6 +27,24 @@ function parseCursor(url) {
   return Number.isFinite(ts) && ts > 0 ? ts : null;
 }
 
+function parseAfter(url) {
+  const after = url.searchParams.get("after");
+  if (!after) return null;
+  const ts = Number(after);
+  return Number.isFinite(ts) && ts > 0 ? ts : null;
+}
+
+const IMAGE_DATA_RE = /^data:image\/(png|jpe?g|gif|webp);base64,/;
+
+function validImageData(value) {
+  if (typeof value !== "string") return false;
+  const v = value.trim();
+  if (!v) return false;
+  if (!IMAGE_DATA_RE.test(v)) return false;
+  if (v.length > 700 * 1024) return false;
+  return true;
+}
+
 export async function GET(req, { params }) {
   const { id: roomId } = await params;
   const auth = await requireActiveMember();
@@ -43,7 +61,8 @@ export async function GET(req, { params }) {
 
   const limit = Number(req.nextUrl.searchParams.get("limit")) || 50;
   const before = parseCursor(req.nextUrl);
-  const { messages, hasMore } = await listRoomMessages(roomId, { before, limit });
+  const after = parseAfter(req.nextUrl);
+  const { messages, hasMore } = await listRoomMessages(roomId, { before, after, limit });
   return NextResponse.json({ messages, hasMore });
 }
 
@@ -63,7 +82,8 @@ export async function POST(req, { params }) {
 
   const body = await req.json().catch(() => ({}));
   const text = typeof body?.text === "string" ? body.text.trim() : "";
-  if (!text) {
+  const hasImage = validImageData(body?.imageData);
+  if (!text && !hasImage) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
   }
   if (text.length > ROOM_MESSAGE_MAX) {
@@ -91,10 +111,10 @@ export async function POST(req, { params }) {
     {
       uid: auth.user.uid,
       name: senderName,
-      avatar: userDoc?.avatar || auth.user.photoURL || "",
+      avatar: userDoc?.photoURL || auth.user.photoURL || "",
       role,
     },
-    { text, mentions, replyTo }
+    { text, mentions, replyTo, imageData: hasImage ? body.imageData.trim() : "" }
   );
 
   if (!messageId) {

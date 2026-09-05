@@ -54,6 +54,13 @@ service cloud.firestore {
           && course.status == 'published');
     }
 
+    function canReadRoom(room) {
+      return isOwner()
+        || (isActiveSub()
+          && isSpaceMember(room.spaceId)
+          && isGroupMember(room.groupId));
+    }
+
     match /users/{uid} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isOwner());
       allow create: if isSignedIn() && request.auth.uid == uid
@@ -71,11 +78,21 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId} {
-      allow read: if isSignedIn() && (isOwner() || (isActiveSub()
-        && isSpaceMember(resource.data.spaceId)
-        && isGroupMember(resource.data.groupId)));
+      allow read: if isSignedIn() && canReadRoom(resource.data);
       allow create: if isOwner();
       allow update, delete: if isOwner();
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn()
+          && canReadRoom(get(/databases/$(database)/documents/rooms/$(roomId)).data);
+        allow write: if false;
+      }
+
+      match /signals/{signalId} {
+        allow read: if isSignedIn()
+          && canReadRoom(get(/databases/$(database)/documents/rooms/$(roomId)).data);
+        allow write: if false;
+      }
     }
 
     match /events/{eventId} {

@@ -14,9 +14,15 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useRoomData } from "./RoomDataProvider";
+import { parsePersonMeta } from "./personMeta";
 import styles from "./room.module.css";
 
-function PanelAvatar({ name }) {
+function PanelAvatar({ name, avatar }) {
+  const [broken, setBroken] = useState(false);
+  if (avatar && !broken) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className={styles.panelAvatarImg} src={avatar} alt="" onError={() => setBroken(true)} />;
+  }
   return <span className={styles.panelAvatar}>{(name || "?").charAt(0).toUpperCase()}</span>;
 }
 
@@ -30,9 +36,20 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, curren
   const [actionError, setActionError] = useState("");
 
   const q = query.trim().toLowerCase();
-  const filtered = participants.filter(
-    (p) => !q || (p.name || p.identity || "").toLowerCase().includes(q)
-  );
+  const withMeta = (p) => {
+    const meta = parsePersonMeta(p);
+    return { p, name: meta.name || p.name || p.identity };
+  };
+  const filtered = participants
+    .map(withMeta)
+    .filter(({ name: n }) => !q || n.toLowerCase().includes(q))
+    .map(({ p }) => p);
+
+  const maxSpeakers = 9;
+  const speakerCount = participants.filter(
+    (p) => (p.permissions ? p.permissions.canPublish !== false : true)
+  ).length;
+  const roomFull = speakerCount >= maxSpeakers;
 
   const hostUsers = filtered.filter((p) => p.identity === hostId);
   const speakerUsers = filtered.filter(
@@ -41,12 +58,6 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, curren
   const viewerUsers = filtered.filter(
     (p) => p.identity !== hostId && (p.permissions ? p.permissions.canPublish === false : false)
   );
-
-  const maxSpeakers = 9;
-  const speakerCount = filtered.filter(
-    (p) => (p.permissions ? p.permissions.canPublish !== false : true)
-  ).length;
-  const roomFull = speakerCount >= maxSpeakers;
 
   const raisedQueue = Object.entries(raisedHands)
     .filter(([, v]) => v)
@@ -115,12 +126,14 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, curren
     const isMe = p.identity === currentUserId;
     const isHostUser = p.identity === hostId;
     const handRaised = !!raisedHands[p.identity];
+    const meta = parsePersonMeta(p);
+    const name = meta.name || p.name || p.identity;
     return (
       <div className={styles.panelRow}>
-        <PanelAvatar name={p.name || p.identity} />
+        <PanelAvatar name={name} avatar={meta.avatar || p.avatar} />
         <div className={styles.panelRowMain}>
           <span className={styles.panelRowName}>
-            {p.name || p.identity}
+            {name}
             {isMe && <span className={styles.panelRowMe}>{t("you")}</span>}
           </span>
           <span className={styles.panelRowMeta}>
@@ -199,10 +212,11 @@ export default function ParticipantPanel({ hostId, roomId, currentUserId, curren
             </p>
             {raisedQueue.map((id, idx) => {
               const p = participants.find((x) => x.identity === id);
+              const raisedName = p ? parsePersonMeta(p).name || p.name || id : id;
               return (
                 <div key={id} className={styles.raisedRow}>
                   <span className={styles.raisedIdx}>{idx + 1}.</span>
-                  <span className={styles.raisedName}>{p?.name || id}</span>
+                  <span className={styles.raisedName}>{raisedName}</span>
                   <button
                     type="button"
                     className={styles.raisedBtn}

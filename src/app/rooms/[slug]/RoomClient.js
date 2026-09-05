@@ -106,6 +106,7 @@ export default function RoomClient({
   userAvatar = "",
 }) {
   const router = useRouter();
+  const t = useTranslations("rooms");
   const [token, setToken] = useState("");
   const [serverUrl, setServerUrl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -117,7 +118,6 @@ export default function RoomClient({
   const [statusMsg, setStatusMsg] = useState("");
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(true);
-  const [hideOffCamera, setHideOffCamera] = useState(false);
 
   const tokenRef = useRef("");
   const reconnectTimer = useRef(null);
@@ -152,6 +152,7 @@ export default function RoomClient({
   const isOwner = role === "owner";
   const isStaff = role === "owner" || role === "moderator";
   const isModerator = role === "moderator";
+  const viewerOnly = isBroadcast && !isHost && !isCoHost;
   const waiting = Boolean(opensAt) && !isHost && now < opensAt;
   const waitSeconds = waiting ? Math.max(0, Math.ceil((opensAt - now) / 1000)) : 0;
 
@@ -343,6 +344,7 @@ export default function RoomClient({
             }
             busy={busy}
             error={error}
+            viewerOnly={viewerOnly}
             onJoin={(prefs) => handleJoin(prefs)}
           />
         </div>
@@ -427,32 +429,36 @@ export default function RoomClient({
                 </div>
               </header>
 
-              <div className={styles.liveScroll}>
-                <RoomStage
-                  hostId={hostId}
-                  currentUserId={userId}
-                  isCoHost={isCoHost}
-                  hideOffCamera={hideOffCamera}
-                  onShowPeople={() => setShowParticipants(true)}
-                />
-                <div className={styles.chatSection}>
-                  <RoomChat
+              <div className={styles.mainRow}>
+                <div className={styles.stageCol}>
+                  <RoomStage
                     hostId={hostId}
                     currentUserId={userId}
-                    currentUserName={userName}
                     currentUserAvatar={userAvatar}
                   />
+                  {isViewer && (
+                    <span className={styles.viewerBanner} role="status">
+                      {t("watchingBanner")}
+                    </span>
+                  )}
                 </div>
+
+                {showChat && (
+                  <div className={styles.chatCol}>
+                    <RoomChat
+                      hostId={hostId}
+                      currentUserId={userId}
+                      currentUserName={userName}
+                      currentUserAvatar={userAvatar}
+                    />
+                  </div>
+                )}
               </div>
 
               <RoomControls
                 isHost={isHost}
-                isCoHost={isCoHost}
                 canPublish={!isViewer}
-                isBroadcast={isBroadcast}
-                isViewer={isViewer}
-                hideOffCamera={hideOffCamera}
-                onToggleHideOffCamera={() => setHideOffCamera((v) => !v)}
+                currentUserName={userName}
                 chatOpen={showChat}
                 participantsOpen={showParticipants}
                 onOpenParticipants={() => setShowParticipants((v) => !v)}

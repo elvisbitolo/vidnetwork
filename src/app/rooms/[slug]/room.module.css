@@ -327,14 +327,51 @@
   overflow: hidden;
 }
 
-.liveScroll {
+.mainRow {
+  position: relative;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding: 20px 22px 24px;
+  display: flex;
+  gap: 14px;
+  padding: 14px 18px 10px;
+}
+
+.stageCol {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+}
+
+.chatCol {
+  width: 350px;
+  max-width: 40%;
+  flex-shrink: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.chatCol > * {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 720px) {
+  .mainRow {
+    padding: 10px 10px 8px;
+  }
+  .chatCol {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(92vw, 360px);
+    max-width: 92vw;
+    z-index: 30;
+    box-shadow: -18px 0 40px -24px rgba(37, 35, 41, 0.45);
+  }
 }
 
 /* Room header */
@@ -422,15 +459,19 @@
 
 /* Stage */
 
-.stage {
+.stageGallery {
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .stageGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 400px));
-  justify-content: center;
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  align-items: start;
 }
 
 .stageEmpty {
@@ -458,13 +499,76 @@
   position: relative;
   background: #ffffff;
   border: 1px solid #e5d9dc;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   aspect-ratio: 4 / 3;
   box-shadow: 0 10px 22px -18px rgba(37, 35, 41, 0.5);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tileOffCam {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #2a2026, #3d2e38);
+}
+
+.tileCompact {
+  aspect-ratio: 1;
+  border-radius: 12px;
+}
+
+.tileCompactLabel {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 96%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #252329;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tileOffCamArea {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tileAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileAvatarLetter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4e4e8, #ead9e0);
+  color: #642743;
+  font-size: clamp(22px, 5vw, 40px);
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(139, 58, 98, 0.16);
+  flex-shrink: 0;
+}
+
+.tileHandCompact {
+  top: 6px;
+  left: 6px;
+  padding: 3px 6px;
 }
 
 .tileActive {
@@ -682,6 +786,24 @@
   color: #8b3a62;
 }
 
+.galleryCount {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(37, 35, 41, 0.6);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
 /* Avatars */
 
 .personAvatar,
@@ -738,6 +860,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .chatHeader {
@@ -787,7 +911,8 @@
 
 .chatMessages {
   position: relative;
-  max-height: 380px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px 18px;
   display: flex;
@@ -1389,11 +1514,97 @@
 
 .settingsRow {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
   margin: 0 0 12px;
   font-size: 13px;
   color: #252329;
+}
+
+.settingsRowIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgba(139, 58, 98, 0.1);
+  color: #642743;
+}
+
+.settingsRowBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settingsRowLabel {
+  font-size: 12px;
+  font-weight: 800;
+  color: #252329;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.settingsSelect {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #e5d9dc;
+  border-radius: 8px;
+  background: #fbf9fa;
+  font: inherit;
+  font-size: 13px;
+  color: #252329;
+}
+
+.settingsMuted {
+  font-size: 12px;
+  color: #716a70;
+}
+
+.settingsRowBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid #e5d9dc;
+  border-radius: 10px;
+  background: #fbf9fa;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #252329;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settingsRowBtn:hover:not(:disabled) {
+  border-color: #d98a9e;
+}
+
+.settingsRowBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.settingsRowBtnActive {
+  border-color: #8b3a62;
+  background: rgba(139, 58, 98, 0.08);
+}
+
+.settingsUnsupported {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: #716a70;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .settingsClose {
@@ -1595,6 +1806,14 @@
   justify-content: center;
   flex-shrink: 0;
   font-size: 15px;
+}
+
+.panelAvatarImg {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .panelRowMain {
@@ -2060,4 +2279,53 @@
 .moreItemActive {
   background: #f4e4e8;
   color: #8b3a62;
+}
+
+/* Chat images & hidden upload input */
+
+.chatImage {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 6px;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* Live captions overlay */
+
+.captionsBar {
+  position: fixed;
+  bottom: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  max-width: min(640px, 84vw);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(37, 35, 41, 0.82);
+  color: #ffffff;
+  font-size: 14px;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 18px 40px -20px rgba(37, 35, 41, 0.6);
+}
+
+.captionsFrom {
+  font-weight: 800;
+  color: #f0c8d4;
+  flex-shrink: 0;
+}
+
+.captionsText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

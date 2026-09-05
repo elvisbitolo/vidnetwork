@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useLocalParticipant } from "@livekit/components-react";
 import {
@@ -42,13 +42,13 @@ function TooltipBtn({ title, className, onClick, children, active }) {
 
 export default function RoomControls({
   isHost,
+  canPublish = true,
   onOpenParticipants,
   onOpenChat,
   onLeave,
   chatOpen,
   participantsOpen,
-  hideOffCamera = false,
-  onToggleHideOffCamera = () => {},
+  currentUserName = "",
 }) {
   const t = useTranslations("rooms");
   const { localParticipant, isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } = useLocalParticipant();
@@ -56,7 +56,20 @@ export default function RoomControls({
   const [showReactions, setShowReactions] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [devices, setDevices] = useState({ audio: [], video: [] });
+  const [captionsOn, setCaptionsOn] = useState(false);
+  const [captionText, setCaptionText] = useState("");
   const reactionsRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const captionsOnRef = useRef(false);
+
+  useEffect(() => {
+    captionsOnRef.current = captionsOn;
+  }, [captionsOn]);
+
+  const captionsSupported =
+    typeof window !== "undefined" &&
+    !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   function toggleMic() {
     if (localParticipant && typeof localParticipant.setMicrophoneEnabled === "function") {
@@ -74,18 +87,133 @@ export default function RoomControls({
     }
   }
 
+  function changeMicDevice(deviceId) {
+    if (localParticipant && typeof localParticipant.setMicrophoneEnabled === "function" && deviceId) {
+      localParticipant.setMicrophoneEnabled(isMicrophoneEnabled, { deviceId });
+    }
+  }
+  function changeCamDevice(deviceId) {
+    if (localParticipant && typeof localParticipant.setCameraEnabled === "function" && deviceId) {
+      localParticipant.setCameraEnabled(isCameraEnabled, { deviceId });
+    }
+  }
+
+  function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.().catch(() => {});
+      } else {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    } catch {
+      /* fullscreen unavailable */
+    }
+  }
+
+  function cycleCamera() {
+    const list = devices.video;
+    if (!list.length) return;
+    const current = localParticipant?.cameraTrack?.mediaStreamTrack?.getSettings?.().deviceId || "";
+    const idx = list.findIndex((d) => d.deviceId === current);
+    const next = list[(idx + 1) % list.length];
+    changeCamDevice(next?.deviceId);
+  }
+
+  function toggleCaptions() {
+    if (!captionsSupported) return;
+    if (captionsOnRef.current) {
+      try {
+        recognitionRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      captionsOnRef.current = false;
+      setCaptionsOn(false);
+      setCaptionText("");
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onresult = (e) => {
+      let final = "";
+      for (let i = e.resultIndex; i < e.results.length; i += 1) {
+        if (e.results[i].isFinal) final = e.results[i][0].transcript;
+      }
+      if (final) {
+        setCaptionText(final);
+      }
+    };
+    rec.onerror = () => {
+      if (captionsOnRef.current) {
+        setCaptionsOn(false);
+      }
+    };
+    rec.onend = () => {
+      if (captionsOnRef.current) {
+        try {
+          rec.start();
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+    try {
+      rec.start();
+    } catch {
+      setCaptionsOn(false);
+      return;
+    }
+    recognitionRef.current = rec;
+    captionsOnRef.current = true;
+    setCaptionsOn(true);
+  }
+
+  useEffect(() => {
+    if (!showSettings) return;
+    let active = true;
+    navigator.mediaDevices
+      ?.enumerateDevices?.()
+      .then((list) => {
+        if (!active) return;
+        setDevices({
+          audio: list.filter((d) => d.kind === "audioinput"),
+          video: list.filter((d) => d.kind === "videoinput"),
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [showSettings]);
+
+  useEffect(() => {
+    return () => {
+      try {
+        recognitionRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
+
   return (
     <div className={styles.controlsBar}>
       <div className={styles.controlsLeft}>
-        <TooltipBtn title={isMicrophoneEnabled ? t("muteMic") : t("unmuteMic")} onClick={toggleMic} className={isMicrophoneEnabled ? "" : styles.ctrlDanger}>
-          {isMicrophoneEnabled ? <Mic size={18} /> : <MicOff size={18} />}
-        </TooltipBtn>
-        <TooltipBtn title={isCameraEnabled ? t("turnOffCam") : t("turnOnCam")} onClick={toggleCam} className={isCameraEnabled ? "" : styles.ctrlDanger}>
-          {isCameraEnabled ? <Video size={18} /> : <VideoOff size={18} />}
-        </TooltipBtn>
-        <TooltipBtn title={t("shareScreen")} onClick={toggleScreen} className={isScreenShareEnabled ? styles.ctrlActive : ""}>
-          <MonitorUp size={18} />
-        </TooltipBtn>
+        {canPublish !== false && (
+          <>
+            <TooltipBtn title={isMicrophoneEnabled ? t("muteMic") : t("unmuteMic")} onClick={toggleMic} className={isMicrophoneEnabled ? "" : styles.ctrlDanger}>
+              {isMicrophoneEnabled ? <Mic size={18} /> : <MicOff size={18} />}
+            </TooltipBtn>
+            <TooltipBtn title={isCameraEnabled ? t("turnOffCam") : t("turnOnCam")} onClick={toggleCam} className={isCameraEnabled ? "" : styles.ctrlDanger}>
+              {isCameraEnabled ? <Video size={18} /> : <VideoOff size={18} />}
+            </TooltipBtn>
+            <TooltipBtn title={t("shareScreen")} onClick={toggleScreen} className={isScreenShareEnabled ? styles.ctrlActive : ""}>
+              <MonitorUp size={18} />
+            </TooltipBtn>
+          </>
+        )}
         <TooltipBtn title={t("raiseHand")} onClick={toggleHand} className={myHandRaised ? styles.ctrlActive : ""}>
           <Hand size={18} />
         </TooltipBtn>
@@ -122,26 +250,21 @@ export default function RoomControls({
           {showMore && (
             <div className={styles.moreMenu}>
               {isHost && <p className={styles.moreMenuTitle}>{t("hostControls")}</p>}
-              <button type="button" className={styles.moreItem} onClick={() => setShowSettings(true)}>
+              <button type="button" className={styles.moreItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
                 <Captions size={15} /> {t("captions")}
               </button>
-              <button type="button" className={styles.moreItem}>
+              <button type="button" className={styles.moreItem} onClick={toggleFullscreen}>
                 <Maximize size={15} /> {t("fullscreen")}
               </button>
-              <button type="button" className={styles.moreItem} onClick={toggleScreen}>
-                <MonitorUp size={15} /> {t("shareScreen")}
-              </button>
-              <button
-                type="button"
-                className={[styles.moreItem, hideOffCamera ? styles.moreItemActive : ""].filter(Boolean).join(" ")}
-                onClick={onToggleHideOffCamera}
-              >
-                <VideoOff size={15} /> {t("hideOffCamera")}
-              </button>
-              <button type="button" className={styles.moreItem} onClick={() => setShowSettings(true)}>
+              {canPublish !== false && (
+                <button type="button" className={styles.moreItem} onClick={toggleScreen}>
+                  <MonitorUp size={15} /> {t("shareScreen")}
+                </button>
+              )}
+              <button type="button" className={styles.moreItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
                 <Volume2 size={15} /> {t("audioSettings")}
               </button>
-              <button type="button" className={styles.moreItem}>
+              <button type="button" className={styles.moreItem} onClick={() => { setShowMore(false); setShowSettings(true); }}>
                 <SwitchCamera size={15} /> {t("videoSettings")}
               </button>
               <div className={styles.moreDivider} />
@@ -166,20 +289,86 @@ export default function RoomControls({
         <button type="button" className={styles.settingsBackdrop} onClick={() => setShowSettings(false)} aria-label={t("close")}>
           <div className={styles.settingsPanel} onClick={(e) => e.stopPropagation()}>
             <h4 className={styles.settingsTitle}>{t("settingsTitle")}</h4>
-            <p className={styles.settingsRow}>
-              <Volume2 size={16} /> {t("audioSettings")} — {t("comingSoon")}
-            </p>
-            <p className={styles.settingsRow}>
-              <SwitchCamera size={16} /> {t("videoSettings")} — {t("comingSoon")}
-            </p>
-            <p className={styles.settingsRow}>
-              <Captions size={16} /> {t("captions")} — {t("comingSoon")}
-            </p>
+
+            <label className={styles.settingsRow}>
+              <span className={styles.settingsRowIcon}>
+                <Volume2 size={16} />
+              </span>
+              <span className={styles.settingsRowBody}>
+                <span className={styles.settingsRowLabel}>{t("microphone")}</span>
+                {devices.audio.length > 0 ? (
+                  <select
+                    className={styles.settingsSelect}
+                    value={localParticipant?.audioTrack?.mediaStreamTrack?.getSettings?.().deviceId || ""}
+                    onChange={(e) => changeMicDevice(e.target.value)}
+                    aria-label={t("microphone")}
+                  >
+                    <option value="">Default</option>
+                    {devices.audio.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || t("microphone")}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className={styles.settingsMuted}>{t("noMicrophone")}</span>
+                )}
+              </span>
+            </label>
+
+            <label className={styles.settingsRow}>
+              <span className={styles.settingsRowIcon}>
+                <SwitchCamera size={16} />
+              </span>
+              <span className={styles.settingsRowBody}>
+                <span className={styles.settingsRowLabel}>{t("camera")}</span>
+                {devices.video.length > 0 ? (
+                  <select
+                    className={styles.settingsSelect}
+                    value={localParticipant?.cameraTrack?.mediaStreamTrack?.getSettings?.().deviceId || ""}
+                    onChange={(e) => changeCamDevice(e.target.value)}
+                    aria-label={t("camera")}
+                  >
+                    <option value="">Default</option>
+                    {devices.video.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>
+                        {d.label || t("camera")}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className={styles.settingsMuted}>{t("noCamera")}</span>
+                )}
+              </span>
+            </label>
+
+            <button type="button" className={styles.settingsRowBtn} onClick={cycleCamera} disabled={devices.video.length < 2}>
+              <SwitchCamera size={16} /> {t("switchCamera")}
+            </button>
+
+            <button
+              type="button"
+              className={[styles.settingsRowBtn, captionsOn ? styles.settingsRowBtnActive : ""].filter(Boolean).join(" ")}
+              onClick={toggleCaptions}
+              disabled={!captionsSupported}
+            >
+              <Captions size={16} /> {captionsOn ? t("captionsOn") : t("captions")}
+              {!captionsSupported && <span className={styles.settingsUnsupported}>{t("captionsNotSupported")}</span>}
+            </button>
+
             <button type="button" className={styles.settingsClose} onClick={() => setShowSettings(false)}>
               {t("close")}
             </button>
           </div>
         </button>
+      )}
+
+      {captionsOn && captionText && (
+        <div className={styles.captionsBar} role="status" aria-live="polite">
+          <Captions size={15} />
+          <span className={styles.captionsFrom}>{currentUserName}</span>
+          <span className={styles.captionsText}>{captionText}</span>
+        </div>
       )}
     </div>
   );

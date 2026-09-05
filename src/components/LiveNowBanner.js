@@ -38,7 +38,7 @@ export default function LiveNowBanner() {
       <Link className={styles.liveLink} href={`/rooms/${primary.slug}`}>
         <span className={styles.liveDot} />
         <span className={styles.liveText}>
-          New members{extra}
+          {primary.name}{extra}
         </span>
         <span className={styles.liveJoin}>Join</span>
       </Link>

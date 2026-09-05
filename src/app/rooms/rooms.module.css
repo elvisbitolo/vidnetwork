@@ -208,3 +208,48 @@
   font-weight: 700;
   color: #17171c;
 }
+
+.alwaysOnCard {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(109, 93, 246, 0.15), rgba(167, 139, 250, 0.08));
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.alwaysOnBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--secondary-light);
+  white-space: nowrap;
+}
+
+.alwaysOnBadgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: livePulse 1.4s ease-in-out infinite;
+}
+
+.alwaysOnTitle {
+  padding-right: 100px;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

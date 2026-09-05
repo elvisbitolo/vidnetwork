@@ -39,6 +39,14 @@ import {
   MessageSquareReply,
   AtSign,
   ShieldCheck,
+  Crown,
+  Gem,
+  Check,
+  UserPlus,
+  DoorOpen,
+  FolderPlus,
+  Radio,
+  Sparkles,
 } from "lucide-react";
 import FeatureIconCard from "@/components/FeatureIconCard";
 import styles from "./page.module.css";
@@ -577,9 +585,6 @@ export default function Home() {
                   {t("learnAtOwnPace")}
                 </h2>
                 <p className={styles.sectionSub}>{t("learnAtOwnPaceDesc")}</p>
-                <Link className={styles.secondary} href="/courses">
-                  {t("browseCourses")}
-                </Link>
               </div>
             </Reveal>
             <Reveal>
@@ -629,6 +634,118 @@ export default function Home() {
               </div>
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      {/* ─── Membership tiers showcase ─── */}
+      <section className={styles.showcaseSection} aria-labelledby="membership-title">
+        <div className={styles.wrap}>
+          <Reveal>
+            <div className={styles.sectionHead}>
+              <h2 id="membership-title" className={styles.sectionTitle}>
+                {t("membershipTitle")}
+              </h2>
+              <p className={styles.sectionSub}>{t("membershipDesc")}</p>
+            </div>
+          </Reveal>
+          <Reveal>
+            <div className={styles.pricingGrid}>
+              {/* Free */}
+              <div className={styles.planCard}>
+                <div className={styles.planTop}>
+                  <p className={styles.planName}>{t("freePlan")}</p>
+                  <span className={styles.planMonthly}>{t("membershipMonthly")}</span>
+                </div>
+                <p className={styles.planPrice}>
+                  {t("freePlanPrice")}
+                  <span className={styles.planPeriod}>{t("perMonth")}</span>
+                </p>
+                <ul className={styles.planFeatures}>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureProfile")}</span>
+                  </li>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureFinder")}</span>
+                  </li>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureEvents")}</span>
+                  </li>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureCommunity")}</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Yarnery */}
+              <div className={styles.planCard}>
+                <div className={styles.planTop}>
+                  <p className={styles.planName}>Yarnery</p>
+                  <span className={styles.planMonthly}>{t("membershipMonthly")}</span>
+                </div>
+                <p className={styles.planPrice}>
+                  {t("planPrice7")}
+                  <span className={styles.planPeriod}>{t("perMonth")}</span>
+                </p>
+                <p className={styles.planIncludes}>{t("includesEverythingInFree")}</p>
+                <ul className={styles.planFeatures}>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureLounge")}</span>
+                  </li>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureGroups")}</span>
+                  </li>
+                  <li className={`${styles.planFeature} ${styles.planBadgeFeature}`}>
+                    <span className={styles.planBadge} aria-hidden="true">
+                      <Crown size={13} strokeWidth={2.25} />
+                    </span>
+                    <span>{t("planFeatureCrownBadge")}</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Lounge */}
+              <div className={`${styles.planCard} ${styles.planCardPopular}`}>
+                <span className={styles.planPopularTag}>{t("mostPopular")}</span>
+                <div className={styles.planTop}>
+                  <p className={styles.planName}>Lounge</p>
+                  <span className={styles.planMonthly}>{t("membershipMonthly")}</span>
+                </div>
+                <p className={styles.planPrice}>
+                  {t("planPrice18")}
+                  <span className={styles.planPeriod}>{t("perMonth")}</span>
+                </p>
+                <p className={styles.planIncludes}>{t("includesEverythingInOtherPlans")}</p>
+                <ul className={styles.planFeatures}>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureOwnGroup")}</span>
+                  </li>
+                  <li className={styles.planFeature}>
+                    <Check size={15} strokeWidth={2.5} aria-hidden="true" />
+                    <span>{t("planFeatureOwnLounge")}</span>
+                  </li>
+                  <li className={`${styles.planFeature} ${styles.planBadgeFeature}`}>
+                    <span className={`${styles.planBadge} ${styles.planBadgeDiamond}`} aria-hidden="true">
+                      <Gem size={13} strokeWidth={2.25} />
+                    </span>
+                    <span>{t("planFeatureDiamondBadge")}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </Reveal>
+          <Reveal>
+            <p className={styles.membershipNote}>
+              <Sparkles size={15} strokeWidth={2} aria-hidden="true" />
+              {t("comingSoon")}
+            </p>
+          </Reveal>
         </div>
       </section>
 

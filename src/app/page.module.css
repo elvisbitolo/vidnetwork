@@ -1383,6 +1383,163 @@
   }
 }
 
+/* ─── Membership showcase ─── */
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e8ded6;
+  border-radius: 18px;
+  padding: 28px 26px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.planCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px -24px rgba(23, 10, 51, 0.25);
+}
+
+.planCardPopular {
+  border-color: #f42e79;
+  box-shadow: 0 24px 48px -28px rgba(244, 46, 121, 0.45);
+}
+
+.planPopularTag {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f42e79;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.planTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.planName {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #090c26;
+  margin: 0;
+}
+
+.planMonthly {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a7a6c;
+  background: #f7f1eb;
+  border-radius: 999px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 18px 0 4px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #090c26;
+}
+
+.planPeriod {
+  font-size: 15px;
+  font-weight: 600;
+  color: #8a7a6c;
+  letter-spacing: 0;
+}
+
+.planIncludes {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a5d68;
+  padding-top: 14px;
+  border-top: 1px solid #f0e7df;
+}
+
+.planFeatures {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planFeature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #3c3a4a;
+}
+
+.planFeature svg {
+  color: #f42e79;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.planBadgeFeature {
+  align-items: center;
+}
+
+.planBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f6b73c, #d98b00);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.planBadgeDiamond {
+  background: linear-gradient(135deg, #57c7ff, #2b7fd4);
+}
+
+.membershipNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8a7a6c;
+}
+
+.membershipNote svg {
+  color: #f42e79;
+}
+
 /* ─── Responsive ─── */
 
 @media (max-width: 1024px) {
@@ -1395,6 +1552,13 @@
   }
   .footerInner {
     grid-template-columns: 1fr 1fr;
+  }
+  .pricingGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .planCardPopular {
+    grid-column: span 2;
+    order: -1;
   }
 }
 
@@ -1415,5 +1579,12 @@
   }
   .ctaPanel {
     padding: 76px 20px;
+  }
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+  .planCardPopular {
+    grid-column: auto;
+    order: 0;
   }
 }

@@ -15,11 +15,26 @@ export default async function RoomsPage() {
   const userDoc = await getUserDoc(user.uid);
 
   await seedAlwaysOnRoom();
+  const now = new Date().getTime();
   const rooms = await listRooms();
   const activeRooms = rooms.filter((room) => room.status === "active");
+  const isLiveNow = (room) => {
+    if (!room.opensAt) return true;
+    const t = room.opensAt?.toMillis
+      ? room.opensAt.toMillis()
+      : typeof room.opensAt === "number"
+        ? room.opensAt
+        : Number.NaN;
+    return Number.isFinite(t) ? t <= now : true;
+  };
   const alwaysOnRoom = activeRooms.find((room) => room.alwaysOn);
   const regularRooms = activeRooms.filter((room) => !room.alwaysOn);
-  const liveBroadcasts = regularRooms.filter((room) => (room.kind || "standard") === "broadcast");
+  const liveBroadcasts = regularRooms.filter(
+    (room) => (room.kind || "standard") === "broadcast" && isLiveNow(room)
+  );
+  const gridRooms = regularRooms.filter(
+    (room) => !(room.kind === "broadcast" && isLiveNow(room))
+  );
 
   const groupIds = [...new Set(activeRooms.map((room) => room.groupId).filter(Boolean))];
   const groupsById = {};
@@ -74,36 +89,15 @@ export default async function RoomsPage() {
         ) : (
           <div className={styles.grid}>
             {alwaysOnRoom && (
-              <Link href={`/rooms/${alwaysOnRoom.slug}`} className={styles.card} style={{
-                background: "linear-gradient(135deg, rgba(109,93,246,0.15), rgba(167,139,250,0.08))",
-                border: "1px solid rgba(167,139,250,0.3)",
-                position: "relative",
-                overflow: "hidden",
-              }}>
-                <div style={{
-                  position: "absolute",
-                  top: 12,
-                  right: 12,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "4px 10px",
-                  borderRadius: 999,
-                  background: "rgba(167,139,250,0.2)",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "var(--secondary-light)",
-                }}>
-                  <span style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "#4ade80",
-                    animation: "livePulse 1.4s ease-in-out infinite",
-                  }} />
+              <Link
+                href={`/rooms/${alwaysOnRoom.slug}`}
+                className={`${styles.card} ${styles.alwaysOnCard}`}
+              >
+                <span className={styles.alwaysOnBadge}>
+                  <span className={styles.alwaysOnBadgeDot} aria-hidden="true" />
                   Always Open
-                </div>
-                <h2 className={styles.cardTitle} style={{ paddingRight: 100 }}>
+                </span>
+                <h2 className={`${styles.cardTitle} ${styles.alwaysOnTitle}`}>
                   {alwaysOnRoom.name}
                 </h2>
                 <p className={styles.cardDesc}>{alwaysOnRoom.description}</p>
@@ -112,7 +106,7 @@ export default async function RoomsPage() {
                 </p>
               </Link>
             )}
-            {regularRooms.map((room) => (
+            {gridRooms.map((room) => (
               <Link key={room.id} href={`/rooms/${room.slug}`} className={styles.card}>
                 <h2 className={styles.cardTitle}>
                   {room.name}

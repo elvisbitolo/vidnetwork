@@ -12,7 +12,7 @@ import BackButton from "@/components/BackButton";
 import AmbientAudio from "@/components/AmbientAudio";
 import RoomBackground from "@/components/RoomBackground";
 import RoomMusicPicker from "@/components/RoomMusicPicker";
-import RoomDataProvider from "./RoomDataProvider";
+import RoomDataProvider, { useRoomData } from "./RoomDataProvider";
 import RoomStage from "./RoomStage";
 import RoomChat from "./RoomChat";
 import RoomControls from "./RoomControls";
